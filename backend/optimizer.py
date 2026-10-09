@@ -154,8 +154,22 @@ class LineupOptimizer:
                     official_pct = p_val.get('percentage', 70)
                     is_starter = p_val.get('is_starter', False)
                     break
+
+            # Exact ballottaggio matching avoiding 1-letter false positives (e.g. 'g' in 'ramos g.' matching 'doig')
+            clean_tokens = [re.sub(r'[^a-z0-9]', '', p) for p in norm_name.split()]
+            valid_tokens = [t for t in clean_tokens if len(t) >= 3 and t not in ['del', 'della', 'dei', 'degli', 'san', 'van', 'von', 'dos', 'da']]
+            
             for bal in match.get('ballottaggi', []):
-                if norm_name in bal.lower() or any(part in bal.lower() for part in norm_name.split()):
+                bal_lower = bal.lower()
+                if norm_name in bal_lower:
+                    ballottaggio_note = bal
+                    break
+                matched_token = False
+                for token in valid_tokens:
+                    if re.search(rf'\b{re.escape(token)}\b', bal_lower):
+                        matched_token = True
+                        break
+                if matched_token:
                     ballottaggio_note = bal
                     break
 
@@ -182,19 +196,32 @@ class LineupOptimizer:
         # B) Matchup & Opponent Factor (0 - 25 pt)
         home_bonus = 4.0 if is_home else 0.0
         if role in ['A', 'C']:
-            matchup_pts = max(4.0, (5.2 - opp_diff) * 5.5 + home_bonus)
+            matchup_pts = max(6.0, (5.2 - opp_diff) * 4.8 + home_bonus)
         elif role == 'P':
-            cs_pct = gk_data['clean_sheet_prob'] if gk_data else 30
-            matchup_pts = (cs_pct / 100.0) * 20.0 + home_bonus
+            cs_pct = gk_data['clean_sheet_prob'] if gk_data else 35
+            matchup_pts = (cs_pct / 100.0) * 16.0 + (5.0 - opp_diff) * 2.0 + home_bonus
         else: # D
-            matchup_pts = max(4.0, (5.2 - opp_diff) * 5.0 + (home_bonus * 1.2))
+            matchup_pts = max(6.0, (5.2 - opp_diff) * 4.6 + (home_bonus * 1.2))
         matchup_pts = min(25.0, matchup_pts)
 
-        # C) Advanced Threat & Metrics Factor (0 - 25 pt)
+        # C) Advanced Threat & Metrics Factor (0 - 25 pt) calibrated across all roles
+        pure_base = metrics_data.get('pure_base_grade', 6.20)
         if role == 'P':
-            threat_pts = (min(16, max(1, qa)) / 16.0) * 16.0 + (min(80, fvm) / 80.0) * 9.0
-        else:
-            threat_pts = (metrics_data['threat_score'] / 10.0) * 18.0 + (min(38, qa) / 38.0) * 7.0
+            base_pts = min(15.0, max(8.0, (pure_base - 5.8) * 25.0))
+            fvm_pts = (min(80, fvm) / 80.0) * 6.0
+            qa_pts = (min(16, max(1, qa)) / 16.0) * 4.0
+            threat_pts = min(25.0, base_pts + fvm_pts + qa_pts)
+        elif role == 'D':
+            # Defenders valued on high base vote (modifier capability) + wingback threat + QA
+            base_pts = min(15.0, max(8.0, (pure_base - 5.8) * 25.0))
+            offensive_pts = min(6.0, (metrics_data.get('threat_score', 2.0) / 10.0) * 8.0)
+            qa_pts = min(4.0, (min(25, qa) / 25.0) * 4.0)
+            threat_pts = min(25.0, base_pts + offensive_pts + qa_pts)
+        elif role == 'C':
+            base_pts = min(10.0, max(5.0, (pure_base - 5.8) * 16.0))
+            threat_pts = min(25.0, base_pts + min(11.0, (metrics_data.get('threat_score', 3.0) / 10.0) * 14.0) + min(4.0, (qa / 30.0) * 4.0))
+        else: # A
+            threat_pts = min(25.0, (metrics_data.get('threat_score', 4.0) / 10.0) * 20.0 + min(5.0, (qa / 36.0) * 5.0))
 
         # D) Penalties & Specialties (0 - 10 pt)
         special_pts = 0.0
@@ -204,19 +231,32 @@ class LineupOptimizer:
             special_pts += 3.0
 
         # E) SOS Fanta Editorial (0 - 10 pt)
-        editorial_pts = max(-5.0, min(10.0, sf_bonus))
+        editorial_pts = max(-6.0, min(10.0, sf_bonus))
 
         total_score = round(max(10.0, min(99.0, titolarita_pts + matchup_pts + threat_pts + special_pts + editorial_pts)), 1)
 
+        # F) Direct SOS Fanta & Titolarità Floor Calibration
+        # Ensure ratings faithfully reflect editorial advice and certainty of starting
+        sf_cat = sf_analysis.get('category', 'NEUTRO')
+        if sf_cat == 'SCHIERARE ASSOLUTO':
+            total_score = max(total_score, 82.0)
+        elif sf_cat == 'PROMOSSO':
+            total_score = max(total_score, 72.0)
+        elif sf_cat in ['SCHIERABILE', 'IDEA A SORPRESA']:
+            total_score = max(total_score, 62.0)
+        elif sf_cat == 'COPERTURA':
+            total_score = max(total_score, 56.0)
+
+        # A confirmed starter (titolarità >= 80%) with no negative advice must never be "RISCHIOSO" (< 58 pt)
+        if calibrated_titolarita >= 80 and sf_cat != 'ATTENZIONE / RISCHIOSO':
+            total_score = max(total_score, 62.0)
+
         # --- COMPUTE REALISTIC EXPECTED FANTAVOTO (5.0 - 8.5) ---
-        pure_base = metrics_data['pure_base_grade']
         if role == 'P':
             xgc = gk_data['expected_goals_conceded'] if gk_data else 1.2
             cs_p = (gk_data['clean_sheet_prob'] if gk_data else 30) / 100.0
-            # Vote ~ 6.0 - xgc*1.0 + cs_bonus*0.5 + saves
             expected_fv = round(6.0 - (xgc * 0.9) + (cs_p * 0.8) + (0.3 if is_home else 0.0), 2)
         elif role == 'D':
-            # Pure grade + assist expectation + goal expectation
             expected_fv = round(pure_base + (metrics_data['xa'] * 1.0) + (metrics_data['xg'] * 3.0) + (0.15 if is_home else 0.0), 2)
         elif role == 'C':
             pen_bonus = 0.6 if is_penalty else 0.0
@@ -331,6 +371,9 @@ class LineupOptimizer:
         - 6.00 to 6.49: +1 pt
         - 6.50 to 6.99: +3 pt
         - >= 7.00: +6 pt
+
+        When preferred_formation is 'auto' or None, evaluates modules to find the absolute
+        maximum expected points (comparing with vs without modifier impact).
         """
         evaluated_players = [self.evaluate_player(p) for p in user_players]
         
@@ -378,7 +421,6 @@ class LineupOptimizer:
             mod_avg = 0.0
             mod_tier = "Nessun bonus"
             if use_defense_modifier and reqs['D'] >= 4:
-                # Top 3 defenders + GK pure base grade
                 gk_grade = selected_starters[0]['super_intelligence']['metrics']['pure_base_grade']
                 top3_def_grades = [d['super_intelligence']['metrics']['pure_base_grade'] for d in selected_starters[1:4]]
                 mod_avg = round((gk_grade + sum(top3_def_grades)) / 4.0, 2)
@@ -398,9 +440,10 @@ class LineupOptimizer:
 
             total_team_expected_pts = round(base_expected_fv + mod_bonus, 1)
             
-            # Composite optimization objective: maximize expected points + quality score
+            # Primary criterion: HIGHEST EXPECTED FANTAPUNTI (multiplied by 1000 so points strictly dominate)
+            # Secondary criterion: total quality score as tiebreaker
             quality_score = sum(p['score'] for p in selected_starters)
-            composite_value = (total_team_expected_pts * 10.0) + quality_score
+            composite_value = (total_team_expected_pts * 1000.0) + quality_score
             
             if composite_value > best_composite_score:
                 best_composite_score = composite_value
@@ -431,7 +474,10 @@ class LineupOptimizer:
                 'starters_count': len(best_starters)
             }
 
-        # Bench construction
+        # Bench construction:
+        # First include all healthy available players in priority order by role & quality score.
+        # Then, append any injured/suspended squad players at the tail so that the entire
+        # 25-man squad is completely visible and represented on the match sheet!
         starter_ids = {p.get('id', p.get('name')) for p in best_starters}
         bench = []
         bench_p = [p for p in by_role['P'] if p.get('id', p.get('name')) not in starter_ids]
@@ -439,10 +485,16 @@ class LineupOptimizer:
         bench_c = [p for p in by_role['C'] if p.get('id', p.get('name')) not in starter_ids]
         bench_a = [p for p in by_role['A'] if p.get('id', p.get('name')) not in starter_ids]
         
-        bench.extend(bench_p[:2])
-        bench.extend(bench_d[:3])
-        bench.extend(bench_c[:3])
-        bench.extend(bench_a[:3])
+        bench.extend(bench_p)
+        bench.extend(bench_d)
+        bench.extend(bench_c)
+        bench.extend(bench_a)
+        
+        # Complete bench with injured players if available
+        if injured_players:
+            role_order = {'P': 0, 'D': 1, 'C': 2, 'A': 3}
+            injured_sorted = sorted(injured_players, key=lambda x: (role_order.get(x.get('role', 'C'), 4), -x.get('qa', 0)))
+            bench.extend(injured_sorted)
         
         bench_ids = {p.get('id', p.get('name')) for p in bench}
         tribuna = [p for p in available_players if p.get('id', p.get('name')) not in starter_ids and p.get('id', p.get('name')) not in bench_ids]

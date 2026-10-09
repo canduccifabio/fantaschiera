@@ -41,8 +41,8 @@ function renderSoccerPitch(starters, formation = '3-4-3', onPlayerClickCallback 
 
   function buildRowHTML(players, rowClass) {
     let html = `<div class="pitch-row ${rowClass}">`;
-    players.forEach((p, idx) => {
-      const isBallottaggio = p.ballottaggio_note || p.titolarita_pct < 75;
+      // Ring is orange only for genuine uncertain starters (<70% titolarità or low ballottaggio)
+      const isBallottaggio = p.titolarita_pct < 70 || (p.ballottaggio_note && p.titolarita_pct <= 60);
       const ringClass = isBallottaggio ? 'titolarita-ring ballottaggio' : 'titolarita-ring';
       const number = p.role === 'P' ? 1 : (idx + 2);
       

@@ -3,7 +3,7 @@
  */
 
 let currentFormation = 'auto';
-let useDefenseModifier = false;
+let useDefenseModifier = true;
 let currentLineupData = null;
 let currentSquadData = null;
 
@@ -125,22 +125,31 @@ function renderLineupView(data) {
   // Render Bench
   const benchContainer = document.getElementById('benchListContainer');
   if (benchContainer) {
-    benchContainer.innerHTML = data.bench.map((p, idx) => `
-      <div class="player-row" style="opacity: 0.88;" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
-        <div class="player-left">
-          <span style="font-size:0.75rem; font-weight:700; color:#64748b; width:18px;">${idx + 1}°</span>
-          <span class="role-badge role-${p.role}">${p.role}</span>
-          <div>
-            <div class="player-name-main" style="font-size:0.9rem;">${p.name} <span style="font-weight:400; font-size:0.75rem; color:#94a3b8;">(${p.team})</span></div>
-            <div class="player-meta">${p.opponent ? 'vs ' + p.opponent : 'Riserva'}</div>
+    benchContainer.innerHTML = data.bench.map((p, idx) => {
+      const isInj = p.is_out || p.status === 'INFORTUNATO' || p.status === 'SQUALIFICATO';
+      const rightMeta = isInj 
+        ? `<span class="badge-status badge-danger" style="font-size:0.7rem; padding:2px 6px;">${p.status === 'SQUALIFICATO' ? '🚫 SQUAL' : '🚑 INF'}</span>`
+        : `<span class="score-pill" style="font-size:0.8rem;">★ ${Math.round(p.score)}</span>
+           <div style="font-size:0.7rem; color:var(--text-muted);">FV: ${p.expected_fantavoto || 6.0} pt</div>`;
+      const rowStyle = isInj ? 'opacity: 0.65; background: rgba(239, 68, 68, 0.05);' : 'opacity: 0.88;';
+      const subMeta = isInj ? (p.injury_type || p.injury_reason || 'Indisponibile') : (p.opponent ? 'vs ' + p.opponent : 'Riserva');
+
+      return `
+        <div class="player-row" style="${rowStyle}" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+          <div class="player-left">
+            <span style="font-size:0.75rem; font-weight:700; color:#64748b; width:18px;">${idx + 1}°</span>
+            <span class="role-badge role-${p.role}">${p.role}</span>
+            <div>
+              <div class="player-name-main" style="font-size:0.9rem;">${p.name} <span style="font-weight:400; font-size:0.75rem; color:#94a3b8;">(${p.team})</span> ${isInj ? '<span style="color:#ef4444; font-size:0.75rem;">🚑</span>' : ''}</div>
+              <div class="player-meta">${subMeta}</div>
+            </div>
+          </div>
+          <div class="player-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+            ${rightMeta}
           </div>
         </div>
-        <div class="player-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
-          <span class="score-pill" style="font-size:0.8rem;">★ ${Math.round(p.score)}</span>
-          <div style="font-size:0.7rem; color:var(--text-muted);">FV: ${p.expected_fantavoto || 6.0} pt</div>
-        </div>
-      </div>
-    `).join('');
+      `;
+    }).join('');
   }
 
   // Render Injured in Squad (if any)
@@ -826,9 +835,26 @@ async function loadSOSFantaAnalysis() {
         `;
       }).join('');
     }
+
+    // Silently pre-fetch full article in background so modal opens instantly on click
+    fetch('/api/sosfanta/full-article')
+      .then(res => res.json())
+      .then(data => { if (data.success) fullArticleDataCache = data; })
+      .catch(() => {});
   } catch (e) {
     if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Errore nel caricamento dei dati SOS Fanta.</div>`;
   }
+}
+
+// Helper to format clean full match names (e.g. "Sassuolo - Milan", "Atalanta - Venezia")
+function formatMatchTitle(rawTitle) {
+  if (!rawTitle) return '';
+  const parts = rawTitle.split(/[-–vsVS]/).map(p => p.trim());
+  if (parts.length >= 2) {
+    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+    return `${cap(parts[0])} - ${cap(parts[1])}`;
+  }
+  return rawTitle;
 }
 
 async function syncSOSFantaPreview() {
@@ -877,10 +903,37 @@ async function autoDiscoverSOSFanta() {
 }
 
 // --- SOS FANTA FULL ARTICLE READER MODAL ---
+function populateFullArticleUI(data) {
+  const mday = data.matchday || "Giornata";
+  const badge = document.getElementById('fullArticleMatchdayBadge');
+  if (badge) badge.innerText = mday;
+  
+  const extLink = document.getElementById('fullArticleExternalLink');
+  if (extLink && data.preview_url) extLink.href = data.preview_url;
+
+  renderFullArticleNavPills(data.slides || []);
+  renderFullArticleMatches(data.slides || [], '');
+
+  const searchInput = document.getElementById('fullArticleSearchInput');
+  if (searchInput) {
+    searchInput.value = '';
+    searchInput.oninput = (e) => {
+      const query = e.target.value.trim().toLowerCase();
+      renderFullArticleMatches(data.slides || [], query);
+    };
+  }
+}
+
 async function openSOSFantaFullArticleModal() {
   const dialog = document.getElementById('sosfantaFullModal');
   if (!dialog) return;
   dialog.showModal();
+
+  // If already loaded in memory, display immediately with 0 delay!
+  if (fullArticleDataCache && fullArticleDataCache.slides) {
+    populateFullArticleUI(fullArticleDataCache);
+    return;
+  }
 
   const container = document.getElementById('fullArticleMatchesContainer');
   if (container) {
@@ -892,25 +945,7 @@ async function openSOSFantaFullArticleModal() {
     if (!res.ok) throw new Error("Errore caricamento articolo");
     const data = await res.json();
     fullArticleDataCache = data;
-
-    const mday = data.matchday || "Giornata";
-    const badge = document.getElementById('fullArticleMatchdayBadge');
-    if (badge) badge.innerText = mday;
-    
-    const extLink = document.getElementById('fullArticleExternalLink');
-    if (extLink && data.preview_url) extLink.href = data.preview_url;
-
-    renderFullArticleNavPills(data.slides || []);
-    renderFullArticleMatches(data.slides || [], '');
-
-    const searchInput = document.getElementById('fullArticleSearchInput');
-    if (searchInput) {
-      searchInput.value = '';
-      searchInput.oninput = (e) => {
-        const query = e.target.value.trim().toLowerCase();
-        renderFullArticleMatches(fullArticleDataCache.slides || [], query);
-      };
-    }
+    populateFullArticleUI(data);
   } catch (e) {
     if (container) {
       container.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">Impossibile recuperare l'articolo integrale.</div>`;
@@ -934,16 +969,12 @@ function renderFullArticleNavPills(slides) {
   `;
 
   slides.forEach((s) => {
-    const parts = s.title.split(/[-–vsVS]/).map(p => p.trim());
-    let shortName = s.title;
-    if (parts.length >= 2) {
-      shortName = `${parts[0].slice(0, 3).toUpperCase()}-${parts[1].slice(0, 3).toUpperCase()}`;
-    }
+    const fullMatchName = formatMatchTitle(s.title);
     const myCount = s.my_players ? s.my_players.length : 0;
     const badgeStr = myCount > 0 ? ` (${myCount}⭐)` : '';
     pillsHtml += `
       <button class="match-pill-btn" onclick="filterMatchSlide(${s.page}, this)">
-        ${s.page}. ${shortName}${badgeStr}
+        ${s.page}. ${fullMatchName}${badgeStr}
       </button>
     `;
   });
@@ -1016,7 +1047,7 @@ function renderFullArticleMatches(slides, query, isSingle = false) {
       <div class="article-match-card" id="match-card-${s.page}">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px; flex-wrap:wrap; gap:6px;">
           <div style="font-weight:800; font-size:1.02rem; color:#f87171; letter-spacing:0.3px;">
-            ⚽ ${s.page}. ${s.title}
+            ⚽ ${s.page}. ${formatMatchTitle(s.title)}
           </div>
           <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Partita ${s.page} di 10</span>
         </div>
