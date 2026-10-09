@@ -226,7 +226,7 @@ async def get_sosfanta_analysis():
     }
 
 @app.get("/api/sosfanta/full-article")
-async def get_sosfanta_full_article():
+def get_sosfanta_full_article():
     user_players = get_user_squad()
     data = sosfanta_analyzer.get_full_article_data(user_players)
     return {

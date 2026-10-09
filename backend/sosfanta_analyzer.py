@@ -276,38 +276,55 @@ class SOSFantaAnalyzer:
         return results
 
     def get_full_article_data(self, user_players: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-        """Returns full article text and slides with user player highlights."""
+        """Returns full article text and slides with user player highlights (ultra-fast cached)."""
         if not self.scraped_data or not self.scraped_data.get('slides'):
             self.scrape_all_slides()
+
+        cache_key = tuple(p['name'] for p in (user_players or []))
+        if hasattr(self, '_full_article_cache') and self._full_article_cache and self._full_article_cache.get('key') == cache_key:
+            return self._full_article_cache['data']
 
         slides = self.scraped_data.get('slides', [])
         enriched_slides = []
 
+        # Precompute analyses ONCE per player (25 calls instead of 250 calls)
+        player_analyses = {}
+        if user_players:
+            for p in user_players:
+                analysis = self.analyze_player(p['name'], p.get('team', ''))
+                if analysis.get('mentioned'):
+                    player_analyses[p['name']] = {
+                        'player': p,
+                        'analysis': analysis
+                    }
+
         for s in slides:
             slide_copy = dict(s)
             matched_players = []
-            if user_players:
-                slide_text = s.get('text', '')
-                for p in user_players:
-                    analysis = self.analyze_player(p['name'], p.get('team', ''))
-                    if analysis['mentioned'] and analysis['quote'] in slide_text:
-                        matched_players.append({
-                            'name': p['name'],
-                            'role': p.get('role', 'C'),
-                            'team': p.get('team', ''),
-                            'category': analysis['category'],
-                            'badge': analysis['badge'],
-                            'icon': analysis['icon'],
-                            'quote': analysis['quote']
-                        })
+            slide_text = s.get('text', '')
+            for p_name, p_info in player_analyses.items():
+                p = p_info['player']
+                analysis = p_info['analysis']
+                if analysis.get('quote') and analysis['quote'] in slide_text:
+                    matched_players.append({
+                        'name': p['name'],
+                        'role': p.get('role', 'C'),
+                        'team': p.get('team', ''),
+                        'category': analysis['category'],
+                        'badge': analysis['badge'],
+                        'icon': analysis['icon'],
+                        'quote': analysis['quote']
+                    })
             slide_copy['my_players'] = matched_players
             enriched_slides.append(slide_copy)
 
-        return {
+        res = {
             "preview_url": self.preview_url,
             "matchday": self.get_matchday_label(),
             "slides_count": len(enriched_slides),
             "slides": enriched_slides
         }
+        self._full_article_cache = {'key': cache_key, 'data': res}
+        return res
 
 sosfanta_analyzer = SOSFantaAnalyzer()

@@ -733,6 +733,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial load
   loadLineupRecommendation();
   loadTunnelInfo();
+
+  // Pre-fetch SOS Fanta full article in the background so modal opens with 0 latency
+  fetch('/api/sosfanta/full-article')
+    .then(r => r.json())
+    .then(d => { if (d.success) fullArticleDataCache = d; })
+    .catch(() => {});
 });
 
 // --- TUNNEL INFO & COPY ---
@@ -849,12 +855,17 @@ async function loadSOSFantaAnalysis() {
 // Helper to format clean full match names (e.g. "Sassuolo - Milan", "Atalanta - Venezia")
 function formatMatchTitle(rawTitle) {
   if (!rawTitle) return '';
-  const parts = rawTitle.split(/[-–vsVS]/).map(p => p.trim());
+  // Split on hyphen/dash or whole word 'vs' or 'contro', NEVER character classes like [s]!
+  const parts = rawTitle.split(/\s*[-–—]\s*|\s+(?:vs\.?|contro)\s+/i).map(p => p.trim()).filter(Boolean);
   if (parts.length >= 2) {
-    const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-    return `${cap(parts[0])} - ${cap(parts[1])}`;
+    const formatTeam = (str) => {
+      const clean = str.trim();
+      if (clean.length <= 3) return clean.toUpperCase();
+      return clean.charAt(0).toUpperCase() + clean.slice(1).toLowerCase();
+    };
+    return `${formatTeam(parts[0])} - ${formatTeam(parts[1])}`;
   }
-  return rawTitle;
+  return rawTitle.trim();
 }
 
 async function syncSOSFantaPreview() {
@@ -1029,6 +1040,8 @@ function renderFullArticleMatches(slides, query, isSingle = false) {
     if (s.paragraphs && s.paragraphs.length > 0) {
       parasHtml = s.paragraphs.map(p => {
         let highlighted = p;
+        // Make team name heading prominent at paragraph start (e.g. Genoa :, Milan :)
+        highlighted = highlighted.replace(/^([A-Za-zÀ-ÿ\s]{3,25}\s*:)/, '<strong style="color:#60a5fa; font-weight:800; font-size:0.95rem; display:inline-block; margin-right:4px;">$1</strong>');
         myPlayers.forEach(mp => {
           const reg = new RegExp(`(${mp.name.split(' ')[0]})`, 'gi');
           highlighted = highlighted.replace(reg, `<strong style="color:#34d399; background:rgba(16,185,129,0.15); padding:1px 4px; border-radius:4px;">$1</strong>`);
