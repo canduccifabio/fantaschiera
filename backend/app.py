@@ -50,7 +50,7 @@ class SettingsUpdateRequest(BaseModel):
     webhook_url: Optional[str] = None
 
 # --- UI Route ---
-@app.get("/")
+@app.api_route("/", methods=["GET", "HEAD"])
 async def home_page():
     return FileResponse(os.path.join(TEMPLATES_DIR, "index.html"))
 
