@@ -219,6 +219,10 @@ def scrape_fixtures_and_lineups():
                 away_formation = lineups[1].get('data-formation', '4-3-3')
                 home_lineup_players = [clean_player_name(p.get_text(strip=True)) for p in lineups[0].select('.player-name')]
                 away_lineup_players = [clean_player_name(p.get_text(strip=True)) for p in lineups[1].select('.player-name')]
+                if len(home_lineup_players) == 11:
+                    home_lineup_players = list(reversed(home_lineup_players))
+                if len(away_lineup_players) == 11:
+                    away_lineup_players = list(reversed(away_lineup_players))
                 
             # Player items with percentage
             player_percentages = {}

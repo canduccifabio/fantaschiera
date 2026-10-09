@@ -74,7 +74,7 @@ def save_user_squad(players: List[Dict]) -> bool:
 
 def get_settings() -> Dict:
     defaults = {
-        'defense_modifier': False,
+        'defense_modifier': True,
         'alert_enabled': True,
         'preferred_formation': 'auto',
         'alert_minutes_before': 60,

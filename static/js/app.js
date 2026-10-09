@@ -61,13 +61,38 @@ function renderLineupView(data) {
   // Update header overview
   const scoreEl = document.getElementById('totalExpectedScore');
   const modBonusEl = document.getElementById('modBonusDisplay');
+  const modTierEl = document.getElementById('modTierDetails');
+  const goalsBadgeEl = document.getElementById('goalsExpectedBadge');
   const formationLabelEl = document.getElementById('recommendedFormationName');
+  const defCheckbox = document.getElementById('defenseModifierCheckbox');
 
   if (scoreEl) scoreEl.innerText = data.total_expected_score;
   if (formationLabelEl) formationLabelEl.innerText = data.recommended_formation;
+  if (defCheckbox) defCheckbox.checked = (data.defense_modifier_active !== false);
+
   if (modBonusEl) {
-    modBonusEl.style.display = data.defense_modifier_bonus > 0 ? 'inline-block' : 'none';
-    modBonusEl.innerText = `+${data.defense_modifier_bonus} Mod. Difesa`;
+    if (data.defense_modifier_bonus > 0) {
+      modBonusEl.style.display = 'inline-block';
+      modBonusEl.className = 'badge-status badge-success';
+      modBonusEl.innerText = `+${data.defense_modifier_bonus} Mod. Difesa`;
+    } else {
+      modBonusEl.style.display = data.defense_modifier_active ? 'inline-block' : 'none';
+      modBonusEl.className = 'badge-status badge-primary';
+      modBonusEl.innerText = 'Mod. Difesa Attivo';
+    }
+  }
+
+  if (modTierEl) {
+    if (data.defense_modifier_active && data.defense_modifier_tier) {
+      modTierEl.innerText = `🛡️ ${data.defense_modifier_tier}`;
+      modTierEl.style.display = 'block';
+    } else {
+      modTierEl.style.display = 'none';
+    }
+  }
+
+  if (goalsBadgeEl) {
+    goalsBadgeEl.innerText = `⚽ ${data.goals_expected} GOL (${data.goals_tier_text || ''})`;
   }
 
   // Render Pitch
@@ -86,9 +111,12 @@ function renderLineupView(data) {
             <div class="player-meta">${p.match_info}</div>
           </div>
         </div>
-        <div class="player-right">
-          <span class="badge-status badge-${p.badge_class}">${p.status}</span>
-          <span class="score-pill">★ ${Math.round(p.score)}</span>
+        <div class="player-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="badge-status badge-${p.badge_class}">${p.status}</span>
+            <span class="score-pill">★ ${Math.round(p.score)}</span>
+          </div>
+          <div style="font-size:0.75rem; color:#f59e0b; font-weight:700;">FV: ${p.expected_fantavoto || 6.5} pt</div>
         </div>
       </div>
     `).join('');
@@ -98,7 +126,7 @@ function renderLineupView(data) {
   const benchContainer = document.getElementById('benchListContainer');
   if (benchContainer) {
     benchContainer.innerHTML = data.bench.map((p, idx) => `
-      <div class="player-row" style="opacity: 0.85;" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+      <div class="player-row" style="opacity: 0.88;" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
         <div class="player-left">
           <span style="font-size:0.75rem; font-weight:700; color:#64748b; width:18px;">${idx + 1}°</span>
           <span class="role-badge role-${p.role}">${p.role}</span>
@@ -107,11 +135,41 @@ function renderLineupView(data) {
             <div class="player-meta">${p.opponent ? 'vs ' + p.opponent : 'Riserva'}</div>
           </div>
         </div>
-        <div class="player-right">
+        <div class="player-right" style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
           <span class="score-pill" style="font-size:0.8rem;">★ ${Math.round(p.score)}</span>
+          <div style="font-size:0.7rem; color:var(--text-muted);">FV: ${p.expected_fantavoto || 6.0} pt</div>
         </div>
       </div>
     `).join('');
+  }
+
+  // Render Injured in Squad (if any)
+  const injuredSquadContainer = document.getElementById('injuredSquadContainer');
+  const injuredSquadList = document.getElementById('injuredSquadList');
+  const injuredSquadBadge = document.getElementById('injuredSquadCountBadge');
+  if (injuredSquadContainer && injuredSquadList) {
+    const inj = data.injured_players || [];
+    if (inj.length > 0) {
+      injuredSquadContainer.style.display = 'block';
+      if (injuredSquadBadge) injuredSquadBadge.innerText = `${inj.length} Assenti`;
+      injuredSquadList.innerHTML = inj.map(p => `
+        <div class="player-row player-injured-row" style="margin-top:6px;" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+          <div class="player-left">
+            <span class="role-badge role-${p.role}">${p.role}</span>
+            <img class="player-avatar" src="${p.photo || '/static/icon.svg'}" onerror="this.src='/static/icon.svg'" />
+            <div>
+              <div class="player-name-main" style="color:#f87171;">${p.name} <span style="font-weight:400; font-size:0.8rem; color:#94a3b8;">(${p.team})</span></div>
+              <div class="player-meta" style="color:#fca5a5;">${p.advice || p.injury_reason || 'Indisponibile'}</div>
+            </div>
+          </div>
+          <div class="player-right">
+            <span class="badge-status badge-danger">${p.status}</span>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      injuredSquadContainer.style.display = 'none';
+    }
   }
 
   // Render Key Decisions / Ballottaggi
@@ -200,21 +258,33 @@ function renderSquadView(data) {
       </div>
     `;
 
+    const injuredMap = {};
+    (currentLineupData?.injured_players || []).forEach(ip => {
+      injuredMap[ip.name.toLowerCase().replace('.', '').trim()] = ip;
+    });
+
     if (playersInRole.length === 0) {
       html += `<div style="padding:12px; font-size:0.85rem; color:var(--text-muted); text-align:center; background:rgba(255,255,255,0.02); border-radius:10px;">Nessun calciatore inserito in questo ruolo.</div>`;
     } else {
       playersInRole.forEach(p => {
+        const cleanPName = p.name.toLowerCase().replace('.', '').trim();
+        const injInfo = injuredMap[cleanPName];
+        const isInjured = Boolean(injInfo);
+
         html += `
-          <div class="player-row">
+          <div class="player-row ${isInjured ? 'player-injured-row' : ''}">
             <div class="player-left">
               <span class="role-badge role-${p.role}">${p.role}</span>
               <img class="player-avatar" src="${p.photo || '/static/icon.svg'}" onerror="this.src='/static/icon.svg'" />
               <div>
-                <div class="player-name-main">${p.name} <span style="font-weight:400; font-size:0.8rem; color:#94a3b8;">(${p.team})</span></div>
-                <div class="player-meta">Quotaz: ${p.qa || '-'} • FVM: ${p.fvm || '-'} ${p.is_penalty_taker ? '• 🎯 Rigorista' : ''}</div>
+                <div class="player-name-main ${isInjured ? 'text-danger' : ''}">${p.name} <span style="font-weight:400; font-size:0.8rem; color:#94a3b8;">(${p.team})</span></div>
+                <div class="player-meta">
+                  ${isInjured ? `<span style="color:#f87171; font-weight:700;">🚑 ${injInfo.injury_type || 'INFORTUNATO'}: ${injInfo.injury_reason || 'Non disponibile'}</span>` : `Quotaz: ${p.qa || '-'} • FVM: ${p.fvm || '-'} ${p.is_penalty_taker ? '• 🎯 Rigorista' : ''}`}
+                </div>
               </div>
             </div>
             <div class="player-right">
+              ${isInjured ? `<span class="badge-status badge-danger" style="margin-right:6px;">ASSENTE</span>` : ''}
               <button class="btn btn-secondary btn-sm" style="color:#ef4444;" onclick="removePlayerFromSquad('${p.name.replace(/'/g, "\\'")}')">Rimuovi</button>
             </div>
           </div>
@@ -238,6 +308,7 @@ async function removePlayerFromSquad(name) {
     if (result.success) {
       showToast(`${name} rimosso dalla rosa.`);
       loadSquad();
+      loadLineupRecommendation();
     }
   } catch (e) {
     showToast("Errore durante la rimozione.");
@@ -252,6 +323,7 @@ async function resetSquadToDefault() {
     if (result.success) {
       showToast("Rosa reimpostata con successo!");
       loadSquad();
+      loadLineupRecommendation();
     }
   } catch (e) {
     showToast("Errore reset rosa.");
@@ -279,30 +351,77 @@ function renderFixturesView(fixtures) {
     return;
   }
 
+  // Set of user players for fast instant lookup
+  const userPlayerNames = new Set(
+    (currentSquadData?.players || []).map(p => p.name.toLowerCase().replace('.', '').trim())
+  );
+
+  function isUserPlayer(pName) {
+    if (!pName) return false;
+    const norm = pName.toLowerCase().replace('.', '').trim();
+    if (userPlayerNames.has(norm)) return true;
+    for (let un of userPlayerNames) {
+      if (norm === un || norm.includes(un) || un.includes(norm)) return true;
+    }
+    return false;
+  }
+
+  function formatLineup(lineupList, percentagesMap) {
+    if (!lineupList || lineupList.length === 0) {
+      return `<div style="color:var(--text-muted); font-size:0.8rem;">Formazione non ancora disponibile</div>`;
+    }
+
+    return lineupList.map(pName => {
+      const pInfo = percentagesMap ? percentagesMap[pName.toLowerCase()] : null;
+      const role = pInfo?.role || 'C';
+      const pct = pInfo?.percentage || 90;
+      const isMine = isUserPlayer(pName);
+
+      if (isMine) {
+        return `<span class="badge-my-starter" title="Titolare nella tua rosa!">⭐ ${pName} (${pct}%)</span>`;
+      } else {
+        const ballotStr = pct < 75 ? ` <span style="color:#f59e0b; font-size:0.7rem;">(${pct}%)</span>` : '';
+        return `<span style="display:inline-flex; align-items:center; gap:3px; margin:2px 4px 2px 0; font-size:0.78rem; color:#cbd5e1;"><span class="role-badge role-${role}" style="font-size:0.65rem; padding:1px 4px;">${role}</span>${pName}${ballotStr}</span>`;
+      }
+    }).join(' • ');
+  }
+
   container.innerHTML = fixtures.map(m => `
-    <div class="card" style="padding:14px; margin-bottom:12px;">
-      <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:8px;">
+    <div class="card" style="padding:14px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:8px; flex-wrap:wrap; gap:4px;">
         <span>📅 ${m.date_str}</span>
-        <span>🏟️ ${m.stadium || 'Stadio'}</span>
+        <span>🏟️ ${m.stadium || 'Stadio Serie A'}</span>
       </div>
-      <div style="display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:1.05rem; margin-bottom:10px;">
+      <div style="display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:1.05rem; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
         <span style="color:#60a5fa;">${m.home_team} (${m.home_formation})</span>
-        <span style="color:var(--text-muted); font-size:0.85rem;">VS</span>
+        <span style="color:var(--text-muted); font-size:0.8rem;">VS</span>
         <span style="color:#f87171;">${m.away_team} (${m.away_formation})</span>
       </div>
       
-      <!-- Starting 11 preview -->
-      <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:6px;">
-        <strong>Titolari ${m.home_code}:</strong> ${(m.home_lineup || []).slice(0, 7).join(', ')}...
+      <!-- Complete 11 Home Lineup -->
+      <div style="background:rgba(255,255,255,0.02); border-radius:10px; padding:10px; margin-bottom:8px;">
+        <div style="font-size:0.75rem; font-weight:800; color:#60a5fa; margin-bottom:6px; text-transform:uppercase;">
+          🔵 Titolari ${m.home_team} (${m.home_lineup?.length || 0}/11):
+        </div>
+        <div style="line-height:1.8;">
+          ${formatLineup(m.home_lineup, m.player_percentages)}
+        </div>
       </div>
-      <div style="font-size:0.75rem; color:var(--text-secondary); margin-bottom:8px;">
-        <strong>Titolari ${m.away_code}:</strong> ${(m.away_lineup || []).slice(0, 7).join(', ')}...
+
+      <!-- Complete 11 Away Lineup -->
+      <div style="background:rgba(255,255,255,0.02); border-radius:10px; padding:10px; margin-bottom:10px;">
+        <div style="font-size:0.75rem; font-weight:800; color:#f87171; margin-bottom:6px; text-transform:uppercase;">
+          🔴 Titolari ${m.away_team} (${m.away_lineup?.length || 0}/11):
+        </div>
+        <div style="line-height:1.8;">
+          ${formatLineup(m.away_lineup, m.player_percentages)}
+        </div>
       </div>
 
       <!-- Ballottaggi -->
       ${(m.ballottaggi && m.ballottaggi.length > 0) ? `
-        <div style="background:rgba(255,255,255,0.03); border-radius:8px; padding:6px 10px; font-size:0.75rem; color:#f59e0b;">
-          <strong>Ballottaggi:</strong> ${m.ballottaggi.join(' • ')}
+        <div style="background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25); border-radius:8px; padding:8px 12px; font-size:0.75rem; color:#f59e0b;">
+          <strong>⚖️ Ballottaggi:</strong> ${m.ballottaggi.join(' • ')}
         </div>
       ` : ''}
     </div>
@@ -381,12 +500,49 @@ function openPlayerModal(player) {
   document.getElementById('modalPlayerAvatar').src = player.photo || '/static/icon.svg';
   document.getElementById('modalPlayerName').innerText = player.name;
   document.getElementById('modalPlayerTeam').innerText = `${player.team_full || player.team} • Ruolo ${player.role}`;
-  document.getElementById('modalPlayerScore').innerText = `★ ${Math.round(player.score)} / 100`;
+  document.getElementById('modalPlayerScore').innerText = `★ ${Math.round(player.score || 0)}`;
+  document.getElementById('modalPlayerExpectedFV').innerText = `${player.expected_fantavoto || 6.5} pt`;
   document.getElementById('modalPlayerTitolarita').innerText = `${player.titolarita_pct || 70}%`;
-  document.getElementById('modalPlayerAdvice').innerText = player.advice || "Nessun consiglio specifico.";
   document.getElementById('modalPlayerMatch').innerText = player.match_info || "Prossimo turno";
   document.getElementById('modalPlayerQA').innerText = player.qa || '-';
   document.getElementById('modalPlayerFVM').innerText = player.fvm || '-';
+
+  // Injury Alert Box
+  const injAlert = document.getElementById('modalPlayerInjuryAlert');
+  const injText = document.getElementById('modalPlayerInjuryText');
+  if (player.is_out) {
+    if (injAlert) injAlert.style.display = 'block';
+    if (injText) injText.innerText = `${player.injury_type || 'Indisponibile'}: ${player.injury_reason || player.advice}`;
+  } else if (injAlert) {
+    injAlert.style.display = 'none';
+  }
+
+  // Why Starter / Motivation Box
+  const whyBox = document.getElementById('modalWhyStarterBox');
+  const whyText = document.getElementById('modalWhyStarterText');
+  if (whyText) {
+    const mot = player.motivation?.why_starter_or_bench || player.advice || "Consigliato per rendimento e titolarità.";
+    whyText.innerText = mot;
+  }
+
+  // Super Intelligence Factors List
+  const factorsContainer = document.getElementById('modalSuperIntelFactors');
+  if (factorsContainer) {
+    const factors = player.motivation?.factors || [];
+    if (factors.length > 0) {
+      factorsContainer.innerHTML = factors.map(f => `
+        <div class="modal-factor-row">
+          <div class="modal-factor-header">
+            <span class="modal-factor-label">${f.label}</span>
+            <span class="modal-factor-val">${f.val}</span>
+          </div>
+          <div class="modal-factor-desc">${f.desc}</div>
+        </div>
+      `).join('');
+    } else {
+      factorsContainer.innerHTML = `<div style="font-size:0.75rem; color:var(--text-muted); padding:6px;">Dati analizzati con modello standard.</div>`;
+    }
+  }
 
   // SOS Fanta Quote
   const sfBox = document.getElementById('modalSOSFantaBox');
@@ -787,7 +943,7 @@ function renderFullArticleNavPills(slides) {
     const badgeStr = myCount > 0 ? ` (${myCount}⭐)` : '';
     pillsHtml += `
       <button class="match-pill-btn" onclick="filterMatchSlide(${s.page}, this)">
-        ${shortName}${badgeStr}
+        ${s.page}. ${shortName}${badgeStr}
       </button>
     `;
   });
@@ -803,14 +959,14 @@ function filterMatchSlide(page, btnEl) {
   const searchVal = document.getElementById('fullArticleSearchInput')?.value.trim().toLowerCase() || '';
 
   if (page === 'all') {
-    renderFullArticleMatches(fullArticleDataCache?.slides || [], searchVal);
+    renderFullArticleMatches(fullArticleDataCache?.slides || [], searchVal, false);
   } else {
     const singleSlide = (fullArticleDataCache?.slides || []).filter(s => s.page === page);
-    renderFullArticleMatches(singleSlide, searchVal);
+    renderFullArticleMatches(singleSlide, searchVal, true);
   }
 }
 
-function renderFullArticleMatches(slides, query) {
+function renderFullArticleMatches(slides, query, isSingle = false) {
   const container = document.getElementById('fullArticleMatchesContainer');
   if (!container) return;
 
@@ -829,7 +985,7 @@ function renderFullArticleMatches(slides, query) {
     return;
   }
 
-  container.innerHTML = filtered.map(s => {
+  let html = filtered.map(s => {
     const myPlayers = s.my_players || [];
     const myPlayersTags = myPlayers.map(p => {
       let tagClass = 'tag-good';
@@ -860,7 +1016,7 @@ function renderFullArticleMatches(slides, query) {
       <div class="article-match-card" id="match-card-${s.page}">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px; flex-wrap:wrap; gap:6px;">
           <div style="font-weight:800; font-size:1.02rem; color:#f87171; letter-spacing:0.3px;">
-            ⚽ ${s.title}
+            ⚽ ${s.page}. ${s.title}
           </div>
           <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Partita ${s.page} di 10</span>
         </div>
@@ -878,6 +1034,18 @@ function renderFullArticleMatches(slides, query) {
       </div>
     `;
   }).join('');
+
+  if (isSingle) {
+    html += `
+      <div style="text-align:center; padding:12px 0 6px;">
+        <button class="btn btn-secondary btn-sm" onclick="filterMatchSlide('all', document.querySelector('#fullArticleNavPills button'))">
+          📖 Mostra Tutte le 10 Partite
+        </button>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
 }
 
 function copyPublicTunnelUrl() {

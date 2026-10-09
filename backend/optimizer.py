@@ -3,6 +3,7 @@ import os
 import re
 from typing import List, Dict, Any, Tuple
 from backend.sosfanta_analyzer import sosfanta_analyzer
+from backend.intelligence import super_intelligence
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 PLAYERS_FILE = os.path.join(DATA_DIR, 'players_cache.json')
@@ -21,7 +22,6 @@ ALLOWED_FORMATIONS = {
     '5-4-1': {'P': 1, 'D': 5, 'C': 4, 'A': 1}
 }
 
-# Opponent defense difficulty rating (1: fragile defense, 5: wall)
 TEAM_DIFFICULTY = {
     'INT': 4.8, 'JUV': 4.5, 'NAP': 4.4, 'MIL': 4.2, 'ATA': 4.3,
     'ROM': 4.0, 'LAZ': 3.8, 'BOL': 3.7, 'FIO': 3.6, 'TOR': 3.3,
@@ -36,7 +36,6 @@ class LineupOptimizer:
         self.fixtures_data = self._load_json(FIXTURES_FILE, {'fixtures': []})
         self.injuries_db = self._load_json(INJURIES_FILE, {})
         
-        # Build quick player lookup by normalized name
         self.players_lookup = {}
         for p in self.players_db:
             norm = self._normalize_name(p['name'])
@@ -68,7 +67,7 @@ class LineupOptimizer:
             self.players_lookup[norm] = p
 
     def find_player_match(self, player_team: str) -> Tuple[Dict, bool]:
-        """Finds the upcoming match for a given team code and whether it's at home."""
+        """Finds upcoming match and whether player plays at home."""
         for match in self.fixtures_data.get('fixtures', []):
             if match.get('home_code') == player_team or player_team in match.get('home_team', ''):
                 return match, True
@@ -78,12 +77,13 @@ class LineupOptimizer:
 
     def evaluate_player(self, player: Dict) -> Dict:
         """
-        Evaluates a single player and computes:
-        - Fanta-Score / Indice di Schierabilità (0 - 100)
-        - Titolarità %
-        - Status (Titolare, Ballottaggio, Panchina, Infortunato, Squalificato)
-        - Matchup details (Avversario, Casa/Trasferta, Difficoltà)
-        - Spiegazione motivata (Perché schierarlo o no)
+        Comprehensive Super-Intelligence evaluation:
+        - Fanta-Score Index (0-100)
+        - Expected Fantavoto (5.0 - 8.5)
+        - Triple Consensus Lineups
+        - Advanced SofaScore/Understat Metrics
+        - Goalkeeper Clean Sheet Probability
+        - Transparent motivation & score factors
         """
         norm_name = self._normalize_name(player['name'])
         role = player.get('role', 'C').upper()
@@ -92,7 +92,7 @@ class LineupOptimizer:
         fvm = player.get('fvm', 50)
         is_penalty = player.get('is_penalty_taker', False)
         
-        # 1. Check injuries & suspensions
+        # 1. Injuries & Suspensions check
         injury_info = None
         for in_name, in_data in self.injuries_db.items():
             if in_name in norm_name or norm_name in in_name:
@@ -108,105 +108,137 @@ class LineupOptimizer:
             is_out = injury_info.get('is_out', False)
             
         if is_out:
+            is_susp = 'squalific' in injury_type.lower()
             return {
                 **player,
-                'score': 0,
+                'score': 0.0,
+                'expected_fantavoto': 0.0,
                 'titolarita_pct': 0,
-                'status': 'INDISPONIBILE',
+                'status': 'SQUALIFICATO' if is_susp else 'INFORTUNATO',
                 'badge_class': 'danger',
                 'stars': 0,
-                'match_info': "Non disponibile",
-                'advice': f"❌ {injury_type.upper()}: {injury_reason}",
+                'is_out': True,
+                'injury_type': injury_type,
+                'injury_reason': injury_reason,
+                'match_info': "Indisponibile per il turno",
                 'opponent': "-",
-                'is_home': False
+                'opponent_name': "-",
+                'is_home': False,
+                'advice': f"❌ {injury_type.upper()}: {injury_reason}",
+                'motivation': {
+                    'verdict_title': f"Indisponibile ({injury_type})",
+                    'why_starter_or_bench': f"Escluso categoricamente dai titolari a causa di {injury_type.lower()}: {injury_reason}.",
+                    'factors': []
+                },
+                'super_intelligence': {
+                    'consensus': {'consensus_level': 'NON CONVOCATO', 'consensus_percentage': 0, 'sources': []},
+                    'metrics': {'xg': 0, 'xa': 0, 'threat_score': 0, 'pure_base_grade': 0, 'trend': '❄️ Out'},
+                    'goalkeeper': None
+                }
             }
 
-        # 2. Check Match Fixture & Probabili Formazioni
+        # 2. Match Fixture & Base Probabilities
         match, is_home = self.find_player_match(team)
         opponent_code = match.get('away_code' if is_home else 'home_code', 'SERIE A') if match else 'N/A'
         opponent_name = match.get('away_team' if is_home else 'home_team', 'Avversario') if match else 'Avversario'
         opp_diff = TEAM_DIFFICULTY.get(opponent_code, 3.0)
         match_date = match.get('date_str', 'Prossimo turno') if match else 'Prossimo turno'
 
-        # Check starting probability in match
-        titolarita_pct = 70 # default if not found
-        ballottaggio_note = ""
+        official_pct = 70
         is_starter = False
-        
+        ballottaggio_note = ""
         if match:
-            # Check player_percentages
             p_pcts = match.get('player_percentages', {})
             for p_key, p_val in p_pcts.items():
                 if p_key in norm_name or norm_name in p_key:
-                    titolarita_pct = p_val.get('percentage', 70)
+                    official_pct = p_val.get('percentage', 70)
                     is_starter = p_val.get('is_starter', False)
                     break
-                    
-            # Check ballottaggi
             for bal in match.get('ballottaggi', []):
                 if norm_name in bal.lower() or any(part in bal.lower() for part in norm_name.split()):
                     ballottaggio_note = bal
                     break
 
-        # 3. Algorithm: Compute Fanta-Score (0-100)
-        # Components:
-        # A) Titolarità factor (0 - 35 pts)
-        titolarita_factor = (titolarita_pct / 100.0) * 35.0
-        if ballottaggio_note and titolarita_pct < 60:
-            titolarita_factor *= 0.85
+        # 3. SUPER-INTELLIGENCE MODULE 1: Triple Consensus Lineups
+        consensus_data = super_intelligence.evaluate_triple_consensus(player['name'], team, official_pct, is_starter)
+        calibrated_titolarita = consensus_data['consensus_percentage']
 
-        # B) Matchup factor (0 - 30 pts)
-        # For Attackers & Midfielders: lower opp_diff means easier opponent -> more bonus!
-        # For Goalkeepers & Defenders: lower opp_diff means higher clean sheet chance!
-        home_bonus = 5.0 if is_home else 0.0
-        if role in ['A', 'C']:
-            # Difficulty 2.4 (easy) -> 26 pts; Difficulty 4.8 (hard) -> 12 pts
-            matchup_score = (5.2 - opp_diff) * 6.5 + home_bonus
-        elif role == 'P':
-            # Goalkeeper: facing low scoring team is very favorable
-            matchup_score = (5.2 - opp_diff) * 6.0 + (home_bonus * 1.5)
-        else: # D
-            # Defender: good defensive matchup
-            matchup_score = (5.2 - opp_diff) * 5.8 + (home_bonus * 1.2)
+        # 4. SUPER-INTELLIGENCE MODULE 2: SofaScore/Understat Advanced Metrics
+        metrics_data = super_intelligence.get_advanced_metrics(player['name'], role)
 
-        matchup_score = max(5.0, min(30.0, matchup_score))
+        # 5. SUPER-INTELLIGENCE MODULE 3: Goalkeeper Clean Sheet Grid
+        gk_data = None
+        if role == 'P':
+            gk_data = super_intelligence.evaluate_goalkeeper_matchup(player['name'], team, opponent_code, is_home)
 
-        # C) Player Quality & Fanta-Value (0 - 25 pts)
-        # Based on QA (1-40) and FVM (1-500)
-        qa_clamped = min(38, max(1, qa))
-        quality_score = (qa_clamped / 38.0) * 18.0 + (min(400, fvm) / 400.0) * 7.0
-
-        # D) Bonus Special Skills (0 - 10 pts)
-        special_bonus = 0.0
-        if is_penalty:
-            special_bonus += 7.0
-        if role == 'C' and qa >= 15: # high scoring midfielder
-            special_bonus += 3.0
-        if role == 'D' and is_home and qa >= 12: # attacking wingback
-            special_bonus += 2.5
-
-        # E) SOS Fanta editorial boost / penalty
+        # 6. Editorial boost from SOS Fanta
         sf_analysis = sosfanta_analyzer.analyze_player(player['name'], team)
         sf_bonus = sf_analysis.get('bonus_score', 0.0) if sf_analysis.get('mentioned') else 0.0
 
-        # Final composite score
-        total_score = titolarita_factor + matchup_score + quality_score + special_bonus + sf_bonus
-        total_score = round(max(10.0, min(99.0, total_score)), 1)
+        # --- COMPUTE COMPOSITE FANTA-SCORE INDEX (0 - 100) ---
+        # A) Titolarità Consensus Factor (0 - 30 pt)
+        titolarita_pts = (calibrated_titolarita / 100.0) * 30.0
 
-        # Star rating (1 to 5)
-        if total_score >= 82:
+        # B) Matchup & Opponent Factor (0 - 25 pt)
+        home_bonus = 4.0 if is_home else 0.0
+        if role in ['A', 'C']:
+            matchup_pts = max(4.0, (5.2 - opp_diff) * 5.5 + home_bonus)
+        elif role == 'P':
+            cs_pct = gk_data['clean_sheet_prob'] if gk_data else 30
+            matchup_pts = (cs_pct / 100.0) * 20.0 + home_bonus
+        else: # D
+            matchup_pts = max(4.0, (5.2 - opp_diff) * 5.0 + (home_bonus * 1.2))
+        matchup_pts = min(25.0, matchup_pts)
+
+        # C) Advanced Threat & Metrics Factor (0 - 25 pt)
+        if role == 'P':
+            threat_pts = (min(16, max(1, qa)) / 16.0) * 16.0 + (min(80, fvm) / 80.0) * 9.0
+        else:
+            threat_pts = (metrics_data['threat_score'] / 10.0) * 18.0 + (min(38, qa) / 38.0) * 7.0
+
+        # D) Penalties & Specialties (0 - 10 pt)
+        special_pts = 0.0
+        if is_penalty:
+            special_pts += 7.0
+        if role == 'D' and is_home and qa >= 11:
+            special_pts += 3.0
+
+        # E) SOS Fanta Editorial (0 - 10 pt)
+        editorial_pts = max(-5.0, min(10.0, sf_bonus))
+
+        total_score = round(max(10.0, min(99.0, titolarita_pts + matchup_pts + threat_pts + special_pts + editorial_pts)), 1)
+
+        # --- COMPUTE REALISTIC EXPECTED FANTAVOTO (5.0 - 8.5) ---
+        pure_base = metrics_data['pure_base_grade']
+        if role == 'P':
+            xgc = gk_data['expected_goals_conceded'] if gk_data else 1.2
+            cs_p = (gk_data['clean_sheet_prob'] if gk_data else 30) / 100.0
+            # Vote ~ 6.0 - xgc*1.0 + cs_bonus*0.5 + saves
+            expected_fv = round(6.0 - (xgc * 0.9) + (cs_p * 0.8) + (0.3 if is_home else 0.0), 2)
+        elif role == 'D':
+            # Pure grade + assist expectation + goal expectation
+            expected_fv = round(pure_base + (metrics_data['xa'] * 1.0) + (metrics_data['xg'] * 3.0) + (0.15 if is_home else 0.0), 2)
+        elif role == 'C':
+            pen_bonus = 0.6 if is_penalty else 0.0
+            expected_fv = round(pure_base + (metrics_data['xg'] * 3.0) + (metrics_data['xa'] * 1.0) + pen_bonus, 2)
+        else: # A
+            pen_bonus = 0.8 if is_penalty else 0.0
+            expected_fv = round(pure_base + (metrics_data['xg'] * 3.0) + (metrics_data['xa'] * 1.0) + pen_bonus, 2)
+
+        # Status & Stars
+        if total_score >= 80:
             stars = 5
             status = 'TOP DI GIORNATA'
             badge_class = 'success'
-        elif total_score >= 72:
+        elif total_score >= 70:
             stars = 4
             status = 'CONSIGLIATO'
             badge_class = 'primary'
-        elif total_score >= 60:
+        elif total_score >= 58:
             stars = 3
             status = 'SCHIERABILE'
             badge_class = 'info'
-        elif total_score >= 48:
+        elif total_score >= 45:
             stars = 2
             status = 'RISCHIOSO'
             badge_class = 'warning'
@@ -215,63 +247,100 @@ class LineupOptimizer:
             status = 'SCONSIGLIATO'
             badge_class = 'secondary'
 
-        # Generate Human-Friendly Advice & Reason
-        reasons = []
+        # Generate Human-Friendly Advice & In-depth Motivation
+        reasons_list = []
         if is_penalty:
-            reasons.append("primo rigorista (+3 bonus)")
-        if titolarita_pct >= 85:
-            reasons.append(f"titolare quasi certo ({titolarita_pct}%)")
+            reasons_list.append("🎯 Primo rigorista designato")
+        if calibrated_titolarita >= 85:
+            reasons_list.append(f"🟢 Titolarità certa al {calibrated_titolarita}% ({consensus_data['consensus_level']})")
         elif ballottaggio_note:
-            reasons.append(f"in ballottaggio ({ballottaggio_note[:60]})")
-        else:
-            reasons.append(f"titolarità al {titolarita_pct}%")
+            reasons_list.append(f"🟡 Ballottaggio segnalato: {ballottaggio_note[:45]}")
 
         if is_home:
-            reasons.append(f"gioca in casa contro {opponent_name}")
+            reasons_list.append(f"🏠 Gioca in casa contro {opponent_name}")
         else:
-            reasons.append(f"trasferta a {opponent_name}")
+            reasons_list.append(f"✈️ Trasferta insidiosa contro {opponent_name}")
 
-        if opp_diff <= 2.8:
-            reasons.append("avversario con difesa vulnerabile")
-        elif opp_diff >= 4.2:
-            reasons.append("partita tosta contro difesa ermetica")
+        if metrics_data['xg'] >= 0.40:
+            reasons_list.append(f"⚽ Alto indice xG atteso ({metrics_data['xg']} gol/gara)")
+        if metrics_data['xa'] >= 0.25:
+            reasons_list.append(f"👟 Creatore di occasioni xA ({metrics_data['xa']} assist/gara)")
 
-        if role == 'P' and is_home and opp_diff <= 2.9:
-            reasons.append("alta probabilità di Clean Sheet / imbattibilità")
+        if role == 'P' and gk_data:
+            reasons_list.append(f"🧤 Clean sheet probabile al {gk_data['clean_sheet_prob']}% (xGC: {gk_data['expected_goals_conceded']})")
 
-        advice_text = f"{'🌟 ' if stars >= 4 else '👉 '}{status}: {', '.join(reasons).capitalize()}."
         if sf_analysis.get('mentioned'):
-            advice_text += f" | {sf_analysis['icon']} SOS Fanta: \"{sf_analysis['quote']}\""
+            reasons_list.append(f"🔥 SOS Fanta: \"{sf_analysis['quote']}\"")
 
-        match_venue_str = f"vs {opponent_code} ({'C' if is_home else 'T'})"
+        # Paragraph explaining why he is recommended as starter or bench
+        why_text = f"Consigliato titolare con indice {total_score}/100 e fanta-voto atteso di {expected_fv}. "
+        if calibrated_titolarita >= 80:
+            why_text += f"Presenza da titolare garantita all'unanimità (Fantacalcio.it, Sky Sport e Gazzetta). "
+        if metrics_data['threat_score'] >= 5.0:
+            why_text += f"Le metriche avanzate SofaScore evidenziano grande pericolosità offensiva (xG/xA: {metrics_data['xg']}/{metrics_data['xa']}). "
+        if sf_analysis.get('mentioned'):
+            why_text += f"Verdetto SOS Fanta: {sf_analysis['category']} ({sf_analysis['summary']})."
+
+        factors_detail = [
+            {'label': 'Triplo Consenso Fonti', 'val': f"{calibrated_titolarita}% • {consensus_data['consensus_level']}", 'desc': consensus_data['summary']},
+            {'label': 'Metriche SofaScore / Understat', 'val': f"xG: {metrics_data['xg']} | xA: {metrics_data['xa']}", 'desc': f"Trend: {metrics_data['trend']} • Tiri/p: {metrics_data['shots_per_game']}"},
+            {'label': 'Fattore Partita & Difesa Avversaria', 'val': f"{'In Casa 🏠' if is_home else 'Trasferta ✈️'} vs {opponent_code}", 'desc': f"Difficoltà avversario: {opp_diff}/5.0"},
+            {'label': 'Consiglio SOS Fanta', 'val': sf_analysis.get('category', 'NEUTRO'), 'desc': sf_analysis.get('quote', 'Valutazione partita standard.')}
+        ]
+
+        if role in ['D', 'P']:
+            factors_detail.append({
+                'label': 'Impatto Modificatore Difesa',
+                'val': f"Media voto base {metrics_data['pure_base_grade']}",
+                'desc': "Contribuisce direttamente alla media del reparto difensivo."
+            })
 
         return {
             **player,
             'score': total_score,
-            'titolarita_pct': titolarita_pct,
+            'expected_fantavoto': expected_fv,
+            'titolarita_pct': calibrated_titolarita,
             'status': status,
             'badge_class': badge_class,
             'stars': stars,
-            'match_info': f"{match_venue_str} • {match_date}",
+            'is_out': False,
+            'match_info': f"vs {opponent_code} ({'C' if is_home else 'T'}) • {match_date}",
             'opponent': opponent_code,
             'opponent_name': opponent_name,
             'is_home': is_home,
-            'advice': advice_text,
+            'advice': f"{'🌟 ' if stars >= 4 else '👉 '}{status}: {', '.join(reasons_list[:3])}.",
             'ballottaggio_note': ballottaggio_note,
-            'sosfanta': sf_analysis
+            'sosfanta': sf_analysis,
+            'motivation': {
+                'verdict_title': f"{status} (★ {total_score}/100)",
+                'expected_fv': expected_fv,
+                'why_starter_or_bench': why_text,
+                'factors': factors_detail
+            },
+            'super_intelligence': {
+                'consensus': consensus_data,
+                'metrics': metrics_data,
+                'goalkeeper': gk_data
+            }
         }
 
-    def optimize_lineup(self, user_players: List[Dict], preferred_formation: str = None, use_defense_modifier: bool = False) -> Dict:
+    def optimize_lineup(self, user_players: List[Dict], preferred_formation: str = None, use_defense_modifier: bool = True) -> Dict:
         """
-        Takes user's players list, evaluates everyone, selects the best formation
-        and assigns starters + bench according to Fantacalcio rules.
+        Optimizes lineup, calculates real expected fantapunti, tests all formations,
+        and applies the user's defense modifier rules:
+        - 6.00 to 6.49: +1 pt
+        - 6.50 to 6.99: +3 pt
+        - >= 7.00: +6 pt
         """
-        # 1. Evaluate all squad players
         evaluated_players = [self.evaluate_player(p) for p in user_players]
         
-        # Group by role
+        # Filter available vs injured/suspended
+        available_players = [p for p in evaluated_players if not p.get('is_out', False)]
+        injured_players = [p for p in evaluated_players if p.get('is_out', False)]
+        
+        # Group available by role
         by_role = {'P': [], 'D': [], 'C': [], 'A': []}
-        for p in evaluated_players:
+        for p in available_players:
             role = p.get('role', 'C').upper()
             if role in by_role:
                 by_role[role].append(p)
@@ -282,17 +351,15 @@ class LineupOptimizer:
         for r in by_role:
             by_role[r].sort(key=lambda x: x['score'], reverse=True)
             
-        # 2. Test all allowed formations or specific formation
         formations_to_eval = [preferred_formation] if preferred_formation and preferred_formation in ALLOWED_FORMATIONS else list(ALLOWED_FORMATIONS.keys())
         
         best_module = None
-        best_total_score = -1
+        best_composite_score = -1
         best_starters = []
         best_details = {}
         
         for form_name in formations_to_eval:
             reqs = ALLOWED_FORMATIONS[form_name]
-            # Check if user has enough players for this formation
             if len(by_role['P']) < reqs['P'] or len(by_role['D']) < reqs['D'] or len(by_role['C']) < reqs['C'] or len(by_role['A']) < reqs['A']:
                 continue
                 
@@ -302,44 +369,71 @@ class LineupOptimizer:
             selected_starters.extend(by_role['C'][:reqs['C']])
             selected_starters.extend(by_role['A'][:reqs['A']])
             
-            # Base score sum
-            total_score = sum(p['score'] for p in selected_starters)
+            # Sum expected fantavoto
+            base_expected_fv = sum(p['expected_fantavoto'] for p in selected_starters)
             
-            # Defense Modifier calculation (bonus if 4 or 5 defenders)
+            # Defense Modifier calculation
+            # Rule: Portiere + 3 migliori difensori (con almeno 4 difensori in campo)
             mod_bonus = 0.0
+            mod_avg = 0.0
+            mod_tier = "Nessun bonus"
             if use_defense_modifier and reqs['D'] >= 4:
-                # Top 3 defenders + GK score estimate
-                gk_score = by_role['P'][0]['score'] if by_role['P'] else 50
-                top3_def = sum(p['score'] for p in by_role['D'][:3]) / 3.0
-                avg_def = (gk_score + top3_def * 3.0) / 4.0
-                if avg_def >= 75:
-                    mod_bonus = 18.0 # Estimated +3 or +6 modifier
-                elif avg_def >= 65:
-                    mod_bonus = 10.0 # Estimated +1 modifier
-                total_score += mod_bonus
+                # Top 3 defenders + GK pure base grade
+                gk_grade = selected_starters[0]['super_intelligence']['metrics']['pure_base_grade']
+                top3_def_grades = [d['super_intelligence']['metrics']['pure_base_grade'] for d in selected_starters[1:4]]
+                mod_avg = round((gk_grade + sum(top3_def_grades)) / 4.0, 2)
                 
-            if total_score > best_total_score:
-                best_total_score = total_score
+                if mod_avg >= 7.00:
+                    mod_bonus = 6.0
+                    mod_tier = "+6 Punti (Media Reparto ≥ 7.00)"
+                elif mod_avg >= 6.50:
+                    mod_bonus = 3.0
+                    mod_tier = "+3 Punti (Media Reparto 6.50 - 6.99)"
+                elif mod_avg >= 6.00:
+                    mod_bonus = 1.0
+                    mod_tier = "+1 Punto (Media Reparto 6.00 - 6.49)"
+                else:
+                    mod_bonus = 0.0
+                    mod_tier = "0 Punti (Media Reparto < 6.00)"
+
+            total_team_expected_pts = round(base_expected_fv + mod_bonus, 1)
+            
+            # Composite optimization objective: maximize expected points + quality score
+            quality_score = sum(p['score'] for p in selected_starters)
+            composite_value = (total_team_expected_pts * 10.0) + quality_score
+            
+            if composite_value > best_composite_score:
+                best_composite_score = composite_value
                 best_module = form_name
                 best_starters = selected_starters
                 best_details = {
                     'formation': form_name,
-                    'total_score': round(total_score, 1),
-                    'defense_modifier_bonus': round(mod_bonus, 1),
+                    'total_expected_points': total_team_expected_pts,
+                    'base_expected_fv': round(base_expected_fv, 1),
+                    'defense_modifier_bonus': mod_bonus,
+                    'defense_modifier_avg': mod_avg,
+                    'defense_modifier_tier': mod_tier,
                     'starters_count': len(selected_starters)
                 }
 
-        # Fallback to 3-4-3 or whatever is possible if no formation met full criteria
+        # Fallback to available players if criteria failed
         if not best_module:
             best_module = '3-4-3'
             best_starters = (by_role['P'][:1] + by_role['D'][:3] + by_role['C'][:4] + by_role['A'][:3])
-            best_details = {'formation': best_module, 'total_score': round(sum(p['score'] for p in best_starters), 1), 'defense_modifier_bonus': 0}
+            total_pts = round(sum(p['expected_fantavoto'] for p in best_starters), 1)
+            best_details = {
+                'formation': best_module,
+                'total_expected_points': total_pts,
+                'base_expected_fv': total_pts,
+                'defense_modifier_bonus': 0.0,
+                'defense_modifier_avg': 0.0,
+                'defense_modifier_tier': 'Non applicabile',
+                'starters_count': len(best_starters)
+            }
 
-        # 3. Create the Bench (Panchina)
+        # Bench construction
         starter_ids = {p.get('id', p.get('name')) for p in best_starters}
         bench = []
-        
-        # Bench order: 1 GK, 2 D, 2 C, 2 A
         bench_p = [p for p in by_role['P'] if p.get('id', p.get('name')) not in starter_ids]
         bench_d = [p for p in by_role['D'] if p.get('id', p.get('name')) not in starter_ids]
         bench_c = [p for p in by_role['C'] if p.get('id', p.get('name')) not in starter_ids]
@@ -350,13 +444,40 @@ class LineupOptimizer:
         bench.extend(bench_c[:3])
         bench.extend(bench_a[:3])
         
-        # Tribuna (extra players not in bench)
         bench_ids = {p.get('id', p.get('name')) for p in bench}
-        tribuna = [p for p in evaluated_players if p.get('id', p.get('name')) not in starter_ids and p.get('id', p.get('name')) not in bench_ids]
+        tribuna = [p for p in available_players if p.get('id', p.get('name')) not in starter_ids and p.get('id', p.get('name')) not in bench_ids]
 
-        # 4. Ballottaggi & Tough Choices inside user's squad
+        # Goal Range & Fantacalcio thresholds
+        # First goal at 66 pt, then +1 goal every 6 pt (66=1, 72=2, 78=3, 84=4)
+        tot_pts = best_details.get('total_expected_points', 72.0)
+        if tot_pts < 66.0:
+            goals_expected = 0
+            tier_text = f"0 Gol (Mancano {round(66.0 - tot_pts, 1)} pt al 1° gol)"
+            pts_to_next = round(66.0 - tot_pts, 1)
+            next_goal = 1
+        elif tot_pts < 72.0:
+            goals_expected = 1
+            tier_text = f"1 Gol ⚽ (Fascia 66.0 - 71.9 pt)"
+            pts_to_next = round(72.0 - tot_pts, 1)
+            next_goal = 2
+        elif tot_pts < 78.0:
+            goals_expected = 2
+            tier_text = f"2 Gol ⚽⚽ (Fascia 72.0 - 77.9 pt)"
+            pts_to_next = round(78.0 - tot_pts, 1)
+            next_goal = 3
+        elif tot_pts < 84.0:
+            goals_expected = 3
+            tier_text = f"3 Gol ⚽⚽⚽ (Fascia 78.0 - 83.9 pt)"
+            pts_to_next = round(84.0 - tot_pts, 1)
+            next_goal = 4
+        else:
+            goals_expected = 4
+            tier_text = f"4+ Gol ⚽⚽⚽⚽ (Fascia ≥ 84.0 pt)"
+            pts_to_next = 0.0
+            next_goal = 5
+
+        # Ballottaggi key choices
         key_decisions = []
-        # Compare highest benched player with lowest starter player per role
         for r_name in ['A', 'C', 'D']:
             r_starters = [p for p in best_starters if p['role'] == r_name]
             r_bench = [p for p in bench if p['role'] == r_name]
@@ -371,21 +492,29 @@ class LineupOptimizer:
                         'starter_score': lowest_starter['score'],
                         'benched': highest_bench['name'],
                         'benched_score': highest_bench['score'],
-                        'note': f"Ballottaggio serrato: {lowest_starter['name']} ({lowest_starter['score']}) vs {highest_bench['name']} ({highest_bench['score']}). Differenza di soli {round(diff, 1)} punti."
+                        'note': f"Ballottaggio serrato: {lowest_starter['name']} (★ {lowest_starter['score']}) vs {highest_bench['name']} (★ {highest_bench['score']}). Differenza minima: {round(diff, 1)} pt."
                     })
 
         return {
             'recommended_formation': best_module,
-            'total_expected_score': best_details.get('total_score', 0),
+            'total_expected_score': best_details.get('total_expected_points', 72.0),
+            'base_expected_score': best_details.get('base_expected_fv', 70.0),
+            'goals_expected': goals_expected,
+            'goals_tier_text': tier_text,
+            'pts_to_next_goal': pts_to_next,
+            'next_goal_tier': next_goal,
             'defense_modifier_active': use_defense_modifier,
-            'defense_modifier_bonus': best_details.get('defense_modifier_bonus', 0),
+            'defense_modifier_bonus': best_details.get('defense_modifier_bonus', 0.0),
+            'defense_modifier_avg': best_details.get('defense_modifier_avg', 0.0),
+            'defense_modifier_tier': best_details.get('defense_modifier_tier', ''),
             'starters': best_starters,
             'bench': bench,
             'tribuna': tribuna,
+            'injured_players': injured_players,
             'key_decisions': key_decisions,
             'all_formations': list(ALLOWED_FORMATIONS.keys())
         }
 
 if __name__ == '__main__':
     optimizer = LineupOptimizer()
-    print("Optimizer initialized. Players indexed:", len(optimizer.players_lookup))
+    print("Optimizer with Super-Intelligence ready.")

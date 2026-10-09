@@ -176,7 +176,7 @@ async def get_lineup_recommendation(formation: Optional[str] = None, use_modifie
     if formation == 'auto' or not formation:
         formation = None
     if use_modifier is None:
-        use_modifier = settings.get('defense_modifier', False)
+        use_modifier = settings.get('defense_modifier', True)
         
     lineup_res = optimizer.optimize_lineup(
         user_players=user_players,

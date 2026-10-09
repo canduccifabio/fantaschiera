@@ -1,0 +1,7 @@
+{
+  "defense_modifier": true,
+  "alert_enabled": true,
+  "preferred_formation": "auto",
+  "alert_minutes_before": 60,
+  "webhook_url": ""
+}

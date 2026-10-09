@@ -47,15 +47,25 @@
       <div class="score-banner">
         <div>
           <div class="score-lbl">Modulo Consigliato</div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span id="recommendedFormationName" style="font-size:1.4rem; font-weight:800; color:#ffffff;">3-4-3</span>
-            <span id="modBonusDisplay" class="badge-status badge-success" style="display:none;">+ Modificatore</span>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <span id="recommendedFormationName" style="font-size:1.4rem; font-weight:800; color:#ffffff;">4-4-2</span>
+            <span id="modBonusDisplay" class="badge-status badge-success" style="display:none;">+3 Mod. Difesa</span>
           </div>
+          <div id="modTierDetails" style="font-size:0.75rem; color:#34d399; margin-top:2px; font-weight:600;"></div>
         </div>
         <div style="text-align:right;">
-          <div class="score-lbl">Punti Attesi Totali</div>
-          <div id="totalExpectedScore" class="score-val">0</div>
+          <div class="score-lbl">Fantapunti Attesi</div>
+          <div style="display:flex; align-items:baseline; justify-content:flex-end; gap:4px;">
+            <span id="totalExpectedScore" class="score-val" style="color:#10b981;">74.5</span>
+            <span style="font-size:0.9rem; font-weight:700; color:var(--text-muted);">pt</span>
+          </div>
+          <div id="goalsExpectedBadge" style="font-size:0.8rem; font-weight:800; color:#f59e0b; margin-top:3px;">
+            ⚽ 2 Gol (Soglia 72+)
+          </div>
         </div>
+      </div>
+      <div style="font-size:0.75rem; color:var(--text-muted); text-align:right; margin-top:-8px; margin-bottom:12px; padding-right:4px;">
+        1° Gol a 66 pt • poi +1 gol ogni 6 pt (72, 78, 84...) • Modificatore difesa incluso
       </div>
 
       <!-- Controls: Formation selector & Defense Modifier -->
@@ -124,6 +134,15 @@
           <span style="font-size:0.75rem; color:var(--text-muted);">In ordine di copertura</span>
         </div>
         <div id="benchListContainer"></div>
+      </div>
+
+      <!-- Injured/Suspended Squad Players -->
+      <div id="injuredSquadContainer" class="card" style="display:none; border-color:rgba(239,68,68,0.35); background:rgba(239,68,68,0.06); margin-top:14px;">
+        <div class="card-header">
+          <span class="card-title" style="color:#f87171;">🚑 Indisponibili nella Tua Rosa (Esclusi dai Titolari)</span>
+          <span id="injuredSquadCountBadge" class="badge-status badge-danger">0 Assenti</span>
+        </div>
+        <div id="injuredSquadList"></div>
       </div>
     </section>
 
@@ -382,45 +401,69 @@
 
   <!-- ================= MODALS (<dialog>) ================= -->
   
-  <!-- Player Details Modal -->
-  <dialog id="playerDetailModal">
-    <div class="modal-header">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <img id="modalPlayerAvatar" src="/static/icon.svg" style="width:40px; height:40px; border-radius:50%;" />
+  <!-- Player Details Modal (Super-Intelligence & Motivation) -->
+  <dialog id="playerDetailModal" style="max-height:90vh; overflow-y:auto;">
+    <div class="modal-header" style="margin-bottom:12px;">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <img id="modalPlayerAvatar" src="/static/icon.svg" style="width:46px; height:46px; border-radius:50%; border:2px solid var(--glass-border); object-fit:cover;" />
         <div>
-          <h3 id="modalPlayerName" style="font-size:1.15rem; font-weight:800;">Nome</h3>
-          <div id="modalPlayerTeam" style="font-size:0.75rem; color:var(--text-muted);">Squadra</div>
+          <h3 id="modalPlayerName" style="font-size:1.2rem; font-weight:800; line-height:1.2;">Nome</h3>
+          <div id="modalPlayerTeam" style="font-size:0.8rem; color:var(--text-muted);">Squadra</div>
         </div>
       </div>
       <button class="modal-close" onclick="closePlayerModal()">&times;</button>
     </div>
     
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
-      <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
-        <div style="font-size:0.7rem; color:var(--text-muted);">INDICE SCHIERABILITÀ</div>
-        <div id="modalPlayerScore" style="font-size:1.3rem; font-weight:800; color:#34d399;">★ 90</div>
+    <!-- Injured Alert Banner inside Modal -->
+    <div id="modalPlayerInjuryAlert" style="display:none; background:rgba(239, 68, 68, 0.15); border:1px solid #ef4444; border-radius:10px; padding:10px; margin-bottom:12px;">
+      <div style="font-weight:800; color:#f87171; font-size:0.85rem; display:flex; align-items:center; gap:6px;">
+        🚨 CALCIATORE NON DISPONIBILE
       </div>
-      <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
-        <div style="font-size:0.7rem; color:var(--text-muted);">TITOLARITÀ PROBABILE</div>
-        <div id="modalPlayerTitolarita" style="font-size:1.3rem; font-weight:800; color:#60a5fa;">90%</div>
+      <div id="modalPlayerInjuryText" style="font-size:0.8rem; color:#fca5a5; margin-top:2px;"></div>
+    </div>
+
+    <!-- 3-Column Metrics Grid -->
+    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:12px;">
+      <div style="background:rgba(255,255,255,0.03); padding:8px 6px; border-radius:10px; text-align:center;">
+        <div style="font-size:0.65rem; color:var(--text-muted); font-weight:700;">INDICE SCHIERA</div>
+        <div id="modalPlayerScore" style="font-size:1.15rem; font-weight:900; color:#34d399;">★ 88</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:8px 6px; border-radius:10px; text-align:center;">
+        <div style="font-size:0.65rem; color:var(--text-muted); font-weight:700;">FANTAVOTO ATTESO</div>
+        <div id="modalPlayerExpectedFV" style="font-size:1.15rem; font-weight:900; color:#f59e0b;">7.4 pt</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:8px 6px; border-radius:10px; text-align:center;">
+        <div style="font-size:0.65rem; color:var(--text-muted); font-weight:700;">TITOLARITÀ FONTI</div>
+        <div id="modalPlayerTitolarita" style="font-size:1.15rem; font-weight:900; color:#60a5fa;">95%</div>
+      </div>
+    </div>
+
+    <!-- Perché consigliato titolare (Motivation Box) -->
+    <div id="modalWhyStarterBox" style="background:linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.08)); border:1px solid rgba(16, 185, 129, 0.3); border-radius:12px; padding:12px; margin-bottom:12px;">
+      <div style="font-size:0.75rem; font-weight:800; color:#34d399; margin-bottom:4px; text-transform:uppercase; display:flex; align-items:center; gap:6px;">
+        🎯 Perché è Consigliato Titolare:
+      </div>
+      <div id="modalWhyStarterText" style="font-size:0.84rem; line-height:1.55; color:#f1f5f9;"></div>
+    </div>
+
+    <!-- Super Intelligence: Breakdown dei Fattori e Fonti -->
+    <div style="margin-bottom:12px;">
+      <div style="font-size:0.75rem; font-weight:800; color:var(--text-muted); text-transform:uppercase; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+        ⚡ Super Intelligenza • Incrocio Fonti & Metriche:
+      </div>
+      <div id="modalSuperIntelFactors">
+        <!-- Rendered dynamically: Triplo consenso, SofaScore xG/xA, Difficoltà partita, Modificatore -->
       </div>
     </div>
 
     <!-- SOS Fanta Quote Box -->
-    <div id="modalSOSFantaBox" style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.25); border-radius:12px; padding:12px; margin-bottom:14px; display:none;">
+    <div id="modalSOSFantaBox" style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.25); border-radius:12px; padding:12px; margin-bottom:12px; display:none;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
         <span style="font-size:0.75rem; font-weight:800; color:#f87171; text-transform:uppercase;">🔥 SOS FANTA PREVIEW:</span>
         <span id="modalSOSFantaBadge" class="badge-status badge-success">TOP</span>
       </div>
-      <div id="modalSOSFantaQuote" style="font-size:0.85rem; font-style:italic; color:#ffffff; margin-bottom:4px;"></div>
+      <div id="modalSOSFantaQuote" style="font-size:0.83rem; font-style:italic; color:#ffffff; margin-bottom:3px;"></div>
       <div id="modalSOSFantaSummary" style="font-size:0.75rem; color:#fca5a5;"></div>
-    </div>
-
-    <div style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.2); border-radius:12px; padding:12px; margin-bottom:14px;">
-      <div style="font-size:0.75rem; font-weight:700; color:#34d399; margin-bottom:4px; text-transform:uppercase;">
-        🧠 Motivazione Tattica:
-      </div>
-      <div id="modalPlayerAdvice" style="font-size:0.85rem; line-height:1.5;"></div>
     </div>
 
     <div style="font-size:0.8rem; color:var(--text-secondary); line-height:1.8; margin-bottom:16px;">
