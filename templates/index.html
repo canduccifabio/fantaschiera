@@ -266,11 +266,27 @@
             <!-- Populated via JS -->
           </div>
 
-          <!-- Action trigger for auto-learning -->
-          <div style="display:flex; justify-content:flex-end;">
-            <button id="btnTriggerLearning" class="btn btn-primary btn-sm" onclick="triggerAILearning(this)" style="background:linear-gradient(135deg, #8b5cf6, #ec4899); border:none; font-weight:700;">
-              🧠 Esegui Ricalibrazione & Auto-Apprendimento
-            </button>
+          <!-- Autonomous AI Self-Tuning Status -->
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; padding-top:10px; border-top:1px solid rgba(139, 92, 246, 0.2); margin-top:10px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="live-dot" style="background:#a855f7;"></span>
+              <div>
+                <div style="font-size:0.8rem; font-weight:800; color:#c4b5fd;">
+                  🤖 Sistema di Auto-Apprendimento 100% Autonomo
+                </div>
+                <div style="font-size:0.73rem; color:var(--text-muted); line-height:1.2;">
+                  L'algoritmo tara e ottimizza i pesi da solo a fine turno confrontando i voti reali con le attese.
+                </div>
+              </div>
+            </div>
+            <div style="display:flex; gap:6px; align-items:center;">
+              <span id="aiAutoStatusPill" class="badge-status badge-success" style="font-size:0.72rem;">
+                🟢 Pesi Calibrati
+              </span>
+              <button id="btnTriggerLearning" class="btn btn-secondary btn-sm" onclick="triggerAILearning(this)" style="font-size:0.72rem; padding:3px 8px; opacity:0.85;" title="Opzionale: Forza una ricalibrazione immediata">
+                ⚡ Forza Ricalibrazione
+              </button>
+            </div>
           </div>
         </div>
       </div>

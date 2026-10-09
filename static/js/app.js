@@ -457,18 +457,23 @@ function renderAILearningUI(status) {
       <span class="badge-status badge-success">MAE: ${status.overall_mae} pt</span>
     `;
   }
+
+  const autoPill = document.getElementById('aiAutoStatusPill');
+  if (autoPill) {
+    autoPill.innerText = `🟢 Rete Neurale Epoca ${status.epoch} (Allineata)`;
+  }
 }
 
 async function triggerAILearning(btn) {
   if (btn) {
     btn.disabled = true;
-    btn.innerHTML = `🧠 Calibro rete neurale...`;
+    btn.innerHTML = `⚡ Calibro...`;
   }
   try {
     const res = await fetch('/api/ai/trigger-learning', { method: 'POST' });
     const json = await res.json();
     if (json.success) {
-      showToast(`🧠 Auto-Apprendimento Epoca ${json.epoch} completato! Accuratezza: ${json.accuracy}%`);
+      showToast(`🧠 Rete Neurale Epoca ${json.epoch} ricalibrata! Accuratezza: ${json.accuracy}%`);
       if (json.data) renderAILearningUI(json.data);
       loadLineupRecommendation();
       loadLiveVotes();
@@ -477,11 +482,11 @@ async function triggerAILearning(btn) {
     }
   } catch (e) {
     console.error("Trigger learning error:", e);
-    showToast("Errore durante l'auto-apprendimento.");
+    showToast("Errore durante la ricalibrazione.");
   } finally {
     if (btn) {
       btn.disabled = false;
-      btn.innerHTML = `🧠 Esegui Ricalibrazione & Auto-Apprendimento`;
+      btn.innerHTML = `⚡ Forza Ricalibrazione`;
     }
   }
 }

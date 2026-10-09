@@ -788,6 +788,16 @@ class LiveMatchTracker:
         role_order = {'P': 0, 'D': 1, 'C': 2, 'A': 3}
         evaluated_players.sort(key=lambda x: (not x['is_starter'], role_order.get(x['role'], 4), -(x['real_fantavoto'] or x['expected_fantavoto'])))
 
+        # Autonomous AI Self-Calibration:
+        # If matches have concluded and real votes are present, the model automatically
+        # recalibrates its parameters without requiring manual user action.
+        if not simulate_live:
+            try:
+                from backend.ai_learning import ai_learning_engine
+                ai_learning_engine.auto_calibrate_if_needed(evaluated_players)
+            except Exception:
+                pass
+
         return {
             'last_update': now.strftime('%H:%M:%S'),
             'summary': {

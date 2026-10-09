@@ -83,6 +83,31 @@ class AILearningEngine:
     def get_weights(self) -> Dict[str, float]:
         return self.data.get('weights', DEFAULT_WEIGHTS['weights'])
 
+    def auto_calibrate_if_needed(self, evaluated_players: List[Dict]) -> Optional[Dict[str, Any]]:
+        """
+        Autonomously detects newly finalized match results and executes
+        self-calibration without requiring manual user action.
+        """
+        played = [p for p in evaluated_players if p.get('real_fantavoto') is not None]
+        if len(played) < 3:
+            # Need a minimum sample of concluded matches
+            return None
+
+        # Build a unique signature of the current matchday grade outcomes
+        import hashlib
+        sig_str = "|".join(sorted([f"{p.get('name')}:{p.get('real_fantavoto')}" for p in played]))
+        sig_hash = hashlib.md5(sig_str.encode('utf-8')).hexdigest()
+
+        if self.data.get('last_calibrated_hash') == sig_hash:
+            # Already tuned on this exact set of match grades!
+            return None
+
+        print(f"[AILearning] 🧠 Auto-calibrazione autonoma avviata su {len(played)} calciatori...")
+        res = self.run_recalibration(evaluated_players)
+        self.data['last_calibrated_hash'] = sig_hash
+        self._save_weights(self.data)
+        return res
+
     def run_recalibration(self, evaluated_players: List[Dict]) -> Dict[str, Any]:
         """
         Calculates error gradients on real vs expected outcomes and self-updates model parameters.
