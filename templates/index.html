@@ -177,29 +177,43 @@
     <!-- ================= TAB: SOS FANTA INTELLIGENCE ================= -->
     <section id="tab-sosfanta" class="tab-view">
       <!-- Hero Banner -->
-      <div class="card" style="background:linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.15)); border-color:rgba(239, 68, 68, 0.3);">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+      <div class="card" style="background:linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(245, 158, 11, 0.15)); border-color:rgba(239, 68, 68, 0.3); margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
           <span style="font-weight:800; font-size:1.15rem; color:#f87171; display:flex; align-items:center; gap:8px;">
             🔥 Consigli SOS Fanta Mirati sulla Tua Rosa
           </span>
-          <span class="badge-status badge-success">Analisi IA Attiva</span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span id="sosfantaMatchdayBadge" class="badge-status badge-primary">6ª Giornata</span>
+            <span class="badge-status badge-success">🤖 Analisi IA Attiva</span>
+          </div>
         </div>
-        <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5;">
+        <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; margin-bottom:12px;">
           L'intelligenza artificiale analizza l'articolo integrale della preview di SOS Fanta (tutte le 10 partite) ed estrae i consigli dedicati solo ed esclusivamente ai tuoi <strong>25 calciatori</strong>.
         </div>
+
+        <!-- Prominent Button to open the full article reader -->
+        <button class="btn btn-primary" style="width:100%; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, #ef4444, #f97316); border:none; padding:11px 16px; border-radius:12px; box-shadow:0 4px 15px rgba(239, 68, 68, 0.35); font-size:0.92rem; cursor:pointer;" onclick="openSOSFantaFullArticleModal()">
+          📖 Leggi l'Estratto Completo delle 10 Partite
+        </button>
       </div>
 
-      <!-- Preview URL & Update Bar -->
+      <!-- Preview URL & Auto-Discovery Bar -->
       <div class="card" style="padding:12px; margin-bottom:14px;">
-        <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase; margin-bottom:6px;">
-          Articolo Preview Analizzato:
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">
+            Fonte Preview SOS Fanta:
+          </span>
+          <span style="font-size:0.72rem; color:#10b981; font-weight:700;">🟢 Auto-rilevamento giornate attivo</span>
         </div>
         <div style="display:flex; gap:8px; flex-direction:column;">
           <input type="text" id="sosfantaUrlInput" class="search-input" style="padding-left:14px; font-size:0.8rem;" 
                  value="https://www.sosfanta.com/chi-schierare-fantacalcio/preview-6a-giornata-seriea-campionato-fantacalcio-tutti-consigli-chi-schierare/" />
-          <div style="display:flex; justify-content:flex-end; gap:8px;">
+          <div style="display:flex; justify-content:flex-end; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="autoDiscoverSOSFanta()">
+              ⚡ Cerca Ultima Giornata in Automatico
+            </button>
             <button class="btn btn-secondary btn-sm" onclick="syncSOSFantaPreview()">
-              Aggiorna Consigli SOS Fanta 🔄
+              Ricarica URL Personalizzato 🔄
             </button>
           </div>
         </div>
@@ -457,6 +471,43 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
     <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
       <button class="btn btn-secondary btn-sm" onclick="closePasteSquadModal()">Annulla</button>
       <button class="btn btn-primary btn-sm" onclick="executeImportPastedSquad()">Importa Calciatori</button>
+    </div>
+  </dialog>
+
+  <!-- SOS Fanta Full Article Modal -->
+  <dialog id="sosfantaFullModal">
+    <div class="modal-header" style="margin-bottom:8px; flex-shrink:0;">
+      <div>
+        <h3 style="font-size:1.15rem; font-weight:800; display:flex; align-items:center; gap:8px;">
+          📖 SOS Fanta • Preview Completa
+          <span id="fullArticleMatchdayBadge" class="badge-status badge-primary">6ª Giornata</span>
+        </h3>
+        <div style="font-size:0.75rem; color:var(--text-muted);">Tutti i consigli partita per partita della redazione</div>
+      </div>
+      <button class="modal-close" onclick="closeSOSFantaFullArticleModal()">&times;</button>
+    </div>
+
+    <!-- Sticky Search Filter -->
+    <div style="position:relative; margin-bottom:8px; flex-shrink:0;">
+      <input type="text" id="fullArticleSearchInput" class="search-input" style="padding-left:36px; padding-top:8px; padding-bottom:8px; font-size:0.85rem;" placeholder="Cerca squadra o calciatore (es. Dybala, Milan, Como)..." />
+      <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:0.9rem; pointer-events:none;">🔍</span>
+    </div>
+
+    <!-- Match Navigation Quick Pills -->
+    <div id="fullArticleNavPills" class="match-pills-bar" style="flex-shrink:0;">
+      <!-- Populated dynamically via JS: Tutte, GEN-FIO, INT-PAR, etc. -->
+    </div>
+
+    <!-- Scrollable matches container -->
+    <div id="fullArticleMatchesContainer" style="flex:1; overflow-y:auto; padding-right:4px;">
+      <div style="text-align:center; padding:30px; color:var(--text-muted);">Caricamento estratto completo...</div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:8px; border-top:1px solid var(--glass-border); flex-shrink:0; flex-wrap:wrap; gap:8px;">
+      <a id="fullArticleExternalLink" href="#" target="_blank" style="font-size:0.75rem; color:#60a5fa; text-decoration:none;">
+        🔗 Apri su SOS Fanta ↗
+      </a>
+      <button class="btn btn-secondary btn-sm" onclick="closeSOSFantaFullArticleModal()">Chiudi</button>
     </div>
   </dialog>
 

@@ -2,13 +2,14 @@ import os
 import json
 import re
 import urllib.request
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from bs4 import BeautifulSoup
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CACHE_FILE = os.path.join(DATA_DIR, 'sosfanta_preview.json')
 
 DEFAULT_PREVIEW_URL = 'https://www.sosfanta.com/chi-schierare-fantacalcio/preview-6a-giornata-seriea-campionato-fantacalcio-tutti-consigli-chi-schierare/'
+CATEGORY_URL = 'https://www.sosfanta.com/chi-schierare-fantacalcio/'
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -46,6 +47,8 @@ class SOSFantaAnalyzer:
     def __init__(self, preview_url: str = DEFAULT_PREVIEW_URL):
         self.preview_url = preview_url.rstrip('/') + '/'
         self.scraped_data = self._load_cache()
+        if self.scraped_data and self.scraped_data.get('preview_url'):
+            self.preview_url = self.scraped_data['preview_url']
 
     def _load_cache(self) -> Dict[str, Any]:
         if os.path.exists(CACHE_FILE):
@@ -55,6 +58,47 @@ class SOSFantaAnalyzer:
             except Exception:
                 pass
         return {}
+
+    @staticmethod
+    def auto_discover_latest_preview_url() -> Optional[str]:
+        """Discovers the latest matchday preview article from SOSFanta category page."""
+        try:
+            req = urllib.request.Request(CATEGORY_URL, headers=HEADERS)
+            html = urllib.request.urlopen(req, timeout=10).read().decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(html, 'html.parser')
+            for a in soup.find_all('a', href=True):
+                href = a['href']
+                if re.search(r'preview-\d+a-giornata', href, re.I):
+                    if href.startswith('http'):
+                        return href.rstrip('/') + '/'
+                    elif href.startswith('/'):
+                        return f"https://www.sosfanta.com{href}".rstrip('/') + '/'
+        except Exception as e:
+            print(f"[SOSFanta] Auto-discovery error: {e}")
+        return None
+
+    def get_matchday_label(self) -> str:
+        """Returns human readable matchday label (e.g. '6ª Giornata')."""
+        m = re.search(r'preview-(\d+)a-giornata', self.preview_url, re.I)
+        if m:
+            return f"{m.group(1)}ª Giornata"
+        return "Giornata Attuale"
+
+    def check_and_update_latest_preview(self, force: bool = False) -> Dict[str, Any]:
+        """Checks if a new matchday preview exists and automatically scrapes it."""
+        discovered = self.auto_discover_latest_preview_url()
+        updated = False
+        target_url = discovered if discovered else self.preview_url
+        if force or (target_url != self.preview_url) or not self.scraped_data.get('slides'):
+            self.preview_url = target_url
+            self.scrape_all_slides()
+            updated = True
+        return {
+            "updated": updated,
+            "preview_url": self.preview_url,
+            "matchday": self.get_matchday_label(),
+            "slides_count": len(self.scraped_data.get('slides', []))
+        }
 
     def scrape_all_slides(self) -> Dict[str, Any]:
         """Scrapes all 10 slides of the matchday preview from SOSFanta."""
@@ -69,20 +113,29 @@ class SOSFantaAnalyzer:
                 html = urllib.request.urlopen(req, timeout=10).read().decode('utf-8', errors='ignore')
                 soup = BeautifulSoup(html, 'html.parser')
                 
-                title_el = soup.select_one('.article-page-subtitle, h2, h3')
+                title_el = soup.select_one('.article-page-subtitle')
+                if not title_el:
+                    title_el = soup.select_one('h2, h3')
                 title = title_el.get_text(strip=True) if title_el else f"Partita {page}"
+                title = re.sub(r'^(LE SQUADRE DI SERIE A\s*[-:]?\s*)', '', title, flags=re.I).strip()
+                if not title or title.lower() == 'le squadre di serie a':
+                    title = f"Partita {page}"
                 
                 paras = [p.get_text(separator=' ', strip=True) for p in soup.find_all('p') 
                          if len(p.get_text(strip=True)) > 35 
                          and 'RIPRODUZIONE' not in p.text 
                          and 'Installa' not in p.text
-                         and 'navighi' not in p.text]
+                         and 'navighi' not in p.text
+                         and 'Registro Imprese' not in p.text
+                         and 'titolare del trattamento' not in p.text
+                         and 'cookie' not in p.text.lower()]
                          
-                slide_text = " ".join(paras)
-                all_text.append(slide_text)
+                slide_text = "\n\n".join(paras)
+                all_text.append(f"[{title}]\n" + slide_text)
                 slides_content.append({
                     'page': page,
                     'title': title,
+                    'paragraphs': paras,
                     'text': slide_text
                 })
             except Exception as e:
@@ -91,6 +144,7 @@ class SOSFantaAnalyzer:
         combined_text = "\n\n".join(all_text)
         result = {
             'preview_url': self.preview_url,
+            'matchday': self.get_matchday_label(),
             'combined_text': combined_text,
             'slides': slides_content
         }
@@ -134,7 +188,8 @@ class SOSFantaAnalyzer:
                 'badge': 'info',
                 'icon': '👉',
                 'quote': f"Non citato nei ballottaggi chiave di SOS Fanta.",
-                'summary': f"Nessun alert negativo: segue la valutazione standard della partita."
+                'summary': f"Nessun alert negativo: segue la valutazione standard della partita.",
+                'bonus_score': 0.0
             }
 
         s_lower = found_sentence.lower()
@@ -207,7 +262,6 @@ class SOSFantaAnalyzer:
                 'photo': p.get('photo', ''),
                 'sosfanta': analysis
             })
-        # Sort so that top recommended players appear first
         priority_map = {
             'SCHIERARE ASSOLUTO': 1,
             'PROMOSSO': 2,
@@ -220,5 +274,40 @@ class SOSFantaAnalyzer:
         }
         results.sort(key=lambda x: priority_map.get(x['sosfanta']['category'], 10))
         return results
+
+    def get_full_article_data(self, user_players: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
+        """Returns full article text and slides with user player highlights."""
+        if not self.scraped_data or not self.scraped_data.get('slides'):
+            self.scrape_all_slides()
+
+        slides = self.scraped_data.get('slides', [])
+        enriched_slides = []
+
+        for s in slides:
+            slide_copy = dict(s)
+            matched_players = []
+            if user_players:
+                slide_text = s.get('text', '')
+                for p in user_players:
+                    analysis = self.analyze_player(p['name'], p.get('team', ''))
+                    if analysis['mentioned'] and analysis['quote'] in slide_text:
+                        matched_players.append({
+                            'name': p['name'],
+                            'role': p.get('role', 'C'),
+                            'team': p.get('team', ''),
+                            'category': analysis['category'],
+                            'badge': analysis['badge'],
+                            'icon': analysis['icon'],
+                            'quote': analysis['quote']
+                        })
+            slide_copy['my_players'] = matched_players
+            enriched_slides.append(slide_copy)
+
+        return {
+            "preview_url": self.preview_url,
+            "matchday": self.get_matchday_label(),
+            "slides_count": len(enriched_slides),
+            "slides": enriched_slides
+        }
 
 sosfanta_analyzer = SOSFantaAnalyzer()

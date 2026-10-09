@@ -221,15 +221,35 @@ async def get_sosfanta_analysis():
     return {
         "success": True,
         "preview_url": sosfanta_analyzer.preview_url,
+        "matchday": sosfanta_analyzer.get_matchday_label(),
         "results": analysis
     }
+
+@app.get("/api/sosfanta/full-article")
+async def get_sosfanta_full_article():
+    user_players = get_user_squad()
+    data = sosfanta_analyzer.get_full_article_data(user_players)
+    return {
+        "success": True,
+        **data
+    }
+
+@app.post("/api/sosfanta/auto-discover")
+async def auto_discover_sosfanta():
+    res = sosfanta_analyzer.check_and_update_latest_preview(force=True)
+    optimizer.reload_data()
+    return {"success": True, **res}
 
 @app.post("/api/sosfanta/update-url")
 async def update_sosfanta_url(req: SOSFantaUrlRequest):
     sosfanta_analyzer.preview_url = req.url.rstrip('/') + '/'
     sosfanta_analyzer.scrape_all_slides()
     optimizer.reload_data()
-    return {"success": True, "preview_url": sosfanta_analyzer.preview_url}
+    return {
+        "success": True,
+        "preview_url": sosfanta_analyzer.preview_url,
+        "matchday": sosfanta_analyzer.get_matchday_label()
+    }
 
 # --- Tunnel Info ---
 from backend.tunnel import tunnel_instance

@@ -590,6 +590,9 @@ async function loadTunnelInfo() {
 }
 
 // --- SOS FANTA INTELLIGENCE TAB ---
+let fullArticleDataCache = null;
+let activeMatchFilter = 'all';
+
 async function loadSOSFantaAnalysis() {
   const container = document.getElementById('sosfantaCardsContainer');
   const statsContainer = document.getElementById('sosfantaStatsContainer');
@@ -600,6 +603,16 @@ async function loadSOSFantaAnalysis() {
     if (!res.ok) throw new Error("Errore recupero SOS Fanta");
     const data = await res.json();
     const results = data.results || [];
+
+    // Update matchday badge and url input
+    if (data.matchday) {
+      const badge = document.getElementById('sosfantaMatchdayBadge');
+      if (badge) badge.innerText = data.matchday;
+    }
+    if (data.preview_url) {
+      const input = document.getElementById('sosfantaUrlInput');
+      if (input) input.value = data.preview_url;
+    }
 
     // Stats count
     const mentionedCount = results.filter(r => r.sosfanta.mentioned).length;
@@ -679,13 +692,192 @@ async function syncSOSFantaPreview() {
     });
     const result = await res.json();
     if (result.success) {
-      showToast("✅ Analisi SOS Fanta aggiornata con successo!");
+      showToast(`✅ Analisi ${result.matchday || 'SOS Fanta'} aggiornata con successo!`);
       loadSOSFantaAnalysis();
       loadLineupRecommendation();
     }
   } catch (e) {
     showToast("Errore durante l'aggiornamento da SOS Fanta.");
   }
+}
+
+async function autoDiscoverSOSFanta() {
+  showToast("⚡ Cerco l'ultima preview su SOS Fanta...");
+  try {
+    const res = await fetch('/api/sosfanta/auto-discover', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const input = document.getElementById('sosfantaUrlInput');
+      if (input && data.preview_url) input.value = data.preview_url;
+      showToast(`✅ Rilevata e aggiornata: ${data.matchday || 'Nuova Giornata'}!`);
+      loadSOSFantaAnalysis();
+      loadLineupRecommendation();
+    } else {
+      showToast("Nessun aggiornamento necessario.");
+    }
+  } catch (e) {
+    showToast("Errore durante il controllo automatico.");
+  }
+}
+
+// --- SOS FANTA FULL ARTICLE READER MODAL ---
+async function openSOSFantaFullArticleModal() {
+  const dialog = document.getElementById('sosfantaFullModal');
+  if (!dialog) return;
+  dialog.showModal();
+
+  const container = document.getElementById('fullArticleMatchesContainer');
+  if (container) {
+    container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">Caricamento delle 10 partite...</div>`;
+  }
+
+  try {
+    const res = await fetch('/api/sosfanta/full-article');
+    if (!res.ok) throw new Error("Errore caricamento articolo");
+    const data = await res.json();
+    fullArticleDataCache = data;
+
+    const mday = data.matchday || "Giornata";
+    const badge = document.getElementById('fullArticleMatchdayBadge');
+    if (badge) badge.innerText = mday;
+    
+    const extLink = document.getElementById('fullArticleExternalLink');
+    if (extLink && data.preview_url) extLink.href = data.preview_url;
+
+    renderFullArticleNavPills(data.slides || []);
+    renderFullArticleMatches(data.slides || [], '');
+
+    const searchInput = document.getElementById('fullArticleSearchInput');
+    if (searchInput) {
+      searchInput.value = '';
+      searchInput.oninput = (e) => {
+        const query = e.target.value.trim().toLowerCase();
+        renderFullArticleMatches(fullArticleDataCache.slides || [], query);
+      };
+    }
+  } catch (e) {
+    if (container) {
+      container.innerHTML = `<div style="text-align:center; padding:30px; color:#ef4444;">Impossibile recuperare l'articolo integrale.</div>`;
+    }
+  }
+}
+
+function closeSOSFantaFullArticleModal() {
+  const dialog = document.getElementById('sosfantaFullModal');
+  if (dialog) dialog.close();
+}
+
+function renderFullArticleNavPills(slides) {
+  const pillsContainer = document.getElementById('fullArticleNavPills');
+  if (!pillsContainer) return;
+
+  let pillsHtml = `
+    <button class="match-pill-btn active" onclick="filterMatchSlide('all', this)">
+      Tutte (10)
+    </button>
+  `;
+
+  slides.forEach((s) => {
+    const parts = s.title.split(/[-–vsVS]/).map(p => p.trim());
+    let shortName = s.title;
+    if (parts.length >= 2) {
+      shortName = `${parts[0].slice(0, 3).toUpperCase()}-${parts[1].slice(0, 3).toUpperCase()}`;
+    }
+    const myCount = s.my_players ? s.my_players.length : 0;
+    const badgeStr = myCount > 0 ? ` (${myCount}⭐)` : '';
+    pillsHtml += `
+      <button class="match-pill-btn" onclick="filterMatchSlide(${s.page}, this)">
+        ${shortName}${badgeStr}
+      </button>
+    `;
+  });
+
+  pillsContainer.innerHTML = pillsHtml;
+}
+
+function filterMatchSlide(page, btnEl) {
+  activeMatchFilter = page;
+  document.querySelectorAll('#fullArticleNavPills .match-pill-btn').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+
+  const searchVal = document.getElementById('fullArticleSearchInput')?.value.trim().toLowerCase() || '';
+
+  if (page === 'all') {
+    renderFullArticleMatches(fullArticleDataCache?.slides || [], searchVal);
+  } else {
+    const singleSlide = (fullArticleDataCache?.slides || []).filter(s => s.page === page);
+    renderFullArticleMatches(singleSlide, searchVal);
+  }
+}
+
+function renderFullArticleMatches(slides, query) {
+  const container = document.getElementById('fullArticleMatchesContainer');
+  if (!container) return;
+
+  let filtered = slides;
+  if (query) {
+    filtered = slides.filter(s => {
+      const inTitle = s.title.toLowerCase().includes(query);
+      const inText = s.text.toLowerCase().includes(query);
+      const inPlayers = (s.my_players || []).some(p => p.name.toLowerCase().includes(query));
+      return inTitle || inText || inPlayers;
+    });
+  }
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">Nessuna partita corrisponde alla ricerca "<strong>${query}</strong>".</div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(s => {
+    const myPlayers = s.my_players || [];
+    const myPlayersTags = myPlayers.map(p => {
+      let tagClass = 'tag-good';
+      if (p.category === 'SCHIERARE ASSOLUTO') tagClass = 'tag-top';
+      else if (p.category === 'ATTENZIONE / RISCHIOSO') tagClass = 'tag-warn';
+      return `<span class="match-player-tag ${tagClass}">⭐ ${p.name}: ${p.icon} ${p.category}</span>`;
+    }).join(' ');
+
+    let parasHtml = '';
+    if (s.paragraphs && s.paragraphs.length > 0) {
+      parasHtml = s.paragraphs.map(p => {
+        let highlighted = p;
+        myPlayers.forEach(mp => {
+          const reg = new RegExp(`(${mp.name.split(' ')[0]})`, 'gi');
+          highlighted = highlighted.replace(reg, `<strong style="color:#34d399; background:rgba(16,185,129,0.15); padding:1px 4px; border-radius:4px;">$1</strong>`);
+        });
+        if (query) {
+          const qReg = new RegExp(`(${query})`, 'gi');
+          highlighted = highlighted.replace(qReg, `<mark style="background:#f59e0b; color:#000; padding:1px 3px; border-radius:3px;">$1</mark>`);
+        }
+        return `<p style="margin-bottom:8px; line-height:1.6; font-size:0.86rem; color:#e2e8f0;">${highlighted}</p>`;
+      }).join('');
+    } else {
+      parasHtml = `<p style="line-height:1.6; font-size:0.86rem; color:#e2e8f0;">${s.text}</p>`;
+    }
+
+    return `
+      <div class="article-match-card" id="match-card-${s.page}">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px; flex-wrap:wrap; gap:6px;">
+          <div style="font-weight:800; font-size:1.02rem; color:#f87171; letter-spacing:0.3px;">
+            ⚽ ${s.title}
+          </div>
+          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">Partita ${s.page} di 10</span>
+        </div>
+
+        ${myPlayers.length > 0 ? `
+          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:6px 10px; margin-bottom:10px;">
+            <div style="font-size:0.7rem; color:#34d399; font-weight:700; margin-bottom:3px; text-transform:uppercase;">I Tuoi Calciatori Coinvolti:</div>
+            <div>${myPlayersTags}</div>
+          </div>
+        ` : ''}
+
+        <div style="color:#cbd5e1;">
+          ${parasHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 function copyPublicTunnelUrl() {

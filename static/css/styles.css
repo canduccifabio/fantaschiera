@@ -616,6 +616,78 @@ dialog::backdrop {
   font-size: 1.5rem;
 }
 
+/* SOS Fanta Full Article Modal */
+#sosfantaFullModal {
+  max-width: 800px;
+  width: 95%;
+  height: 88vh;
+  max-height: 88vh;
+  padding: 16px;
+  display: none;
+  flex-direction: column;
+}
+
+#sosfantaFullModal[open] {
+  display: flex;
+}
+
+.match-pills-bar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 0 10px 0;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.match-pills-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.match-pill-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.match-pill-btn:hover, .match-pill-btn.active {
+  background: var(--accent-crimson);
+  color: #ffffff;
+  border-color: #ef4444;
+}
+
+.article-match-card {
+  background: rgba(15, 23, 38, 0.75);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  margin-bottom: 12px;
+  scroll-margin-top: 10px;
+  transition: border-color 0.2s ease;
+}
+.article-match-card:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.match-player-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin: 2px 4px 2px 0;
+}
+.match-player-tag.tag-top { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+.match-player-tag.tag-good { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+.match-player-tag.tag-warn { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+
 /* Toast Notifications */
 .toast {
   position: fixed;
