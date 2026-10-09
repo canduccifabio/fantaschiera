@@ -41,6 +41,7 @@ function renderSoccerPitch(starters, formation = '3-4-3', onPlayerClickCallback 
 
   function buildRowHTML(players, rowClass) {
     let html = `<div class="pitch-row ${rowClass}">`;
+    players.forEach((p, idx) => {
       // Ring is orange only for genuine uncertain starters (<70% titolarità or low ballottaggio)
       const isBallottaggio = p.titolarita_pct < 70 || (p.ballottaggio_note && p.titolarita_pct <= 60);
       const ringClass = isBallottaggio ? 'titolarita-ring ballottaggio' : 'titolarita-ring';
@@ -54,10 +55,10 @@ function renderSoccerPitch(starters, formation = '3-4-3', onPlayerClickCallback 
           </div>
           <div class="player-tag">
             <span class="player-name-text">${p.name}</span>
-            <span class="player-sub-text">
-              <span>★${Math.round(p.score)}</span>
+            <div class="player-sub-text">
+              <span style="color:#f59e0b; font-weight:800; background:rgba(245,158,11,0.22); padding:1px 3px; border-radius:3px;">FV ${p.expected_fantavoto || 6.0}</span>
               <span class="player-matchup">${p.opponent ? p.opponent : ''}</span>
-            </span>
+            </div>
           </div>
         </div>
       `;
