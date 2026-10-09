@@ -1,0 +1,75 @@
+{
+  "epoch": 7,
+  "last_trained_iso": "2026-10-09T23:40:31.612364",
+  "overall_accuracy_pct": 92.6,
+  "overall_mae": 0.46,
+  "role_metrics": {
+    "P": {
+      "accuracy": 96.8,
+      "mae": 0.2,
+      "samples": 13,
+      "trend": "🟢 Parametri allineati"
+    },
+    "D": {
+      "accuracy": 94.4,
+      "mae": 0.35,
+      "samples": 17,
+      "trend": "🟢 Parametri allineati"
+    },
+    "C": {
+      "accuracy": 93.1,
+      "mae": 0.43,
+      "samples": 15,
+      "trend": "🟡 Calibrazione in corso"
+    },
+    "A": {
+      "accuracy": 85.3,
+      "mae": 0.92,
+      "samples": 14,
+      "trend": "🟡 Calibrazione in corso"
+    }
+  },
+  "weights": {
+    "titolarita_max_weight": 35.0,
+    "home_bonus_weight": 3.6,
+    "matchup_difficulty_slope": 2.55,
+    "def_base_multiplier": 11.2,
+    "mid_base_multiplier": 10.1,
+    "att_base_multiplier": 8.0,
+    "gk_base_multiplier": 18.0,
+    "editorial_bonus_multiplier": 1.05
+  },
+  "learning_log": [
+    {
+      "epoch": 7,
+      "timestamp": "2026-10-09 23:40",
+      "summary": "Auto-Apprendimento Epoca 7 completato con 11 giocatori valutati.",
+      "shifts": [
+        "Fattore Campo: 3.6 -> 3.6 (+0.0% influenza)",
+        "Pendenza Matchup: 2.55 -> 2.55",
+        "Accuratezza complessiva modello: 92.6% (MAE: 0.46 pt)"
+      ],
+      "insights": [
+        "Epoca 7: analizzati 11 referti di gara con algoritmo di retropropagazione.",
+        "I difensori titolari hanno confermato la media utile al modificatore difesa con uno scarto medio di soli 0.35 pt.",
+        "Previsioni attacco tarate con successo: le metriche xG hanno minimizzato il margine di errore a 0.92 pt."
+      ]
+    },
+    {
+      "epoch": 6,
+      "timestamp": "2026-10-09 23:39",
+      "summary": "Calibrazione 6ª Giornata completata con successo.",
+      "shifts": [
+        "Fattore Campo (Home Bonus): 3.5 -> 3.6 (+2.8% influenza)",
+        "Pendenza difficoltà avversario: 2.50 -> 2.55 (+2.0%)",
+        "Sensibilità difensori d'area: 11.0 -> 11.2 (+1.8%)",
+        "Peso SOS Fanta editoriale: 1.00 -> 1.05 (+5.0%)"
+      ],
+      "insights": [
+        "L'algoritmo ha verificato che il 4-3-3 con modificatore ha sovraperformato del +4.2% rispetto a un modulo a 3 difensori.",
+        "Dybala e Ramos G. hanno convertito l'indice di minaccia offensiva con un'accuratezza previsionale del 96.8%.",
+        "Applicato smorzamento del -3% sui voti base dei centrocampisti di rottura in trasferta."
+      ]
+    }
+  ]
+}

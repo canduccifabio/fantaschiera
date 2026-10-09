@@ -278,6 +278,27 @@ async def refresh_live_votes():
     data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), simulate_live=True)
     return {"success": True, "data": data}
 
+# --- AI Self-Learning & Auto-Improvement API ---
+from backend.ai_learning import ai_learning_engine
+
+@app.get("/api/ai/learning-status")
+async def get_ai_learning_status():
+    return {
+        "success": True,
+        "status": ai_learning_engine.get_status()
+    }
+
+@app.post("/api/ai/trigger-learning")
+async def trigger_ai_learning():
+    user_players = get_user_squad()
+    settings = get_settings()
+    lineup_res = optimizer.optimize_lineup(user_players=user_players, use_defense_modifier=settings.get('defense_modifier', True))
+    live_data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), simulate_live=True)
+    
+    recalibration_result = ai_learning_engine.run_recalibration(live_data.get('players', []))
+    optimizer.reload_data()
+    return recalibration_result
+
 # --- Tunnel Info ---
 from backend.tunnel import tunnel_instance
 

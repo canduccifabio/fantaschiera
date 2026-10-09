@@ -351,7 +351,74 @@ function renderLiveView(data) {
     `).join('');
   }
 
+  // Load and render AI learning status
+  loadAILearningStatus();
+
   renderLivePlayerCards(data);
+}
+
+// --- AI SELF-LEARNING & PARAMETER CALIBRATION ---
+async function loadAILearningStatus() {
+  try {
+    const res = await fetch('/api/ai/learning-status');
+    const json = await res.json();
+    if (json.success && json.status) {
+      renderAILearningUI(json.status);
+    }
+  } catch (e) {
+    console.warn("Could not load AI learning status", e);
+  }
+}
+
+function renderAILearningUI(status) {
+  if (!status) return;
+  const epochBadge = document.getElementById('aiLearningEpochBadge');
+  if (epochBadge) epochBadge.innerText = `Epoca ${status.epoch}`;
+
+  const rm = status.role_metrics || {};
+  if (rm.P && document.getElementById('roleAccP')) document.getElementById('roleAccP').innerText = `${rm.P.accuracy}%`;
+  if (rm.D && document.getElementById('roleAccD')) document.getElementById('roleAccD').innerText = `${rm.D.accuracy}%`;
+  if (rm.C && document.getElementById('roleAccC')) document.getElementById('roleAccC').innerText = `${rm.C.accuracy}%`;
+  if (rm.A && document.getElementById('roleAccA')) document.getElementById('roleAccA').innerText = `${rm.A.accuracy}%`;
+
+  const weightsList = document.getElementById('aiWeightsBadgesList');
+  const w = status.weights || {};
+  if (weightsList && w) {
+    weightsList.innerHTML = `
+      <span class="badge-status badge-secondary">Fattore Campo: ${w.home_bonus_weight} pt</span>
+      <span class="badge-status badge-secondary">Pendenza Matchup: ${w.matchup_difficulty_slope}</span>
+      <span class="badge-status badge-secondary">Mod. Difesa: x${w.def_base_multiplier}</span>
+      <span class="badge-status badge-secondary">SOS Fanta: x${w.editorial_bonus_multiplier}</span>
+      <span class="badge-status badge-success">MAE: ${status.overall_mae} pt</span>
+    `;
+  }
+}
+
+async function triggerAILearning(btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `🧠 Calibro rete neurale...`;
+  }
+  try {
+    const res = await fetch('/api/ai/trigger-learning', { method: 'POST' });
+    const json = await res.json();
+    if (json.success) {
+      showToast(`🧠 Auto-Apprendimento Epoca ${json.epoch} completato! Accuratezza: ${json.accuracy}%`);
+      if (json.data) renderAILearningUI(json.data);
+      loadLineupRecommendation();
+      loadLiveVotes();
+    } else {
+      showToast(json.message || "Auto-apprendimento completato.");
+    }
+  } catch (e) {
+    console.error("Trigger learning error:", e);
+    showToast("Errore durante l'auto-apprendimento.");
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `🧠 Esegui Ricalibrazione & Auto-Apprendimento`;
+    }
+  }
 }
 
 function renderLivePlayerCards(data) {

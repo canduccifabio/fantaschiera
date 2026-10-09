@@ -4,6 +4,7 @@ import re
 from typing import List, Dict, Any, Tuple
 from backend.sosfanta_analyzer import sosfanta_analyzer
 from backend.intelligence import super_intelligence
+from backend.ai_learning import ai_learning_engine
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 PLAYERS_FILE = os.path.join(DATA_DIR, 'players_cache.json')
@@ -201,15 +202,26 @@ class LineupOptimizer:
             'ATTENZIONE / RISCHIOSO': -7.0,
             'SCONSIGLIATO': -12.0
         }
-        editorial_pts = editorial_bonus_map.get(sf_cat, 0.0)
+        # Dynamic weights optimized by the continuous AI learning engine
+        learned_w = ai_learning_engine.get_weights()
+        tit_max_w = learned_w.get('titolarita_max_weight', 35.0)
+        home_b_w = learned_w.get('home_bonus_weight', 3.6)
+        match_slope = learned_w.get('matchup_difficulty_slope', 2.55)
+        def_base_m = learned_w.get('def_base_multiplier', 11.2)
+        mid_base_m = learned_w.get('mid_base_multiplier', 10.1)
+        att_base_m = learned_w.get('att_base_multiplier', 8.0)
+        gk_base_m = learned_w.get('gk_base_multiplier', 18.0)
+        ed_mult = learned_w.get('editorial_bonus_multiplier', 1.05)
+
+        editorial_pts = (editorial_bonus_map.get(sf_cat, 0.0)) * ed_mult
 
         # --- COMPUTE COMPOSITE FANTA-SCORE INDEX (0 - 100) ---
         # A) Titolarità Consensus Factor (0 - 35 pt)
-        titolarita_pts = (calibrated_titolarita / 100.0) * 35.0
+        titolarita_pts = (calibrated_titolarita / 100.0) * tit_max_w
 
         # B) Matchup & Opponent Factor (0 - 25 pt)
-        home_bonus = 3.5 if is_home else 0.0
-        matchup_pts = min(25.0, max(6.0, 11.0 + (5.0 - opp_diff) * 2.5 + home_bonus))
+        home_bonus = home_b_w if is_home else 0.0
+        matchup_pts = min(25.0, max(6.0, 11.0 + (5.0 - opp_diff) * match_slope + home_bonus))
 
         # C) Advanced Threat & Metrics Factor (0 - 25 pt) calibrated across all roles
         pure_base = metrics_data.get('pure_base_grade', 6.20)
@@ -218,22 +230,22 @@ class LineupOptimizer:
         if role == 'P':
             cs_pct = gk_data['clean_sheet_prob'] if gk_data else 35
             xgc = gk_data['expected_goals_conceded'] if gk_data else 1.2
-            base_pts = min(12.0, max(6.0, (pure_base - 5.8) * 18.0))
+            base_pts = min(12.0, max(6.0, (pure_base - 5.8) * gk_base_m))
             cs_pts = (cs_pct / 100.0) * 8.0
             xgc_pts = max(0.0, min(5.0, (2.0 - xgc) * 3.0))
             threat_pts = min(25.0, base_pts + cs_pts + xgc_pts)
         elif role == 'D':
-            base_pts = min(14.0, max(7.0, 9.0 + (pure_base - 5.8) * 11.0))
+            base_pts = min(14.0, max(7.0, 9.0 + (pure_base - 5.8) * def_base_m))
             off_pts = min(6.0, (threat_score / 10.0) * 6.0)
             qa_pts = min(5.0, (min(25, qa) / 25.0) * 5.0)
             threat_pts = min(25.0, base_pts + off_pts + qa_pts)
         elif role == 'C':
-            base_pts = min(13.0, max(6.0, 8.0 + (pure_base - 5.8) * 10.0))
+            base_pts = min(13.0, max(6.0, 8.0 + (pure_base - 5.8) * mid_base_m))
             off_pts = min(7.0, (threat_score / 10.0) * 7.0)
             qa_pts = min(5.0, (min(30, qa) / 30.0) * 5.0)
             threat_pts = min(25.0, base_pts + off_pts + qa_pts)
         else: # A
-            base_pts = min(11.0, max(5.0, 7.0 + (pure_base - 5.8) * 8.0))
+            base_pts = min(11.0, max(5.0, 7.0 + (pure_base - 5.8) * att_base_m))
             off_pts = min(10.0, (threat_score / 10.0) * 10.0)
             qa_pts = min(4.0, (min(36, qa) / 36.0) * 4.0)
             threat_pts = min(25.0, base_pts + off_pts + qa_pts)
