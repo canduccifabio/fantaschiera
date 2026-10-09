@@ -564,6 +564,59 @@
       <div id="modalPlayerInjuryText" style="font-size:0.8rem; color:#fca5a5; margin-top:2px;"></div>
     </div>
 
+    <!-- ================= LIVE & POST-MATCH PERFORMANCE CARD ================= -->
+    <div id="modalLivePerformanceCard" style="display:none; background:rgba(15, 23, 42, 0.75); border:1px solid rgba(139, 92, 246, 0.35); border-radius:14px; padding:12px; margin-bottom:14px;">
+      <!-- Title & Match Status Banner -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:8px;">
+        <span style="font-size:0.8rem; font-weight:800; color:#c4b5fd; display:flex; align-items:center; gap:6px;">
+          <span>⚡</span> RENDIMENTO LIVE & ANALISI POST-MATCH
+        </span>
+        <span id="modalLiveStatusBadge" class="badge-status badge-success">FINALE 🏁</span>
+      </div>
+
+      <!-- 1. VOTO FANTACALCIO (Ufficiale di Lega) -->
+      <div style="background:linear-gradient(135deg, rgba(30, 58, 138, 0.3), rgba(16, 185, 129, 0.15)); border:1px solid rgba(59, 130, 246, 0.3); border-radius:10px; padding:10px 12px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+          <div>
+            <div style="font-size:0.68rem; font-weight:800; color:#93c5fd; text-transform:uppercase; letter-spacing:0.5px;">
+              🏆 VOTO FANTACALCIO • FONTE UFFICIALE LEGA
+            </div>
+            <div style="display:flex; align-items:baseline; gap:8px; margin-top:2px;">
+              <span id="modalLiveFantavoto" style="font-size:1.85rem; font-weight:900; color:#34d399; line-height:1;">9.5</span>
+              <span style="font-size:0.8rem; color:var(--text-muted); font-weight:700;">Fantavoto Finale</span>
+              <span id="modalLiveDeltaBadge" class="badge-status badge-success" style="font-size:0.72rem;">+0.21 pt vs Atteso</span>
+            </div>
+            <div id="modalLiveBaseVoteText" style="font-size:0.82rem; color:#e2e8f0; margin-top:4px;">
+              Voto Base: <strong id="modalLiveBaseGradeVal">7.0</strong> • Bonus/Malus: <span id="modalLiveBonusListHtml">⚽ Gol (+3.0)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. STATISTICHE MULTI-FONTE (Sofascore & Understat) -->
+      <div style="background:rgba(255, 255, 255, 0.03); border:1px solid var(--glass-border); border-radius:10px; padding:10px 12px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <span style="font-size:0.7rem; font-weight:800; color:#cbd5e1; text-transform:uppercase;">
+            📊 STATISTICHE AVANZATE • SOFASCORE & UNDERSTAT
+          </span>
+          <span id="modalLiveStatsSourceBadge" style="font-size:0.68rem; color:#94a3b8;">SofaScore Live</span>
+        </div>
+        <div id="modalLiveStatsGrid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:6px;">
+          <!-- Dynamically populated: xG, xA, Tiri, Passaggi, Duelli, Parate -->
+        </div>
+      </div>
+
+      <!-- 3. ANALISI AI SULLA PRESTAZIONE -->
+      <div style="background:linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(236, 72, 153, 0.08)); border:1px solid rgba(139, 92, 246, 0.3); border-radius:10px; padding:10px 12px;">
+        <div style="font-size:0.75rem; font-weight:800; color:#c4b5fd; text-transform:uppercase; margin-bottom:4px; display:flex; align-items:center; gap:6px;">
+          🤖 Analisi AI sulla Prestazione:
+        </div>
+        <div id="modalLiveAITitle" style="font-size:0.85rem; font-weight:700; color:#ffffff; margin-bottom:4px;"></div>
+        <div id="modalLiveAISummary" style="font-size:0.82rem; line-height:1.55; color:#e2e8f0; margin-bottom:6px;"></div>
+        <div id="modalLiveAIModImpact" style="font-size:0.78rem; color:#a7f3d0; background:rgba(16, 185, 129, 0.1); border-radius:6px; padding:6px 10px; line-height:1.4;"></div>
+      </div>
+    </div>
+
     <!-- 3-Column Metrics Grid -->
     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:12px;">
       <div style="background:rgba(255,255,255,0.03); padding:8px 6px; border-radius:10px; text-align:center;">

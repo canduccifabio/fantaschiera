@@ -941,17 +941,120 @@ function openPlayerModal(player) {
   document.getElementById('modalPlayerTeam').innerText = `${player.team_full || player.team} • Ruolo ${player.role}`;
   document.getElementById('modalPlayerScore').innerText = `★ ${Math.round(player.score || 0)}`;
   document.getElementById('modalPlayerExpectedFV').innerText = `${player.expected_fantavoto || 6.5} pt`;
-  document.getElementById('modalPlayerTitolarita').innerText = `${player.titolarita_pct || 70}%`;
+  document.getElementById('modalPlayerTitolarita').innerText = `${player.titolarita_pct || player.titolarita_fonti || 70}%`;
   document.getElementById('modalPlayerMatch').innerText = player.match_info || "Prossimo turno";
   document.getElementById('modalPlayerQA').innerText = player.qa || '-';
   document.getElementById('modalPlayerFVM').innerText = player.fvm || '-';
 
+  // Live & Post-Match Performance Card Population
+  const livePerfCard = document.getElementById('modalLivePerformanceCard');
+  if (livePerfCard) {
+    const isLiveOrDone = player.real_fantavoto !== null && player.real_fantavoto !== undefined;
+    const hasLiveContext = player.match_status !== undefined || isLiveOrDone;
+
+    if (hasLiveContext) {
+      livePerfCard.style.display = 'block';
+
+      // Status Badge
+      const statusBadge = document.getElementById('modalLiveStatusBadge');
+      if (statusBadge) {
+        statusBadge.innerText = player.status_badge || (player.match_status === 'TERMINATA' ? 'FINALE 🏁' : (player.match_status === 'IN CORSO' ? 'LIVE 🔴' : 'DA GIOCARE ⏳'));
+        statusBadge.className = `badge-status ${player.status_class || 'badge-warning'}`;
+      }
+
+      // Fantavoto & Base Grade
+      const fvDisp = document.getElementById('modalLiveFantavoto');
+      const deltaDisp = document.getElementById('modalLiveDeltaBadge');
+      const baseGradeVal = document.getElementById('modalLiveBaseGradeVal');
+      const bonusHtml = document.getElementById('modalLiveBonusListHtml');
+
+      if (isLiveOrDone) {
+        if (fvDisp) fvDisp.innerText = `${player.real_fantavoto}`;
+        if (deltaDisp) {
+          deltaDisp.style.display = 'inline-block';
+          deltaDisp.innerText = `Δ ${player.delta_formatted || '0 pt'} vs Atteso`;
+          deltaDisp.className = `badge-status ${player.delta_class || 'badge-success'}`;
+        }
+        if (baseGradeVal) baseGradeVal.innerText = `${player.base_grade !== null ? player.base_grade : '-'}`;
+        if (bonusHtml) {
+          if (player.bonus_malus && player.bonus_malus.length > 0) {
+            bonusHtml.innerHTML = player.bonus_malus.map(b => 
+              `<span class="bonus-pill ${b.val < 0 ? 'malus' : ''}">${b.icon} ${b.label} (${b.val > 0 ? '+' : ''}${b.val})</span>`
+            ).join(' ');
+          } else {
+            bonusHtml.innerText = 'Nessun bonus/malus';
+          }
+        }
+      } else {
+        if (fvDisp) fvDisp.innerHTML = `-.- <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">(Atteso: ${player.expected_fantavoto || 6.5})</span>`;
+        if (deltaDisp) {
+          deltaDisp.style.display = 'inline-block';
+          deltaDisp.innerText = `In attesa del fischio d'inizio`;
+          deltaDisp.className = 'badge-status badge-secondary';
+        }
+        if (baseGradeVal) baseGradeVal.innerText = '-.-';
+        if (bonusHtml) bonusHtml.innerText = "In attesa degli eventi ufficiali Fantacalcio.it";
+      }
+
+      // Advanced Stats from other sources (Sofascore & Understat)
+      const statGrid = document.getElementById('modalLiveStatsGrid');
+      const statSourceBadge = document.getElementById('modalLiveStatsSourceBadge');
+      const ds = player.detailed_stats || {};
+
+      if (statSourceBadge) {
+        statSourceBadge.innerText = ds.rating_source || ds.source || "SofaScore Live + Understat";
+      }
+
+      if (statGrid) {
+        const statBoxes = [];
+        if (ds.minutes && ds.minutes !== '-') statBoxes.push({ label: 'MINUTI', val: ds.minutes });
+        if (ds.xg && ds.xg !== '-') statBoxes.push({ label: 'xG (UNDERSTAT)', val: ds.xg });
+        if (ds.xa && ds.xa !== '-') statBoxes.push({ label: 'xA (UNDERSTAT)', val: ds.xa });
+        if (ds.shots_total) statBoxes.push({ label: 'TIRI (SPECCHIO)', val: `${ds.shots_total} (${ds.shots_on_target || 0})` });
+        if (ds.passes && ds.passes !== '-') statBoxes.push({ label: 'PASSAGGI', val: ds.passes });
+        if (ds.duels_won) statBoxes.push({ label: 'DUELLI VINTI', val: ds.duels_won });
+        if (ds.tackles) statBoxes.push({ label: 'CONTRASTI', val: ds.tackles });
+        if (ds.interceptions) statBoxes.push({ label: 'INTERCETTI', val: ds.interceptions });
+        if (ds.recoveries) statBoxes.push({ label: 'RECUPERI', val: ds.recoveries });
+        if (ds.saves) statBoxes.push({ label: 'PARATE', val: ds.saves });
+        if (ds.clearances) statBoxes.push({ label: 'RESPINTE', val: ds.clearances });
+        if (ds.key_passes) statBoxes.push({ label: 'CHIAVE', val: ds.key_passes });
+        if (ds.assists) statBoxes.push({ label: 'ASSIST', val: ds.assists });
+
+        if (statBoxes.length === 0) {
+          statGrid.innerHTML = `<div style="grid-column:1/-1; font-size:0.75rem; color:var(--text-muted); padding:6px; text-align:center;">Metriche live Sofascore ed Understat disponibili al fischio d'inizio.</div>`;
+        } else {
+          statGrid.innerHTML = statBoxes.slice(0, 6).map(sb => `
+            <div style="background:rgba(255,255,255,0.04); border-radius:8px; padding:6px; text-align:center;">
+              <div style="font-size:0.65rem; color:var(--text-muted); font-weight:700;">${sb.label}</div>
+              <div style="font-size:0.92rem; font-weight:800; color:#ffffff; margin-top:2px;">${sb.val}</div>
+            </div>
+          `).join('');
+        }
+      }
+
+      // AI Performance Analysis
+      const aiTitle = document.getElementById('modalLiveAITitle');
+      const aiSummary = document.getElementById('modalLiveAISummary');
+      const aiModImpact = document.getElementById('modalLiveAIModImpact');
+      const aiP = player.ai_analysis || {};
+
+      if (aiTitle) aiTitle.innerText = aiP.title || (isLiveOrDone ? `Analisi Rendimento • ${player.verdict || 'Valutazione IA'}` : `Pre-Match Report • ${player.match_min || ''}`);
+      if (aiSummary) aiSummary.innerText = aiP.summary || player.ai_review || `Previsione di rendimento impostata a ${player.expected_fantavoto || 6.5} pt.`;
+      if (aiModImpact) {
+        aiModImpact.innerText = aiP.mod_impact || (player.role in {'P':1, 'D':1} ? `🛡️ Reparto Difensivo: Il voto base inciderà direttamente sul Modificatore Difesa.` : `🎯 Reparto Avanzato: Obiettivo bonus (+3 gol, +1 assist).`);
+      }
+    } else {
+      livePerfCard.style.display = 'none';
+    }
+  }
+
   // Injury Alert Box
   const injAlert = document.getElementById('modalPlayerInjuryAlert');
   const injText = document.getElementById('modalPlayerInjuryText');
-  if (player.is_out) {
+  if (player.is_out || player.is_injured) {
     if (injAlert) injAlert.style.display = 'block';
-    if (injText) injText.innerText = `${player.injury_type || 'Indisponibile'}: ${player.injury_reason || player.advice}`;
+    if (injText) injText.innerText = `${player.injury_type || 'Indisponibile'}: ${player.injury_reason || player.advice || 'Calciatore attualmente non disponibile per la giornata.'}`;
   } else if (injAlert) {
     injAlert.style.display = 'none';
   }
@@ -960,10 +1063,7 @@ function openPlayerModal(player) {
   const whyBox = document.getElementById('modalWhyStarterBox');
   const whyText = document.getElementById('modalWhyStarterText');
   if (whyText) {
-    let mot = player.motivation?.why_starter_or_bench || player.advice || "Consigliato per rendimento e titolarità.";
-    if (player.real_fantavoto !== null && player.real_fantavoto !== undefined) {
-      mot = `⚡ [LIVE / PAGELLE]: Fantavoto Reale: ${player.real_fantavoto} (Voto Base: ${player.base_grade}) • Differenziale: ${player.delta_formatted || '0 pt'}.\n\n🤖 Analisi Rendimento AI: ${player.ai_review || ''}\n\nPrevisione Pre-Gara: ${mot}`;
-    }
+    let mot = player.motivation?.why_starter_or_bench || player.why_starter || player.advice || "Consigliato per rendimento, xG e titolarità.";
     whyText.innerText = mot;
   }
 
