@@ -251,6 +251,33 @@ async def update_sosfanta_url(req: SOSFantaUrlRequest):
         "matchday": sosfanta_analyzer.get_matchday_label()
     }
 
+# --- Live & Matchday Ratings API ---
+from backend.live_tracker import live_tracker
+
+@app.get("/api/live/votes")
+async def get_live_votes(simulate: bool = True):
+    user_players = get_user_squad()
+    settings = get_settings()
+    use_modifier = settings.get('defense_modifier', True)
+    pref_formation = settings.get('preferred_formation', None)
+    
+    lineup_res = optimizer.optimize_lineup(
+        user_players=user_players,
+        preferred_formation=pref_formation,
+        use_defense_modifier=use_modifier
+    )
+    starters = lineup_res.get('starters', [])
+    data = live_tracker.get_live_data(user_players=user_players, starters=starters, simulate_live=simulate)
+    return data
+
+@app.post("/api/live/refresh")
+async def refresh_live_votes():
+    user_players = get_user_squad()
+    settings = get_settings()
+    lineup_res = optimizer.optimize_lineup(user_players=user_players, use_defense_modifier=settings.get('defense_modifier', True))
+    data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), simulate_live=True)
+    return {"success": True, "data": data}
+
 # --- Tunnel Info ---
 from backend.tunnel import tunnel_instance
 

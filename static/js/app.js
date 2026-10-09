@@ -6,6 +6,10 @@ let currentFormation = 'auto';
 let useDefenseModifier = true;
 let currentLineupData = null;
 let currentSquadData = null;
+let currentLiveData = null;
+let currentLiveFilter = 'starters';
+let isRetrospectiveOpen = true;
+let isSquadSectionOpen = true;
 
 // Tab Switching
 function switchTab(tabName) {
@@ -22,7 +26,9 @@ function switchTab(tabName) {
 
   if (tabName === 'schiera') {
     loadLineupRecommendation();
-  } else if (tabName === 'rosa') {
+  } else if (tabName === 'live') {
+    loadLiveVotes();
+  } else if (tabName === 'rosa' || tabName === 'alert') {
     loadSquad();
   } else if (tabName === 'sosfanta') {
     loadSOSFantaAnalysis();
@@ -227,6 +233,213 @@ function copyLineupToClipboard() {
   }).catch(() => {
     showToast("Impossibile copiare negli appunti.");
   });
+}
+
+// ================= LIVE & VOTI TAB LOGIC =================
+function toggleRetrospectiveBody() {
+  const body = document.getElementById('retrospectiveBody');
+  const badge = document.getElementById('retrospectiveToggleBadge');
+  if (!body) return;
+  isRetrospectiveOpen = !isRetrospectiveOpen;
+  body.style.display = isRetrospectiveOpen ? 'block' : 'none';
+  if (badge) badge.innerText = isRetrospectiveOpen ? 'Report Giornata ▼' : 'Mostra Report ▶';
+}
+
+function toggleSquadSection() {
+  const body = document.getElementById('squadManagementBody');
+  if (!body) return;
+  isSquadSectionOpen = !isSquadSectionOpen;
+  body.style.display = isSquadSectionOpen ? 'block' : 'none';
+}
+
+function setLiveFilter(filterType) {
+  currentLiveFilter = filterType;
+  document.querySelectorAll('[data-livefilter]').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-livefilter') === filterType);
+  });
+  if (currentLiveData) {
+    renderLivePlayerCards(currentLiveData);
+  }
+}
+
+async function loadLiveVotes() {
+  const container = document.getElementById('livePlayersListContainer');
+  if (container && !currentLiveData) {
+    container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Connessione al live match center...</div>`;
+  }
+  try {
+    const res = await fetch('/api/live/votes?simulate=true');
+    if (!res.ok) throw new Error("Errore nel recupero dei voti live");
+    const data = await res.json();
+    currentLiveData = data;
+    renderLiveView(data);
+  } catch (err) {
+    console.error("Error loading live votes:", err);
+    if (container) {
+      container.innerHTML = `<div style="text-align:center; padding:24px; color:#f87171;">Impossibile recuperare i voti live. Verifica la connessione e riprova.</div>`;
+    }
+  }
+}
+
+async function refreshLiveVotes(btn) {
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span style="display:inline-block;">🔄</span> Aggiorno...`;
+  }
+  try {
+    const res = await fetch('/api/live/refresh', { method: 'POST' });
+    const json = await res.json();
+    if (json.success && json.data) {
+      currentLiveData = json.data;
+      renderLiveView(json.data);
+      showToast("⚡ Voti live e pagelle aggiornati!");
+    } else {
+      await loadLiveVotes();
+    }
+  } catch (e) {
+    console.error("Refresh live votes failed:", e);
+    await loadLiveVotes();
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<span>⚡ Aggiorna Voti Live</span>`;
+    }
+  }
+}
+
+function renderLiveView(data) {
+  if (!data) return;
+  const summary = data.summary || {};
+  const retro = data.ai_retrospective || {};
+
+  // Header badges
+  const lastUp = document.getElementById('liveLastUpdateBadge');
+  if (lastUp) lastUp.innerText = `Aggiornato: ${data.last_update || '--:--'}`;
+
+  // Big score & delta
+  const scoreDisp = document.getElementById('liveTotalScoreDisplay');
+  if (scoreDisp) scoreDisp.innerHTML = `${summary.total_live_score || 0} <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
+
+  const goalsDisp = document.getElementById('liveGoalsDisplay');
+  if (goalsDisp) goalsDisp.innerText = summary.goals_tier_desc || '0 Gol';
+
+  const deltaDisp = document.getElementById('liveDeltaScoreDisplay');
+  if (deltaDisp) {
+    const dVal = summary.team_delta || 0;
+    const sign = dVal >= 0 ? '+' : '';
+    deltaDisp.innerHTML = `<span style="color:${dVal >= 0 ? '#34d399' : '#f59e0b'};">${sign}${dVal}</span> <span style="font-size:0.85rem; color:var(--text-muted);">pt (su ${summary.total_expected_score})</span>`;
+  }
+
+  const modDisp = document.getElementById('liveModDisplay');
+  if (modDisp) modDisp.innerText = `🛡️ Mod. Difesa: +${summary.defense_modifier_bonus || 0} pt (Media ${summary.defense_modifier_avg || 0})`;
+
+  const progDisp = document.getElementById('liveMatchesProgressDisplay');
+  if (progDisp) {
+    progDisp.innerHTML = `🏁 ${summary.completed_players || 0} Finiti • 🔴 ${summary.live_players || 0} In corso • ⏳ ${summary.upcoming_players || 0} Da giocare`;
+  }
+
+  const accDisp = document.getElementById('liveAccuracyDisplay');
+  if (accDisp) accDisp.innerText = `🤖 ${summary.accuracy_pct || 88.6}% Accuratezza IA`;
+
+  // AI Retrospective highlights
+  const retroList = document.getElementById('retrospectiveHighlightsList');
+  if (retroList && retro.highlights) {
+    retroList.innerHTML = retro.highlights.map(h => `
+      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(139, 92, 246, 0.2); border-radius:10px; padding:8px 12px; font-size:0.84rem;">
+        ${h.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}
+      </div>
+    `).join('');
+  }
+
+  renderLivePlayerCards(data);
+}
+
+function renderLivePlayerCards(data) {
+  const container = document.getElementById('livePlayersListContainer');
+  const countBadge = document.getElementById('livePlayersCountBadge');
+  if (!container) return;
+
+  let players = data.players || [];
+  if (currentLiveFilter === 'starters') {
+    players = players.filter(p => p.is_starter);
+  } else if (currentLiveFilter === 'active') {
+    players = players.filter(p => p.match_status === 'TERMINATA' || p.match_status === 'IN CORSO');
+  }
+
+  if (countBadge) countBadge.innerText = `${players.length} Calciatori`;
+
+  if (players.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);">Nessun calciatore corrispondente al filtro selezionato.</div>`;
+    return;
+  }
+
+  container.innerHTML = players.map(p => {
+    // Bonus/malus pills
+    let bonusHtml = '';
+    if (p.bonus_malus && p.bonus_malus.length > 0) {
+      bonusHtml = p.bonus_malus.map(b => {
+        const isMalus = b.val < 0;
+        return `<span class="bonus-pill ${isMalus ? 'malus' : ''}">${b.icon} ${b.val > 0 ? '+' : ''}${b.val}</span>`;
+      }).join(' ');
+    } else if (p.real_fantavoto !== null) {
+      bonusHtml = `<span style="font-size:0.75rem; color:var(--text-muted);">Nessun bonus/malus</span>`;
+    }
+
+    const deltaClass = p.delta >= 0 ? 'delta-pos' : 'delta-neg';
+    const isStarterBadge = p.is_starter ? `<span class="badge-status badge-success" style="font-size:0.68rem; padding:1px 6px;">TITOLARE</span>` : `<span class="badge-status badge-secondary" style="font-size:0.68rem; padding:1px 6px;">PANCHINA</span>`;
+
+    const realVoteText = p.real_fantavoto !== null ? `
+      <div style="text-align:right;">
+        <div style="font-size:1.25rem; font-weight:900; color:#34d399;">${p.real_fantavoto} <span style="font-size:0.7rem; font-weight:600; color:var(--text-muted);">FV</span></div>
+        <div style="font-size:0.72rem; color:var(--text-secondary);">Voto: <strong>${p.base_grade}</strong></div>
+      </div>
+    ` : `
+      <div style="text-align:right;">
+        <div style="font-size:1rem; font-weight:800; color:var(--text-muted);">-.-</div>
+        <div style="font-size:0.72rem; color:var(--text-muted);">Da giocare</div>
+      </div>
+    `;
+
+    return `
+      <div class="live-player-card" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span class="role-badge role-${p.role}">${p.role}</span>
+            <img src="${p.photo || '/static/icon.svg'}" onerror="this.src='/static/icon.svg'" style="width:34px; height:34px; border-radius:50%; object-fit:cover;" />
+            <div>
+              <div style="font-weight:800; font-size:0.95rem; color:#ffffff; display:flex; align-items:center; gap:6px;">
+                ${p.name} <span style="font-size:0.78rem; font-weight:400; color:#94a3b8;">(${p.team})</span> ${isStarterBadge}
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">
+                ${p.match_info || ''}
+              </div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
+            <span class="badge-status ${p.status_class || 'badge-secondary'}" style="font-size:0.72rem;">${p.status_badge || '⏳'}</span>
+            ${realVoteText}
+          </div>
+        </div>
+
+        <!-- Middle stats & comparison -->
+        <div style="background:rgba(0,0,0,0.22); border-radius:8px; padding:6px 10px; margin:6px 0; display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; flex-wrap:wrap; gap:6px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span>Bonus/Malus:</span>
+            ${bonusHtml}
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="color:var(--text-muted);">Atteso: <strong>${p.expected_fantavoto || '-'}</strong></span>
+            ${p.real_fantavoto !== null ? `<span class="delta-badge ${deltaClass}">Δ ${p.delta_formatted}</span>` : ''}
+          </div>
+        </div>
+
+        <!-- AI Review line -->
+        <div style="font-size:0.76rem; color:#c4b5fd; line-height:1.4; margin-top:4px;">
+          🤖 ${p.ai_review || ''}
+        </div>
+      </div>
+    `;
+  }).join('');
 }
 
 // --- SQUAD MANAGEMENT TAB ---
@@ -612,7 +825,10 @@ function openPlayerModal(player) {
   const whyBox = document.getElementById('modalWhyStarterBox');
   const whyText = document.getElementById('modalWhyStarterText');
   if (whyText) {
-    const mot = player.motivation?.why_starter_or_bench || player.advice || "Consigliato per rendimento e titolarità.";
+    let mot = player.motivation?.why_starter_or_bench || player.advice || "Consigliato per rendimento e titolarità.";
+    if (player.real_fantavoto !== null && player.real_fantavoto !== undefined) {
+      mot = `⚡ [LIVE / PAGELLE]: Fantavoto Reale: ${player.real_fantavoto} (Voto Base: ${player.base_grade}) • Differenziale: ${player.delta_formatted || '0 pt'}.\n\n🤖 Analisi Rendimento AI: ${player.ai_review || ''}\n\nPrevisione Pre-Gara: ${mot}`;
+    }
     whyText.innerText = mot;
   }
 
@@ -815,6 +1031,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial load
   loadLineupRecommendation();
   loadTunnelInfo();
+  loadLiveVotes();
 
   // Pre-fetch SOS Fanta full article in the background so modal opens with 0 latency
   fetch('/api/sosfanta/full-article')
