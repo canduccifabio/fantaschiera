@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FantaSchiera">
+  <meta name="theme-color" content="#080c14">
+  <title>FantaSchiera AI • Chi Schierare al Fantacalcio</title>
+  
+  <link rel="manifest" href="/static/manifest.json">
+  <link rel="apple-touch-icon" href="/static/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
+  
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="stylesheet" href="/static/css/pitch.css">
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <div class="header-inner">
+      <a href="#" class="brand" onclick="switchTab('schiera')">
+        <img src="/static/icon.svg" class="brand-icon" alt="Logo" />
+        <span class="brand-title">FantaSchiera AI</span>
+      </a>
+      <div class="header-actions">
+        <button id="btnSyncData" class="btn btn-secondary btn-sm" onclick="syncLiveData()">
+          Aggiorna Dati 🔄
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Pre-Match Live Alert Banner (1 hour before first kickoff) -->
+  <div id="alertBanner" class="alert-banner" onclick="switchTab('alert')" style="display:none;">
+    <span id="alertBannerBadge" class="alert-badge-live">🔔 ALERT</span>
+    <span id="alertBannerText">Caricamento calendario partite...</span>
+  </div>
+
+  <main class="container">
+    <!-- ================= TAB 1: SCHIERA FORMAZIONE ================= -->
+    <section id="tab-schiera" class="tab-view active">
+      <!-- Total Score Banner -->
+      <div class="score-banner">
+        <div>
+          <div class="score-lbl">Modulo Consigliato</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <span id="recommendedFormationName" style="font-size:1.4rem; font-weight:800; color:#ffffff;">3-4-3</span>
+            <span id="modBonusDisplay" class="badge-status badge-success" style="display:none;">+ Modificatore</span>
+          </div>
+        </div>
+        <div style="text-align:right;">
+          <div class="score-lbl">Punti Attesi Totali</div>
+          <div id="totalExpectedScore" class="score-val">0</div>
+        </div>
+      </div>
+
+      <!-- Controls: Formation selector & Defense Modifier -->
+      <div class="card" style="padding:12px; margin-bottom:14px;">
+        <div class="controls-grid">
+          <div>
+            <div style="font-size:0.75rem; color:var(--text-muted); font-weight:700; margin-bottom:6px; text-transform:uppercase;">
+              Scegli Modulo Tattico:
+            </div>
+            <div class="segmented-control">
+              <button class="segment-btn active" data-formation="auto">⭐ Migliore</button>
+              <button class="segment-btn" data-formation="3-4-3">3-4-3</button>
+              <button class="segment-btn" data-formation="4-3-3">4-3-3</button>
+              <button class="segment-btn" data-formation="3-5-2">3-5-2</button>
+              <button class="segment-btn" data-formation="4-4-2">4-4-2</button>
+              <button class="segment-btn" data-formation="4-2-3-1">4-2-3-1</button>
+              <button class="segment-btn" data-formation="5-3-2">5-3-2</button>
+            </div>
+          </div>
+          
+          <div>
+            <label class="toggle-wrapper" style="margin-top:14px;">
+              <span style="font-size:0.85rem; font-weight:600;">🛡️ Mod. Difesa</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="defenseModifierCheckbox" />
+                <div class="toggle-slider"></div>
+              </div>
+            </label>
+          </div>
+
+          <div>
+            <button class="btn btn-secondary btn-sm" style="margin-top:14px;" onclick="copyLineupToClipboard()">
+              📋 Copia Formazione
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TACTICAL SOCCER PITCH -->
+      <div class="pitch-container">
+        <div id="soccerPitch" class="soccer-pitch">
+          <!-- Populated by pitch.js -->
+        </div>
+      </div>
+
+      <!-- Key decisions / ballottaggi -->
+      <div id="keyDecisionsContainer" class="card" style="display:none; margin-bottom:16px;">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Starters List (Titolari) -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">⭐ Gli 11 Titolari Consigliati</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">Tocca per i dettagli</span>
+        </div>
+        <div id="startersListContainer">
+          <div style="text-align:center; padding:20px; color:var(--text-muted);">Caricamento formazione...</div>
+        </div>
+      </div>
+
+      <!-- Bench List (Panchina) -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">🔄 Panchina Ordinata</span>
+          <span style="font-size:0.75rem; color:var(--text-muted);">In ordine di copertura</span>
+        </div>
+        <div id="benchListContainer"></div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 2: LA MIA ROSA ================= -->
+    <section id="tab-rosa" class="tab-view">
+      <!-- Squad Counters -->
+      <div class="squad-counters">
+        <div class="counter-box">
+          <div id="countP" class="counter-val" style="color:var(--role-p);">0/3</div>
+          <div class="counter-lbl">Portieri</div>
+        </div>
+        <div class="counter-box">
+          <div id="countD" class="counter-val" style="color:var(--role-d);">0/8</div>
+          <div class="counter-lbl">Difensori</div>
+        </div>
+        <div class="counter-box">
+          <div id="countC" class="counter-val" style="color:var(--role-c);">0/8</div>
+          <div class="counter-lbl">Centrocampisti</div>
+        </div>
+        <div class="counter-box">
+          <div id="countA" class="counter-val" style="color:var(--role-a);">0/6</div>
+          <div class="counter-lbl">Attaccanti</div>
+        </div>
+      </div>
+
+      <!-- Actions bar -->
+      <div style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="openAddPlayerModal('C')">
+          + Aggiungi Calciatore
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="openPasteSquadModal()">
+          📋 Incolla da Testo
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="resetSquadToDefault()">
+          🔄 Rosa di Esempio
+        </button>
+      </div>
+
+      <!-- Player List Grouped By Role -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">👥 Calciatori in Rosa</span>
+          <span id="countTotal" class="badge-status badge-primary">0 Giocatori</span>
+        </div>
+        <div id="squadPlayersList">
+          <div style="text-align:center; padding:20px; color:var(--text-muted);">Caricamento rosa...</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 3: PROBABILI & CALENDARIO ================= -->
+    <section id="tab-probabili" class="tab-view">
+      <div class="card-header" style="margin-bottom:14px;">
+        <span class="card-title">📅 Serie A • Partite & Probabili Formazioni</span>
+      </div>
+      <div id="fixturesListContainer">
+        <div style="text-align:center; padding:20px; color:var(--text-muted);">Caricamento partite...</div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 4: INFERMERIA & SQUALIFICATI ================= -->
+    <section id="tab-infortuni" class="tab-view">
+      <div class="card-header" style="margin-bottom:14px;">
+        <span class="card-title">🏥 Infermeria & Squalificati Serie A</span>
+      </div>
+      <div class="card" style="padding:14px; margin-bottom:14px; background:rgba(239, 68, 68, 0.08); border-color:rgba(239, 68, 68, 0.2);">
+        <div style="font-size:0.85rem; color:#fca5a5;">
+          ℹ️ I calciatori contrassegnati come infortunati o squalificati vengono automaticamente esclusi dai titolari della tua formazione.
+        </div>
+      </div>
+      <div id="injuriesListContainer">
+        <div style="text-align:center; padding:20px; color:var(--text-muted);">Caricamento indisponibili...</div>
+      </div>
+    </section>
+
+    <!-- ================= TAB 5: ALERT & IPHONE ================= -->
+    <section id="tab-alert" class="tab-view">
+      <!-- Countdown Hero -->
+      <div class="card" style="text-align:center; padding:24px;">
+        <div style="font-size:0.8rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">
+          Scadenza Formazione (1h prima del fischio d'inizio)
+        </div>
+        <div id="liveCountdownDisplay" style="font-size:1.8rem; font-weight:900; color:var(--accent-emerald); margin:12px 0;">
+          Caricamento timer...
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-secondary); max-width:400px; margin:0 auto 16px;">
+          Riceverai un alert sonoro e una notifica su iPhone 60 minuti prima dell'inizio del primo anticipo di giornata.
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="window.alertController.requestPermission()">
+            🔔 Attiva Notifiche Safari / iPhone
+          </button>
+          <button class="btn btn-secondary btn-sm" onclick="window.alertController.playChime()">
+            🔊 Prova Suono Alert
+          </button>
+        </div>
+      </div>
+
+      <!-- Schedule Details -->
+      <div class="card">
+        <div class="card-title" style="margin-bottom:12px;">⏰ Dettagli Orari Giornata</div>
+        <div style="font-size:0.9rem; line-height:1.8;">
+          <div>• <strong>Primo match:</strong> <span id="settingKickoffTime">Sabato 15:00</span></div>
+          <div>• <strong>Ora dell'Alert (1h prima):</strong> <span id="settingAlertTime">Sabato 14:00</span></div>
+          <div>• <strong>Notifiche Push Web:</strong> Abilitate sul dispositivo</div>
+        </div>
+      </div>
+
+      <!-- iPhone Access & Installation Box -->
+      <div class="iphone-promo">
+        <div style="font-size:1.15rem; font-weight:800; color:#ffffff; margin-bottom:6px;">
+          📱 Come consultare FantaSchiera dal tuo iPhone
+        </div>
+        <div style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:14px;">
+          Puoi accedere all'app sia dalla rete Wi-Fi di casa, sia <strong>da qualsiasi parte del mondo in 4G/5G</strong>!
+        </div>
+
+        <!-- Public Link (Worldwide 4G/5G) -->
+        <div style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); padding:12px; border-radius:12px; margin-bottom:14px; text-align:left;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <span style="font-size:0.75rem; font-weight:800; color:#34d399; text-transform:uppercase;">🌍 Link Pubblico (4G / 5G / Fuori Casa)</span>
+            <span class="badge-status badge-success">HTTPS Sicuro</span>
+          </div>
+          <div id="publicTunnelUrlDisplay" style="font-family:monospace; font-size:0.88rem; color:#ffffff; word-break:break-all; margin-bottom:8px;">
+            https://trans-equipment-cove-commonwealth.trycloudflare.com
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="copyPublicTunnelUrl()" style="width:100%;">
+            📋 Copia Link Pubblico per iPhone
+          </button>
+        </div>
+
+        <!-- Local Wi-Fi Link -->
+        <div style="background:rgba(255, 255, 255, 0.04); border:1px solid var(--glass-border); padding:10px; border-radius:12px; margin-bottom:14px; text-align:left;">
+          <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">
+            🏠 Link Wi-Fi (Stessa rete del PC)
+          </div>
+          <div style="font-family:monospace; font-size:0.85rem; color:#60a5fa;">
+            http://10.224.2.159:8000
+          </div>
+        </div>
+
+        <div style="text-align:left; font-size:0.85rem; color:var(--text-secondary); max-width:440px; margin:0 auto; line-height:1.6;">
+          <strong>Come salvarla a schermo intero su iPhone:</strong><br>
+          1. Apri <strong>Safari</strong> sul tuo iPhone e incolla il <strong>Link Pubblico</strong> (funziona anche in 4G/5G).<br>
+          2. Tocca l'icona <strong>Condividi</strong> in basso (il quadrato con la freccia in su ⎋).<br>
+          3. Scorri e tocca <strong>"Aggiungi a Schermata Home"</strong>.<br>
+          4. Avrai l'icona con notifiche push e countdown ovunque tu sia!
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- iOS Bottom Navigation Bar -->
+  <nav class="bottom-nav">
+    <button class="nav-item active" data-tab="schiera">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20M2 12h20" />
+      </svg>
+      <span>Schiera</span>
+    </button>
+    <button class="nav-item" data-tab="rosa">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+      <span>La Rosa</span>
+    </button>
+    <button class="nav-item" data-tab="probabili">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+        <line x1="16" y1="2" x2="16" y2="6" />
+        <line x1="8" y1="2" x2="8" y2="6" />
+        <line x1="3" y1="10" x2="21" y2="10" />
+      </svg>
+      <span>Probabili</span>
+    </button>
+    <button class="nav-item" data-tab="infortuni">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+      </svg>
+      <span>Infermeria</span>
+    </button>
+    <button class="nav-item" data-tab="alert">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+      </svg>
+      <span>Alert 1h</span>
+    </button>
+  </nav>
+
+  <!-- ================= MODALS (<dialog>) ================= -->
+  
+  <!-- Player Details Modal -->
+  <dialog id="playerDetailModal">
+    <div class="modal-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <img id="modalPlayerAvatar" src="/static/icon.svg" style="width:40px; height:40px; border-radius:50%;" />
+        <div>
+          <h3 id="modalPlayerName" style="font-size:1.15rem; font-weight:800;">Nome</h3>
+          <div id="modalPlayerTeam" style="font-size:0.75rem; color:var(--text-muted);">Squadra</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closePlayerModal()">&times;</button>
+    </div>
+    
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+      <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
+        <div style="font-size:0.7rem; color:var(--text-muted);">INDICE SCHIERABILITÀ</div>
+        <div id="modalPlayerScore" style="font-size:1.3rem; font-weight:800; color:#34d399;">★ 90</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03); padding:10px; border-radius:10px; text-align:center;">
+        <div style="font-size:0.7rem; color:var(--text-muted);">TITOLARITÀ PROBABILE</div>
+        <div id="modalPlayerTitolarita" style="font-size:1.3rem; font-weight:800; color:#60a5fa;">90%</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.2); border-radius:12px; padding:12px; margin-bottom:14px;">
+      <div style="font-size:0.75rem; font-weight:700; color:#34d399; margin-bottom:4px; text-transform:uppercase;">
+        🧠 Motivazione Tattica:
+      </div>
+      <div id="modalPlayerAdvice" style="font-size:0.85rem; line-height:1.5;"></div>
+    </div>
+
+    <div style="font-size:0.8rem; color:var(--text-secondary); line-height:1.8; margin-bottom:16px;">
+      <div>• <strong>Match:</strong> <span id="modalPlayerMatch">-</span></div>
+      <div>• <strong>Quotazione Attuale (QA):</strong> <span id="modalPlayerQA">-</span></div>
+      <div>• <strong>FVM (Fantavoto Mercato):</strong> <span id="modalPlayerFVM">-</span></div>
+    </div>
+
+    <button class="btn btn-secondary" style="width:100%;" onclick="closePlayerModal()">Chiudi</button>
+  </dialog>
+
+  <!-- Add Player Search Modal -->
+  <dialog id="addPlayerModal">
+    <div class="modal-header">
+      <h3 id="addPlayerModalTitle" style="font-size:1.1rem; font-weight:800;">Aggiungi Calciatore</h3>
+      <button class="modal-close" onclick="closeAddPlayerModal()">&times;</button>
+    </div>
+    
+    <div class="search-bar">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="addPlayerSearchInput" class="search-input" placeholder="Cerca calciatore o squadra (es. Thuram, Dimarco)..." />
+    </div>
+
+    <div id="addPlayerSearchResults" style="max-height:320px; overflow-y:auto; padding-right:4px;">
+      <!-- Populated via search -->
+    </div>
+
+    <div style="margin-top:14px; text-align:right;">
+      <button class="btn btn-secondary btn-sm" onclick="closeAddPlayerModal()">Chiudi</button>
+    </div>
+  </dialog>
+
+  <!-- Paste Squad Text Modal -->
+  <dialog id="pasteSquadModal">
+    <div class="modal-header">
+      <h3 style="font-size:1.1rem; font-weight:800;">Incolla Rosa da Testo</h3>
+      <button class="modal-close" onclick="closePasteSquadModal()">&times;</button>
+    </div>
+    <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:10px;">
+      Incolla l'elenco dei tuoi giocatori copiato da WhatsApp, Note o Fantacalcio. L'app riconoscerà automaticamente i nomi e i ruoli!
+    </div>
+    <textarea id="pasteSquadTextarea" style="width:100%; height:160px; background:rgba(15,23,38,0.8); border:1px solid var(--glass-border); border-radius:12px; color:#fff; padding:12px; font-family:inherit; font-size:0.85rem; outline:none; resize:none;" placeholder="Esempio:
+Maignan, Sommer
+Dimarco, Bremer, Buongiorno, Pavard
+Pulisic, Calhanoglu, Paz, McTominay
+Lautaro Martinez, Thuram, Lookman"></textarea>
+    
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+      <button class="btn btn-secondary btn-sm" onclick="closePasteSquadModal()">Annulla</button>
+      <button class="btn btn-primary btn-sm" onclick="executeImportPastedSquad()">Importa Calciatori</button>
+    </div>
+  </dialog>
+
+  <!-- Toast Notification -->
+  <div id="appToast" class="toast">Notifica</div>
+
+  <!-- Scripts -->
+  <script src="/static/js/notifications.js"></script>
+  <script src="/static/js/pitch.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

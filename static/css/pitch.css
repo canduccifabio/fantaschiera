@@ -1,0 +1,241 @@
+/* Realistic Soccer Pitch Tactical Board */
+.pitch-container {
+  position: relative;
+  width: 100%;
+  max-width: 650px;
+  margin: 0 auto 24px;
+  perspective: 1000px;
+}
+
+.soccer-pitch {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1.35;
+  background: 
+    repeating-linear-gradient(
+      to bottom,
+      #134e2b,
+      #134e2b 7.14%,
+      #104425 7.14%,
+      #104425 14.28%
+    );
+  border-radius: var(--radius-lg);
+  border: 4px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 
+    inset 0 0 40px rgba(0, 0, 0, 0.6),
+    0 20px 40px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 12px 10px;
+}
+
+/* Pitch Field Markings (White Lines) */
+.pitch-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* Center Line */
+.pitch-lines::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.35);
+}
+
+/* Center Circle */
+.pitch-center-circle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+}
+
+.pitch-center-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Penalty Box (Bottom / Goalkeeper area) */
+.penalty-box-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58%;
+  height: 16%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-bottom: none;
+}
+
+.goal-box-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28%;
+  height: 6%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-bottom: none;
+}
+
+.penalty-arc-bottom {
+  position: absolute;
+  bottom: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 25px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-bottom: none;
+  border-radius: 30px 30px 0 0;
+}
+
+/* Penalty Box (Top) */
+.penalty-box-top {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 58%;
+  height: 16%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top: none;
+}
+
+.penalty-arc-top {
+  position: absolute;
+  top: 16%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 25px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-top: none;
+  border-radius: 0 0 30px 30px;
+}
+
+/* Formation Rows inside pitch */
+.pitch-row {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+}
+
+.pitch-row-att { height: 23%; }
+.pitch-row-mid { height: 28%; }
+.pitch-row-def { height: 26%; }
+.pitch-row-gk  { height: 18%; }
+
+/* Tactical Player Card Pin */
+.pitch-player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  user-select: none;
+  width: 72px;
+}
+
+.pitch-player:active {
+  transform: scale(0.92);
+}
+
+.player-jersey-wrapper {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jersey-svg {
+  width: 42px;
+  height: 42px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
+  transition: transform 0.2s ease;
+}
+
+.pitch-player:hover .jersey-svg {
+  transform: translateY(-3px) scale(1.08);
+}
+
+/* Titolarità Ring */
+.titolarita-ring {
+  position: absolute;
+  bottom: 0;
+  right: -2px;
+  background: #10b981;
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  padding: 1px 4px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.titolarita-ring.ballottaggio {
+  background: #f59e0b;
+}
+
+/* Player Info Nameplate */
+.player-tag {
+  margin-top: 4px;
+  background: rgba(8, 12, 20, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  padding: 2px 6px;
+  text-align: center;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+  max-width: 86px;
+  width: 100%;
+}
+
+.player-name-text {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+
+.player-sub-text {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #34d399;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.player-matchup {
+  color: #94a3b8;
+}

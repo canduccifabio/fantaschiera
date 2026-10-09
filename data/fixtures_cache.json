@@ -1,0 +1,3288 @@
+{
+  "earliest_kickoff_iso": "2026-10-10T15:00:00",
+  "alert_time_iso": "2026-10-10T14:00:00",
+  "fixtures": [
+    {
+      "id": 1,
+      "home_team": "Genoa",
+      "home_code": "GEN",
+      "away_team": "Fiorentina",
+      "away_code": "FIO",
+      "date_str": "sabato 10 ottobre, 15:00",
+      "datetime_iso": "2026-10-10T15:00:00",
+      "stadium": "Luigi Ferraris",
+      "home_formation": "352",
+      "away_formation": "4231",
+      "home_lineup": [
+        "Osmajic",
+        "Vitinha O.",
+        "Ellertsson",
+        "Baldanzi",
+        "Amorim",
+        "Frendrup",
+        "Ehizibue",
+        "Vasquez",
+        "Ostigard",
+        "Marcandalli",
+        "Bijlow"
+      ],
+      "away_lineup": [
+        "Pellegrino M.",
+        "Njie",
+        "Goncalves P.",
+        "Mastantuono",
+        "Fagioli",
+        "Ndour",
+        "Viery",
+        "Ranieri L.",
+        "Dragusin",
+        "Jimenez A.",
+        "De Gea"
+      ],
+      "player_percentages": {
+        "bijlow": {
+          "name": "Bijlow",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "marcandalli": {
+          "name": "Marcandalli",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "ostigard": {
+          "name": "Ostigard",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "vasquez": {
+          "name": "Vasquez",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "ehizibue": {
+          "name": "Ehizibue",
+          "percentage": 80,
+          "role": "D",
+          "is_starter": true
+        },
+        "frendrup": {
+          "name": "Frendrup",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "amorim": {
+          "name": "Amorim",
+          "percentage": 85,
+          "role": "C",
+          "is_starter": true
+        },
+        "baldanzi": {
+          "name": "Baldanzi",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "ellertsson": {
+          "name": "Ellertsson",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "vitinha o.": {
+          "name": "Vitinha O.",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": true
+        },
+        "osmajic": {
+          "name": "Osmajic",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "stolz": {
+          "name": "Stolz",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "sommariva": {
+          "name": "Sommariva",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "mitaj": {
+          "name": "Mitaj",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "puczka": {
+          "name": "Puczka",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "sabelli": {
+          "name": "Sabelli",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "otoa": {
+          "name": "Otoa",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "drameh": {
+          "name": "Drameh",
+          "percentage": 50,
+          "role": "D",
+          "is_starter": false
+        },
+        "messias": {
+          "name": "Messias",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "traorè hj.": {
+          "name": "Traorè Hj.",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "wiafe": {
+          "name": "Wiafe",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "el shaarawy": {
+          "name": "El Shaarawy",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "de gea": {
+          "name": "De Gea",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "jimenez a.": {
+          "name": "Jimenez A.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "dragusin": {
+          "name": "Dragusin",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "ranieri l.": {
+          "name": "Ranieri L.",
+          "percentage": 80,
+          "role": "D",
+          "is_starter": true
+        },
+        "viery": {
+          "name": "Viery",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "ndour": {
+          "name": "Ndour",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "fagioli": {
+          "name": "Fagioli",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "mastantuono": {
+          "name": "Mastantuono",
+          "percentage": 65,
+          "role": "C",
+          "is_starter": true
+        },
+        "goncalves p.": {
+          "name": "Goncalves P.",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "njie": {
+          "name": "Njie",
+          "percentage": 85,
+          "role": "C",
+          "is_starter": true
+        },
+        "pellegrino m.": {
+          "name": "Pellegrino M.",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": true
+        },
+        "christensen o.": {
+          "name": "Christensen O.",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "lezzerini": {
+          "name": "Lezzerini",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "joao mario": {
+          "name": "Joao Mario",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "dodò": {
+          "name": "Dodò",
+          "percentage": 20,
+          "role": "D",
+          "is_starter": false
+        },
+        "pongracic": {
+          "name": "Pongracic",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "valdepenas": {
+          "name": "Valdepenas",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "brescianini": {
+          "name": "Brescianini",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "oulai": {
+          "name": "Oulai",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "atta": {
+          "name": "Atta",
+          "percentage": 50,
+          "role": "C",
+          "is_starter": false
+        },
+        "beto": {
+          "name": "Beto",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "gnonto": {
+          "name": "Gnonto",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Vitinha O. 60% Messias 40% con quest'ultimo trequartista passaggio al 3-5-1-1",
+        "Mastantuono 65% Gnonto 35%",
+        "Pellegrino M. 60% Beto 40%"
+      ]
+    },
+    {
+      "id": 2,
+      "home_team": "Inter",
+      "home_code": "INT",
+      "away_team": "Parma",
+      "away_code": "PAR",
+      "date_str": "sabato 10 ottobre, 18:00",
+      "datetime_iso": "2026-10-10T18:00:00",
+      "stadium": "Giuseppe Meazza",
+      "home_formation": "352",
+      "away_formation": "3421",
+      "home_lineup": [
+        "Bonny",
+        "Thuram",
+        "Dimarco",
+        "Mkhitaryan",
+        "Calhanoglu",
+        "Barella",
+        "Diouf",
+        "Carlos Augusto",
+        "Akanji",
+        "Bisseck",
+        "Provedel"
+      ],
+      "away_lineup": [
+        "Romero D.",
+        "Tourè E.",
+        "Bernabè",
+        "Valeri",
+        "Keita M.",
+        "Sierro",
+        "Britschgi",
+        "Diego Carlos",
+        "Troilo",
+        "Delprato",
+        "Corvi"
+      ],
+      "player_percentages": {
+        "provedel": {
+          "name": "Provedel",
+          "percentage": 70,
+          "role": "P",
+          "is_starter": true
+        },
+        "bisseck": {
+          "name": "Bisseck",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "akanji": {
+          "name": "Akanji",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": true
+        },
+        "carlos augusto": {
+          "name": "Carlos Augusto",
+          "percentage": 80,
+          "role": "D",
+          "is_starter": true
+        },
+        "diouf": {
+          "name": "Diouf",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "barella": {
+          "name": "Barella",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "calhanoglu": {
+          "name": "Calhanoglu",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "mkhitaryan": {
+          "name": "Mkhitaryan",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "dimarco": {
+          "name": "Dimarco",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "thuram": {
+          "name": "Thuram",
+          "percentage": 85,
+          "role": "A",
+          "is_starter": true
+        },
+        "bonny": {
+          "name": "Bonny",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": true
+        },
+        "martinez jo.": {
+          "name": "Martinez Jo.",
+          "percentage": 30,
+          "role": "P",
+          "is_starter": false
+        },
+        "di gennaro": {
+          "name": "Di Gennaro",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "pavard": {
+          "name": "Pavard",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "bastoni": {
+          "name": "Bastoni",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "spence": {
+          "name": "Spence",
+          "percentage": 50,
+          "role": "D",
+          "is_starter": false
+        },
+        "luis henrique": {
+          "name": "Luis Henrique",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "zielinski": {
+          "name": "Zielinski",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "sucic p.": {
+          "name": "Sucic P.",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "stankovic a.": {
+          "name": "Stankovic A.",
+          "percentage": 25,
+          "role": "C",
+          "is_starter": false
+        },
+        "martinez l.": {
+          "name": "Martinez L.",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "esposito f.p.": {
+          "name": "Esposito F.P.",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "corvi": {
+          "name": "Corvi",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "delprato": {
+          "name": "Delprato",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "troilo": {
+          "name": "Troilo",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "diego carlos": {
+          "name": "Diego Carlos",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "britschgi": {
+          "name": "Britschgi",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "sierro": {
+          "name": "Sierro",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "keita m.": {
+          "name": "Keita M.",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "valeri": {
+          "name": "Valeri",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "bernabè": {
+          "name": "Bernabè",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "tourè e.": {
+          "name": "Tourè E.",
+          "percentage": 80,
+          "role": "A",
+          "is_starter": true
+        },
+        "romero d.": {
+          "name": "Romero D.",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": true
+        },
+        "daffara": {
+          "name": "Daffara",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "ghidotti": {
+          "name": "Ghidotti",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "drobnic": {
+          "name": "Drobnic",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "carboni f.": {
+          "name": "Carboni F.",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "valenti": {
+          "name": "Valenti",
+          "percentage": 50,
+          "role": "D",
+          "is_starter": false
+        },
+        "fabbian": {
+          "name": "Fabbian",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "cremaschi": {
+          "name": "Cremaschi",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "konate a.": {
+          "name": "Konate A.",
+          "percentage": 25,
+          "role": "C",
+          "is_starter": false
+        },
+        "ordonez c.": {
+          "name": "Ordonez C.",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "diallo o.": {
+          "name": "Diallo O.",
+          "percentage": 20,
+          "role": "C",
+          "is_starter": false
+        },
+        "lontani": {
+          "name": "Lontani",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "elphege": {
+          "name": "Elphege",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "de martis": {
+          "name": "De Martis",
+          "percentage": 15,
+          "role": "A",
+          "is_starter": false
+        },
+        "frigan": {
+          "name": "Frigan",
+          "percentage": 50,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Akanji 55% Pavard 45%",
+        "Diouf 60% Luis Henrique 40%",
+        "Calhanoglu 55% Zielinski 45%",
+        "Bonny 55% Esposito F.P. 45%",
+        "Bernabè 60% Lontani 40%",
+        "Romero D. 55% Elphege 45%"
+      ]
+    },
+    {
+      "id": 3,
+      "home_team": "Napoli",
+      "home_code": "NAP",
+      "away_team": "Frosinone",
+      "away_code": "FRO",
+      "date_str": "sabato 10 ottobre, 20:45",
+      "datetime_iso": "2026-10-10T20:45:00",
+      "stadium": "Diego Armando Maradona",
+      "home_formation": "433",
+      "away_formation": "4231",
+      "home_lineup": [
+        "Neres",
+        "Hojlund",
+        "Politano",
+        "De Bruyne",
+        "Lobotka",
+        "Gilmour",
+        "Spinazzola",
+        "Marin R.",
+        "Rrahmani",
+        "Di Lorenzo",
+        "Meret"
+      ],
+      "away_lineup": [
+        "Bobcek",
+        "Kvernadze",
+        "Schmid",
+        "Ghedjemis",
+        "Masini",
+        "Calò",
+        "Bracaglia",
+        "Monterisi",
+        "Calvani",
+        "Oyono A.",
+        "Palmisani"
+      ],
+      "player_percentages": {
+        "meret": {
+          "name": "Meret",
+          "percentage": 80,
+          "role": "P",
+          "is_starter": true
+        },
+        "di lorenzo": {
+          "name": "Di Lorenzo",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "rrahmani": {
+          "name": "Rrahmani",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "marin r.": {
+          "name": "Marin R.",
+          "percentage": 65,
+          "role": "D",
+          "is_starter": true
+        },
+        "spinazzola": {
+          "name": "Spinazzola",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "gilmour": {
+          "name": "Gilmour",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "lobotka": {
+          "name": "Lobotka",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "de bruyne": {
+          "name": "De Bruyne",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "politano": {
+          "name": "Politano",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "hojlund": {
+          "name": "Hojlund",
+          "percentage": 70,
+          "role": "A",
+          "is_starter": true
+        },
+        "neres": {
+          "name": "Neres",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": true
+        },
+        "milinkovic-savic v.": {
+          "name": "Milinkovic-Savic V.",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "contini": {
+          "name": "Contini",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "beukema": {
+          "name": "Beukema",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": false
+        },
+        "badiashile": {
+          "name": "Badiashile",
+          "percentage": 50,
+          "role": "D",
+          "is_starter": false
+        },
+        "marianucci": {
+          "name": "Marianucci",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "mctominay": {
+          "name": "McTominay",
+          "percentage": 15,
+          "role": "C",
+          "is_starter": false
+        },
+        "lang": {
+          "name": "Lang",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "giovane": {
+          "name": "Giovane",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": false
+        },
+        "lucca": {
+          "name": "Lucca",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "palmisani": {
+          "name": "Palmisani",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "oyono a.": {
+          "name": "Oyono A.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "calvani": {
+          "name": "Calvani",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "monterisi": {
+          "name": "Monterisi",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": true
+        },
+        "bracaglia": {
+          "name": "Bracaglia",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "calò": {
+          "name": "Calò",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "masini": {
+          "name": "Masini",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "ghedjemis": {
+          "name": "Ghedjemis",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "schmid": {
+          "name": "Schmid",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "kvernadze": {
+          "name": "Kvernadze",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "bobcek": {
+          "name": "Bobcek",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "desplanches": {
+          "name": "Desplanches",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "pisseri": {
+          "name": "Pisseri",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "cittadini": {
+          "name": "Cittadini",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "tchato": {
+          "name": "Tchato",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "omar fayed": {
+          "name": "Omar Fayed",
+          "percentage": 20,
+          "role": "D",
+          "is_starter": false
+        },
+        "amey": {
+          "name": "Amey",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "akpoguma": {
+          "name": "Akpoguma",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "fini": {
+          "name": "Fini",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "cichella": {
+          "name": "Cichella",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "hasa": {
+          "name": "Hasa",
+          "percentage": 50,
+          "role": "C",
+          "is_starter": false
+        },
+        "el azzouzi a.": {
+          "name": "El Azzouzi A.",
+          "percentage": 25,
+          "role": "C",
+          "is_starter": false
+        },
+        "zerbin": {
+          "name": "Zerbin",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Marin R. 65% Badiashile 35%",
+        "Neres 55% Lang 45%",
+        "Politano 55% Beukema 45% con quest'ultimo in difesa passaggio al 3-4-2-1",
+        "Monterisi 55% Cittadini 45%"
+      ]
+    },
+    {
+      "id": 4,
+      "home_team": "Como",
+      "home_code": "COM",
+      "away_team": "Roma",
+      "away_code": "ROM",
+      "date_str": "domenica 11 ottobre, 12:30",
+      "datetime_iso": "2026-10-11T12:30:00",
+      "stadium": "Giuseppe Sinigaglia",
+      "home_formation": "4231",
+      "away_formation": "3421",
+      "home_lineup": [
+        "Douvikas",
+        "Baturina",
+        "Paz N.",
+        "Diao",
+        "Perrone",
+        "Da Cunha",
+        "Valle",
+        "Chalobah T.",
+        "Ramon",
+        "Couto",
+        "Butez"
+      ],
+      "away_lineup": [
+        "Malen",
+        "Pellegrini Lo.",
+        "Dybala",
+        "Wesley",
+        "Konè M.",
+        "De Roon",
+        "Molina N.",
+        "Hermoso",
+        "N'Dicka",
+        "Mancini",
+        "Svilar"
+      ],
+      "player_percentages": {
+        "butez": {
+          "name": "Butez",
+          "percentage": 75,
+          "role": "P",
+          "is_starter": true
+        },
+        "couto": {
+          "name": "Couto",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": true
+        },
+        "ramon": {
+          "name": "Ramon",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "chalobah t.": {
+          "name": "Chalobah T.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "valle": {
+          "name": "Valle",
+          "percentage": 75,
+          "role": "D",
+          "is_starter": true
+        },
+        "da cunha": {
+          "name": "Da Cunha",
+          "percentage": 75,
+          "role": "C",
+          "is_starter": true
+        },
+        "perrone": {
+          "name": "Perrone",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "diao": {
+          "name": "Diao",
+          "percentage": 85,
+          "role": "A",
+          "is_starter": true
+        },
+        "paz n.": {
+          "name": "Paz N.",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "baturina": {
+          "name": "Baturina",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "douvikas": {
+          "name": "Douvikas",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "sanchez ro.": {
+          "name": "Sanchez Ro.",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "vigorito": {
+          "name": "Vigorito",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "smolcic i.": {
+          "name": "Smolcic I.",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "kempf": {
+          "name": "Kempf",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "kaiki": {
+          "name": "Kaiki",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": false
+        },
+        "kambwala": {
+          "name": "Kambwala",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "dossena": {
+          "name": "Dossena",
+          "percentage": 15,
+          "role": "D",
+          "is_starter": false
+        },
+        "goldaniga": {
+          "name": "Goldaniga",
+          "percentage": 20,
+          "role": "D",
+          "is_starter": false
+        },
+        "milla": {
+          "name": "Milla",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "caqueret": {
+          "name": "Caqueret",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "ricci s.": {
+          "name": "Ricci S.",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "addai": {
+          "name": "Addai",
+          "percentage": 35,
+          "role": "C",
+          "is_starter": false
+        },
+        "liberali": {
+          "name": "Liberali",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "rodriguez je.": {
+          "name": "Rodriguez Je.",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "kean": {
+          "name": "Kean",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": false
+        },
+        "svilar": {
+          "name": "Svilar",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "mancini": {
+          "name": "Mancini",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "n'dicka": {
+          "name": "N'Dicka",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "hermoso": {
+          "name": "Hermoso",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "molina n.": {
+          "name": "Molina N.",
+          "percentage": 65,
+          "role": "D",
+          "is_starter": true
+        },
+        "de roon": {
+          "name": "De Roon",
+          "percentage": 85,
+          "role": "C",
+          "is_starter": true
+        },
+        "konè m.": {
+          "name": "Konè M.",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "wesley": {
+          "name": "Wesley",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "dybala": {
+          "name": "Dybala",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "pellegrini lo.": {
+          "name": "Pellegrini Lo.",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "malen": {
+          "name": "Malen",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "gollini": {
+          "name": "Gollini",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "de marzi": {
+          "name": "De Marzi",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "balerdi": {
+          "name": "Balerdi",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "lulli": {
+          "name": "Lulli",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "koulierakis": {
+          "name": "Koulierakis",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "rensch": {
+          "name": "Rensch",
+          "percentage": 50,
+          "role": "D",
+          "is_starter": false
+        },
+        "ghilardi": {
+          "name": "Ghilardi",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "pisilli": {
+          "name": "Pisilli",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "mora": {
+          "name": "Mora",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "soulè": {
+          "name": "Soulè",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "castro s.": {
+          "name": "Castro S.",
+          "percentage": 50,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Couto 55% Smolcic I. 45%",
+        "Perrone 55% Milla 45%",
+        "Baturina 60% Rodriguez Je. 40%",
+        "N'Dicka 60% Balerdi 40%",
+        "Molina N. 65% Lulli 35%",
+        "Pellegrini Lo. 55% Soulè 45%"
+      ]
+    },
+    {
+      "id": 5,
+      "home_team": "Lazio",
+      "home_code": "LAZ",
+      "away_team": "Monza",
+      "away_code": "MON",
+      "date_str": "domenica 11 ottobre, 15:00",
+      "datetime_iso": "2026-10-11T15:00:00",
+      "stadium": "Olimpico",
+      "home_formation": "433",
+      "away_formation": "3421",
+      "home_lineup": [
+        "Zaccagni",
+        "Noslin",
+        "Isaksen",
+        "Taylor K.",
+        "Belahyane",
+        "Frattesi",
+        "Tavares N.",
+        "Provstgaard",
+        "Doekhi",
+        "Floriani Mussolini",
+        "Mandas"
+      ],
+      "away_lineup": [
+        "Varela G.",
+        "Robinson J.",
+        "Cutrone",
+        "Mangas",
+        "Folorunsho",
+        "Akinsanmiro",
+        "Birindelli",
+        "Carboni A.",
+        "Lucchesi",
+        "Kouadio",
+        "Tornqvist"
+      ],
+      "player_percentages": {
+        "mandas": {
+          "name": "Mandas",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "floriani mussolini": {
+          "name": "Floriani Mussolini",
+          "percentage": 80,
+          "role": "D",
+          "is_starter": true
+        },
+        "doekhi": {
+          "name": "Doekhi",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": true
+        },
+        "provstgaard": {
+          "name": "Provstgaard",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "tavares n.": {
+          "name": "Tavares N.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "frattesi": {
+          "name": "Frattesi",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "belahyane": {
+          "name": "Belahyane",
+          "percentage": 85,
+          "role": "C",
+          "is_starter": true
+        },
+        "taylor k.": {
+          "name": "Taylor K.",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "isaksen": {
+          "name": "Isaksen",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "noslin": {
+          "name": "Noslin",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": true
+        },
+        "zaccagni": {
+          "name": "Zaccagni",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "motta": {
+          "name": "Motta",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "renzetti": {
+          "name": "Renzetti",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "pedraza": {
+          "name": "Pedraza",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "sutalo j.": {
+          "name": "Sutalo J.",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "marusic": {
+          "name": "Marusic",
+          "percentage": 50,
+          "role": "D",
+          "is_starter": false
+        },
+        "leite": {
+          "name": "Leite",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "lazzari": {
+          "name": "Lazzari",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "dele-bashiru": {
+          "name": "Dele-Bashiru",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "cancellieri": {
+          "name": "Cancellieri",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "pinamonti": {
+          "name": "Pinamonti",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "tornqvist": {
+          "name": "Tornqvist",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "kouadio": {
+          "name": "Kouadio",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "lucchesi": {
+          "name": "Lucchesi",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "carboni a.": {
+          "name": "Carboni A.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "birindelli": {
+          "name": "Birindelli",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "akinsanmiro": {
+          "name": "Akinsanmiro",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "folorunsho": {
+          "name": "Folorunsho",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "mangas": {
+          "name": "Mangas",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "cutrone": {
+          "name": "Cutrone",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": true
+        },
+        "robinson j.": {
+          "name": "Robinson J.",
+          "percentage": 70,
+          "role": "A",
+          "is_starter": true
+        },
+        "varela g.": {
+          "name": "Varela G.",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "thiam": {
+          "name": "Thiam",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "strajnar": {
+          "name": "Strajnar",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "antov": {
+          "name": "Antov",
+          "percentage": 20,
+          "role": "D",
+          "is_starter": false
+        },
+        "goglichidze": {
+          "name": "Goglichidze",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "maye": {
+          "name": "Maye",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "bakoune": {
+          "name": "Bakoune",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": false
+        },
+        "forson o.": {
+          "name": "Forson O.",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "foe ondoa": {
+          "name": "Foe Ondoa",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "colombo l.": {
+          "name": "Colombo L.",
+          "percentage": 25,
+          "role": "C",
+          "is_starter": false
+        },
+        "mout": {
+          "name": "Mout",
+          "percentage": 50,
+          "role": "C",
+          "is_starter": false
+        },
+        "tourè i.": {
+          "name": "Tourè I.",
+          "percentage": 20,
+          "role": "C",
+          "is_starter": false
+        },
+        "colpani": {
+          "name": "Colpani",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "mota": {
+          "name": "Mota",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "ngonge": {
+          "name": "Ngonge",
+          "percentage": 40,
+          "role": "A",
+          "is_starter": false
+        },
+        "zeballos": {
+          "name": "Zeballos",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Doekhi 55% Sutalo J. 45%",
+        "Isaksen 60% Cancellieri 40%",
+        "Noslin 55% Pinamonti 45%",
+        "Cutrone 55% Colpani 45%"
+      ]
+    },
+    {
+      "id": 6,
+      "home_team": "Lecce",
+      "home_code": "LEC",
+      "away_team": "Bologna",
+      "away_code": "BOL",
+      "date_str": "domenica 11 ottobre, 15:00",
+      "datetime_iso": "2026-10-11T15:00:00",
+      "stadium": "Via del Mare",
+      "home_formation": "433",
+      "away_formation": "3421",
+      "home_lineup": [
+        "Monteiro J.",
+        "Geubbels",
+        "Pierotti",
+        "Maleh",
+        "Ilic",
+        "Coulibaly L.",
+        "Gallo",
+        "Siebert",
+        "Tiago Gabriel",
+        "Veiga D.",
+        "Falcone"
+      ],
+      "away_lineup": [
+        "Piccoli",
+        "Bernardeschi",
+        "Orsolini",
+        "Miranda J.",
+        "Ferguson",
+        "Pobega",
+        "Zortea",
+        "Theate",
+        "Heggem",
+        "Helland",
+        "Skorupski"
+      ],
+      "player_percentages": {
+        "falcone": {
+          "name": "Falcone",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "veiga d.": {
+          "name": "Veiga D.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "tiago gabriel": {
+          "name": "Tiago Gabriel",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "siebert": {
+          "name": "Siebert",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "gallo": {
+          "name": "Gallo",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "coulibaly l.": {
+          "name": "Coulibaly L.",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "ilic": {
+          "name": "Ilic",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "maleh": {
+          "name": "Maleh",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "pierotti": {
+          "name": "Pierotti",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "geubbels": {
+          "name": "Geubbels",
+          "percentage": 75,
+          "role": "A",
+          "is_starter": true
+        },
+        "monteiro j.": {
+          "name": "Monteiro J.",
+          "percentage": 85,
+          "role": "C",
+          "is_starter": true
+        },
+        "bleve": {
+          "name": "Bleve",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "penev": {
+          "name": "Penev",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "ndaba": {
+          "name": "Ndaba",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "dembelè a.": {
+          "name": "Dembelè A.",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "gaspar k.": {
+          "name": "Gaspar K.",
+          "percentage": 50,
+          "role": "D",
+          "is_starter": false
+        },
+        "jean": {
+          "name": "Jean",
+          "percentage": 20,
+          "role": "D",
+          "is_starter": false
+        },
+        "gorter": {
+          "name": "Gorter",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "ngom": {
+          "name": "Ngom",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "kaba": {
+          "name": "Kaba",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "fofana sa.": {
+          "name": "Fofana Sa.",
+          "percentage": 25,
+          "role": "C",
+          "is_starter": false
+        },
+        "gandelman": {
+          "name": "Gandelman",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "n'dri": {
+          "name": "N'Dri",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "esteban": {
+          "name": "Esteban",
+          "percentage": 40,
+          "role": "A",
+          "is_starter": false
+        },
+        "stulic": {
+          "name": "Stulic",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "fatah": {
+          "name": "Fatah",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": false
+        },
+        "skorupski": {
+          "name": "Skorupski",
+          "percentage": 70,
+          "role": "P",
+          "is_starter": true
+        },
+        "helland": {
+          "name": "Helland",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": true
+        },
+        "heggem": {
+          "name": "Heggem",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "theate": {
+          "name": "Theate",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "zortea": {
+          "name": "Zortea",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "pobega": {
+          "name": "Pobega",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "ferguson": {
+          "name": "Ferguson",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "miranda j.": {
+          "name": "Miranda J.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "orsolini": {
+          "name": "Orsolini",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "bernardeschi": {
+          "name": "Bernardeschi",
+          "percentage": 75,
+          "role": "C",
+          "is_starter": true
+        },
+        "piccoli": {
+          "name": "Piccoli",
+          "percentage": 80,
+          "role": "A",
+          "is_starter": true
+        },
+        "pessina mas.": {
+          "name": "Pessina Mas.",
+          "percentage": 30,
+          "role": "P",
+          "is_starter": false
+        },
+        "happonen": {
+          "name": "Happonen",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "alhassane": {
+          "name": "Alhassane",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "vitik": {
+          "name": "Vitik",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "de silvestri": {
+          "name": "De Silvestri",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "casale": {
+          "name": "Casale",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "darmian": {
+          "name": "Darmian",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "moro n.": {
+          "name": "Moro N.",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "amondarain": {
+          "name": "Amondarain",
+          "percentage": 50,
+          "role": "C",
+          "is_starter": false
+        },
+        "el azzouzi o.": {
+          "name": "El Azzouzi O.",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "cambiaghi": {
+          "name": "Cambiaghi",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "mbangula": {
+          "name": "Mbangula",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "libra": {
+          "name": "Libra",
+          "percentage": 20,
+          "role": "C",
+          "is_starter": false
+        },
+        "enem": {
+          "name": "Enem",
+          "percentage": 30,
+          "role": "A",
+          "is_starter": false
+        },
+        "dovbyk": {
+          "name": "Dovbyk",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Siebert 60% Gaspar K. 40%",
+        "Maleh 60% Ngom 40%",
+        "Helland 55% Casale 45%",
+        "Pobega 55% Moro N. 45%",
+        "Orsolini 60% Cambiaghi 40%"
+      ]
+    },
+    {
+      "id": 7,
+      "home_team": "Sassuolo",
+      "home_code": "SAS",
+      "away_team": "Milan",
+      "away_code": "MIL",
+      "date_str": "domenica 11 ottobre, 18:00",
+      "datetime_iso": "2026-10-11T18:00:00",
+      "stadium": "Mapei Stadium",
+      "home_formation": "433",
+      "away_formation": "4411",
+      "home_lineup": [
+        "Laurientè",
+        "Esposito Se.",
+        "Berardi",
+        "Adzic",
+        "Matic",
+        "Thorstvedt",
+        "Doig",
+        "Leysen F.",
+        "Caleta-Car",
+        "Cinquegrano",
+        "Muric"
+      ],
+      "away_lineup": [
+        "Ramos G.",
+        "Pulisic",
+        "Moreira",
+        "Rabiot",
+        "Modric",
+        "Chukwueze",
+        "Bartesaghi",
+        "Pavlovic",
+        "De Winter",
+        "Gila",
+        "Maignan"
+      ],
+      "player_percentages": {
+        "muric": {
+          "name": "Muric",
+          "percentage": 55,
+          "role": "P",
+          "is_starter": true
+        },
+        "cinquegrano": {
+          "name": "Cinquegrano",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "caleta-car": {
+          "name": "Caleta-Car",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "leysen f.": {
+          "name": "Leysen F.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "doig": {
+          "name": "Doig",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "thorstvedt": {
+          "name": "Thorstvedt",
+          "percentage": 85,
+          "role": "C",
+          "is_starter": true
+        },
+        "matic": {
+          "name": "Matic",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "adzic": {
+          "name": "Adzic",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "berardi": {
+          "name": "Berardi",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "esposito se.": {
+          "name": "Esposito Se.",
+          "percentage": 75,
+          "role": "A",
+          "is_starter": true
+        },
+        "laurientè": {
+          "name": "Laurientè",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "turati": {
+          "name": "Turati",
+          "percentage": 45,
+          "role": "P",
+          "is_starter": false
+        },
+        "satalino": {
+          "name": "Satalino",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "van der brempt": {
+          "name": "Van Der Brempt",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "obrador": {
+          "name": "Obrador",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "odenthal": {
+          "name": "Odenthal",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "lipani": {
+          "name": "Lipani",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "bakola": {
+          "name": "Bakola",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "dominguez b.": {
+          "name": "Dominguez B.",
+          "percentage": 50,
+          "role": "C",
+          "is_starter": false
+        },
+        "ghion": {
+          "name": "Ghion",
+          "percentage": 25,
+          "role": "C",
+          "is_starter": false
+        },
+        "sulemana i.": {
+          "name": "Sulemana I.",
+          "percentage": 35,
+          "role": "C",
+          "is_starter": false
+        },
+        "bowie": {
+          "name": "Bowie",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "pierini": {
+          "name": "Pierini",
+          "percentage": 15,
+          "role": "A",
+          "is_starter": false
+        },
+        "skjellerup": {
+          "name": "Skjellerup",
+          "percentage": 30,
+          "role": "A",
+          "is_starter": false
+        },
+        "maignan": {
+          "name": "Maignan",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "gila": {
+          "name": "Gila",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "de winter": {
+          "name": "De Winter",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "pavlovic": {
+          "name": "Pavlovic",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "bartesaghi": {
+          "name": "Bartesaghi",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "chukwueze": {
+          "name": "Chukwueze",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "modric": {
+          "name": "Modric",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "rabiot": {
+          "name": "Rabiot",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "moreira": {
+          "name": "Moreira",
+          "percentage": 85,
+          "role": "C",
+          "is_starter": true
+        },
+        "pulisic": {
+          "name": "Pulisic",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "ramos g.": {
+          "name": "Ramos G.",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "terracciano": {
+          "name": "Terracciano",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "torriani": {
+          "name": "Torriani",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "tomori": {
+          "name": "Tomori",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "gabbia": {
+          "name": "Gabbia",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "terracciano f.": {
+          "name": "Terracciano F.",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "diawara s.": {
+          "name": "Diawara S.",
+          "percentage": 20,
+          "role": "D",
+          "is_starter": false
+        },
+        "jashari": {
+          "name": "Jashari",
+          "percentage": 50,
+          "role": "C",
+          "is_starter": false
+        },
+        "musah": {
+          "name": "Musah",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "comotto": {
+          "name": "Comotto",
+          "percentage": 10,
+          "role": "C",
+          "is_starter": false
+        },
+        "hutchinson": {
+          "name": "Hutchinson",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "cissè a.": {
+          "name": "Cissè A.",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "loftus-cheek": {
+          "name": "Loftus-Cheek",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "camarda": {
+          "name": "Camarda",
+          "percentage": 30,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Muric 55% Turati 45%",
+        "Doig 60% Obrador 40%",
+        "Adzic 55% Bakola 45%",
+        "De Winter 60% Gabbia 40%"
+      ]
+    },
+    {
+      "id": 8,
+      "home_team": "Cagliari",
+      "home_code": "CAG",
+      "away_team": "Juventus",
+      "away_code": "JUV",
+      "date_str": "domenica 11 ottobre, 20:45",
+      "datetime_iso": "2026-10-11T20:45:00",
+      "stadium": "Sardegna Arena",
+      "home_formation": "442",
+      "away_formation": "4231",
+      "home_lineup": [
+        "Mendy P.",
+        "Maldini",
+        "Fazzini",
+        "Romano",
+        "Winks",
+        "Adopo",
+        "Obert",
+        "Rodriguez Ju.",
+        "Mina",
+        "Zè Pedro",
+        "Caprile"
+      ],
+      "away_lineup": [
+        "Kolo Muani",
+        "Gonzalez N.",
+        "McKennie",
+        "Zhegrova",
+        "Sarr P.",
+        "Douglas Luiz",
+        "Cambiaso",
+        "Kelly L.",
+        "Bremer",
+        "Kalulu",
+        "Vicario"
+      ],
+      "player_percentages": {
+        "caprile": {
+          "name": "Caprile",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "zè pedro": {
+          "name": "Zè Pedro",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "mina": {
+          "name": "Mina",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "rodriguez ju.": {
+          "name": "Rodriguez Ju.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "obert": {
+          "name": "Obert",
+          "percentage": 80,
+          "role": "D",
+          "is_starter": true
+        },
+        "adopo": {
+          "name": "Adopo",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "winks": {
+          "name": "Winks",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "romano": {
+          "name": "Romano",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "fazzini": {
+          "name": "Fazzini",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "maldini": {
+          "name": "Maldini",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "mendy p.": {
+          "name": "Mendy P.",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "radunovic": {
+          "name": "Radunovic",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "sherri": {
+          "name": "Sherri",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "aurelio": {
+          "name": "Aurelio",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "sugawara": {
+          "name": "Sugawara",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "kofler": {
+          "name": "Kofler",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "liteta": {
+          "name": "Liteta",
+          "percentage": 20,
+          "role": "C",
+          "is_starter": false
+        },
+        "ciervo": {
+          "name": "Ciervo",
+          "percentage": 50,
+          "role": "C",
+          "is_starter": false
+        },
+        "gagliardini": {
+          "name": "Gagliardini",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "fadera": {
+          "name": "Fadera",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "massolin": {
+          "name": "Massolin",
+          "percentage": 35,
+          "role": "C",
+          "is_starter": false
+        },
+        "sulev": {
+          "name": "Sulev",
+          "percentage": 15,
+          "role": "C",
+          "is_starter": false
+        },
+        "sugamele": {
+          "name": "Sugamele",
+          "percentage": 25,
+          "role": "A",
+          "is_starter": false
+        },
+        "nzola": {
+          "name": "Nzola",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "vicario": {
+          "name": "Vicario",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "kalulu": {
+          "name": "Kalulu",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "bremer": {
+          "name": "Bremer",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "kelly l.": {
+          "name": "Kelly L.",
+          "percentage": 75,
+          "role": "D",
+          "is_starter": true
+        },
+        "cambiaso": {
+          "name": "Cambiaso",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "douglas luiz": {
+          "name": "Douglas Luiz",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "sarr p.": {
+          "name": "Sarr P.",
+          "percentage": 80,
+          "role": "C",
+          "is_starter": true
+        },
+        "zhegrova": {
+          "name": "Zhegrova",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "mckennie": {
+          "name": "McKennie",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "gonzalez n.": {
+          "name": "Gonzalez N.",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "kolo muani": {
+          "name": "Kolo Muani",
+          "percentage": 85,
+          "role": "A",
+          "is_starter": true
+        },
+        "neto": {
+          "name": "Neto",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "pinsoglio": {
+          "name": "Pinsoglio",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "celik": {
+          "name": "Celik",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": false
+        },
+        "cabal": {
+          "name": "Cabal",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "lucumì": {
+          "name": "Lucumì",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "rugani": {
+          "name": "Rugani",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "gatti": {
+          "name": "Gatti",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "alajbegovic": {
+          "name": "Alajbegovic",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "conceicao": {
+          "name": "Conceicao",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "koopmeiners": {
+          "name": "Koopmeiners",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "woltemade": {
+          "name": "Woltemade",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Cambiaso 60% Celik 40%",
+        "Zhegrova 60% Conceicao 40%",
+        "Gonzalez N. 55% Alajbegovic 45%"
+      ]
+    },
+    {
+      "id": 9,
+      "home_team": "Atalanta",
+      "home_code": "ATA",
+      "away_team": "Venezia",
+      "away_code": "VEN",
+      "date_str": "lunedì 12 ottobre, 18:30",
+      "datetime_iso": "2026-10-12T18:30:00",
+      "stadium": "Gewiss Stadium",
+      "home_formation": "433",
+      "away_formation": "352",
+      "home_lineup": [
+        "Rowe",
+        "Scamacca",
+        "De Ketelaere",
+        "Ederson D.S.",
+        "Kessiè",
+        "Samardzic",
+        "Bernasconi",
+        "Scalvini",
+        "Kristensen T.",
+        "Bellanova",
+        "Carnesecchi"
+      ],
+      "away_lineup": [
+        "Adams A.",
+        "Yeboah J.",
+        "Correia T.",
+        "Sohm",
+        "Basic",
+        "Perez K.",
+        "Hainaut",
+        "Juan Jesus",
+        "Bella-Kotchap",
+        "Moreno M.",
+        "Stankovic F."
+      ],
+      "player_percentages": {
+        "carnesecchi": {
+          "name": "Carnesecchi",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "bellanova": {
+          "name": "Bellanova",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "kristensen t.": {
+          "name": "Kristensen T.",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "scalvini": {
+          "name": "Scalvini",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "bernasconi": {
+          "name": "Bernasconi",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": true
+        },
+        "samardzic": {
+          "name": "Samardzic",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "kessiè": {
+          "name": "Kessiè",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "ederson d.s.": {
+          "name": "Ederson D.S.",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "de ketelaere": {
+          "name": "De Ketelaere",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "scamacca": {
+          "name": "Scamacca",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": true
+        },
+        "rowe": {
+          "name": "Rowe",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "sportiello": {
+          "name": "Sportiello",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "kolasinac": {
+          "name": "Kolasinac",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "zappacosta": {
+          "name": "Zappacosta",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": false
+        },
+        "obric": {
+          "name": "Obric",
+          "percentage": 15,
+          "role": "D",
+          "is_starter": false
+        },
+        "gaetano": {
+          "name": "Gaetano",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "pasalic": {
+          "name": "Pasalic",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "elmas": {
+          "name": "Elmas",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "zalewski": {
+          "name": "Zalewski",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "krstovic": {
+          "name": "Krstovic",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "stankovic f.": {
+          "name": "Stankovic F.",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "moreno m.": {
+          "name": "Moreno M.",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "bella-kotchap": {
+          "name": "Bella-Kotchap",
+          "percentage": 75,
+          "role": "D",
+          "is_starter": true
+        },
+        "juan jesus": {
+          "name": "Juan Jesus",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "hainaut": {
+          "name": "Hainaut",
+          "percentage": 80,
+          "role": "D",
+          "is_starter": true
+        },
+        "perez k.": {
+          "name": "Perez K.",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "basic": {
+          "name": "Basic",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "sohm": {
+          "name": "Sohm",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "correia t.": {
+          "name": "Correia T.",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "yeboah j.": {
+          "name": "Yeboah J.",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "adams a.": {
+          "name": "Adams A.",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "montipò": {
+          "name": "Montipò",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "grandi": {
+          "name": "Grandi",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "halhal": {
+          "name": "Halhal",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "gomes": {
+          "name": "Gomes",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "sagrado": {
+          "name": "Sagrado",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "mazzocchi": {
+          "name": "Mazzocchi",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": false
+        },
+        "panada": {
+          "name": "Panada",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "fanne": {
+          "name": "Fanne",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "helgason": {
+          "name": "Helgason",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "fernandez t.": {
+          "name": "Fernandez T.",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "rrahmani al.": {
+          "name": "Rrahmani Al.",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "lauberbach": {
+          "name": "Lauberbach",
+          "percentage": 35,
+          "role": "A",
+          "is_starter": false
+        },
+        "lisman": {
+          "name": "Lisman",
+          "percentage": 25,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Bernasconi 55% Kolasinac 45%",
+        "Samardzic 60% Pasalic 40%",
+        "Kessiè 60% Gaetano 40%",
+        "Scamacca 60% Krstovic 40%",
+        "Moreno M. 60% Halhal 40%",
+        "Correia T. 60% Mazzocchi 40%",
+        "Basic 55% Helgason 45%"
+      ]
+    },
+    {
+      "id": 10,
+      "home_team": "Torino",
+      "home_code": "TOR",
+      "away_team": "Udinese",
+      "away_code": "UDI",
+      "date_str": "lunedì 12 ottobre, 20:45",
+      "datetime_iso": "2026-10-12T20:45:00",
+      "stadium": "Olimpico",
+      "home_formation": "3421",
+      "away_formation": "3421",
+      "home_lineup": [
+        "Simeone",
+        "Vlasic",
+        "Casadei",
+        "Cacciamani",
+        "Fitz-Jim",
+        "Mandragora",
+        "Belghali",
+        "Comert",
+        "Coco",
+        "Comuzzo",
+        "Perri"
+      ],
+      "away_lineup": [
+        "Davis K.",
+        "Ekkelenkamp",
+        "Unai Gomez",
+        "Kamara H.",
+        "Karlstrom",
+        "Miller L.",
+        "Vojvoda",
+        "Solet",
+        "Kabasele",
+        "Abankwah",
+        "Okoye"
+      ],
+      "player_percentages": {
+        "perri": {
+          "name": "Perri",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "comuzzo": {
+          "name": "Comuzzo",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "coco": {
+          "name": "Coco",
+          "percentage": 80,
+          "role": "D",
+          "is_starter": true
+        },
+        "comert": {
+          "name": "Comert",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "belghali": {
+          "name": "Belghali",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "mandragora": {
+          "name": "Mandragora",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "fitz-jim": {
+          "name": "Fitz-Jim",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "cacciamani": {
+          "name": "Cacciamani",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": true
+        },
+        "casadei": {
+          "name": "Casadei",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "vlasic": {
+          "name": "Vlasic",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "simeone": {
+          "name": "Simeone",
+          "percentage": 90,
+          "role": "A",
+          "is_starter": true
+        },
+        "mascardi": {
+          "name": "Mascardi",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "siviero": {
+          "name": "Siviero",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "ismajli": {
+          "name": "Ismajli",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "patterson": {
+          "name": "Patterson",
+          "percentage": 40,
+          "role": "D",
+          "is_starter": false
+        },
+        "biraghi": {
+          "name": "Biraghi",
+          "percentage": 20,
+          "role": "D",
+          "is_starter": false
+        },
+        "rodriguez r.": {
+          "name": "Rodriguez R.",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "ilkhan": {
+          "name": "Ilkhan",
+          "percentage": 40,
+          "role": "C",
+          "is_starter": false
+        },
+        "braganca": {
+          "name": "Braganca",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "gineitis": {
+          "name": "Gineitis",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "aboukhlal": {
+          "name": "Aboukhlal",
+          "percentage": 25,
+          "role": "C",
+          "is_starter": false
+        },
+        "oristanio": {
+          "name": "Oristanio",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "luongo": {
+          "name": "Luongo",
+          "percentage": 10,
+          "role": "C",
+          "is_starter": false
+        },
+        "zapata d.": {
+          "name": "Zapata D.",
+          "percentage": 40,
+          "role": "A",
+          "is_starter": false
+        },
+        "kulenovic": {
+          "name": "Kulenovic",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        },
+        "adams c.": {
+          "name": "Adams C.",
+          "percentage": 55,
+          "role": "A",
+          "is_starter": false
+        },
+        "okoye": {
+          "name": "Okoye",
+          "percentage": 90,
+          "role": "P",
+          "is_starter": true
+        },
+        "abankwah": {
+          "name": "Abankwah",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "kabasele": {
+          "name": "Kabasele",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "solet": {
+          "name": "Solet",
+          "percentage": 85,
+          "role": "D",
+          "is_starter": true
+        },
+        "vojvoda": {
+          "name": "Vojvoda",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": true
+        },
+        "miller l.": {
+          "name": "Miller L.",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "karlstrom": {
+          "name": "Karlstrom",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "kamara h.": {
+          "name": "Kamara H.",
+          "percentage": 90,
+          "role": "D",
+          "is_starter": true
+        },
+        "unai gomez": {
+          "name": "Unai Gomez",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": true
+        },
+        "ekkelenkamp": {
+          "name": "Ekkelenkamp",
+          "percentage": 90,
+          "role": "C",
+          "is_starter": true
+        },
+        "davis k.": {
+          "name": "Davis K.",
+          "percentage": 80,
+          "role": "A",
+          "is_starter": true
+        },
+        "mrozek": {
+          "name": "Mrozek",
+          "percentage": 5,
+          "role": "P",
+          "is_starter": false
+        },
+        "padelli": {
+          "name": "Padelli",
+          "percentage": 1,
+          "role": "P",
+          "is_starter": false
+        },
+        "ebosse": {
+          "name": "Ebosse",
+          "percentage": 35,
+          "role": "D",
+          "is_starter": false
+        },
+        "bertola": {
+          "name": "Bertola",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "palma": {
+          "name": "Palma",
+          "percentage": 50,
+          "role": "D",
+          "is_starter": false
+        },
+        "zanoli": {
+          "name": "Zanoli",
+          "percentage": 60,
+          "role": "D",
+          "is_starter": false
+        },
+        "alaba": {
+          "name": "Alaba",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "arizala": {
+          "name": "Arizala",
+          "percentage": 25,
+          "role": "D",
+          "is_starter": false
+        },
+        "chakvetadze": {
+          "name": "Chakvetadze",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
+        "zarraga": {
+          "name": "Zarraga",
+          "percentage": 55,
+          "role": "C",
+          "is_starter": false
+        },
+        "jovanovic": {
+          "name": "Jovanovic",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "lovric": {
+          "name": "Lovric",
+          "percentage": 30,
+          "role": "C",
+          "is_starter": false
+        },
+        "bayo v.": {
+          "name": "Bayo V.",
+          "percentage": 60,
+          "role": "A",
+          "is_starter": false
+        }
+      },
+      "ballottaggi": [
+        "Casadei 55% Gineitis 45% con quest'ultimo in mezzo al campo passaggio al 3-5-1-1",
+        "Cacciamani 60% Kulenovic 40% con quest'ultimo in avanti passaggio al 4-3-1-2",
+        "Abankwah 60% Palma 40%",
+        "Vojvoda 60% Zanoli 40%",
+        "Unai Gomez 55% Chakvetadze 45%"
+      ]
+    }
+  ],
+  "last_updated": "2026-10-09T13:10:33.443538"
+}

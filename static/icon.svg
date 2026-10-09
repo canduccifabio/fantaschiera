@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#022c22" />
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background with rounded corners -->
+  <rect width="512" height="512" rx="115" fill="url(#bg)" />
+  
+  <!-- Outer glowing soccer field ring -->
+  <circle cx="256" cy="256" r="190" fill="none" stroke="rgba(16, 185, 129, 0.25)" stroke-width="6" />
+  
+  <!-- Soccer Ball with tactical shield -->
+  <circle cx="256" cy="256" r="140" fill="#ffffff" />
+  
+  <!-- Pentagon center -->
+  <polygon points="256,190 310,230 290,295 222,295 202,230" fill="#0f172a" />
+  
+  <!-- Connected patches -->
+  <polygon points="256,190 256,120 315,145 310,230" fill="#1e293b" />
+  <polygon points="310,230 380,245 350,310 290,295" fill="#1e293b" />
+  <polygon points="290,295 295,380 220,380 222,295" fill="#1e293b" />
+  <polygon points="222,295 162,310 132,245 202,230" fill="#1e293b" />
+  <polygon points="202,230 197,145 256,120" fill="#1e293b" />
+  
+  <!-- Glowing lightning bolt over ball -->
+  <path d="M280 80 L180 270 L260 270 L230 430 L340 230 L265 230 Z" fill="url(#gold)" filter="drop-shadow(0 6px 12px rgba(0,0,0,0.5))" />
+</svg>

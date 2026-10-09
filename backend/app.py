@@ -1,0 +1,231 @@
+import os
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from pydantic import BaseModel
+from typing import List, Dict, Any, Optional
+
+from backend.scraper import sync_all_data, PLAYERS_FILE, FIXTURES_FILE, INJURIES_FILE
+from backend.optimizer import LineupOptimizer
+from backend.scheduler import AlertManager
+from backend.database import (
+    get_user_squad, save_user_squad, load_all_players_catalog,
+    get_settings, save_settings, parse_text_and_match_players,
+    DEFAULT_SAMPLE_SQUAD
+)
+
+app = FastAPI(title="FantaSchiera AI", description="Piattaforma intelligente per schierare la formazione del Fantacalcio")
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, 'static')
+TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+# Initialize engines
+optimizer = LineupOptimizer()
+alert_manager = AlertManager()
+alert_manager.start()
+
+# --- Pydantic Request Models ---
+class PlayerModel(BaseModel):
+    name: str
+    role: str
+    team: str
+    qa: Optional[int] = 10
+    fvm: Optional[int] = 50
+    photo: Optional[str] = ""
+    is_penalty_taker: Optional[bool] = False
+
+class SquadUpdateRequest(BaseModel):
+    players: List[Dict[str, Any]]
+
+class ImportTextRequest(BaseModel):
+    text: str
+
+class SettingsUpdateRequest(BaseModel):
+    defense_modifier: Optional[bool] = None
+    preferred_formation: Optional[str] = None
+    webhook_url: Optional[str] = None
+
+# --- UI Route ---
+@app.get("/")
+async def home_page():
+    return FileResponse(os.path.join(TEMPLATES_DIR, "index.html"))
+
+# --- Squad APIs ---
+@app.get("/api/squad")
+async def get_squad():
+    players = get_user_squad()
+    counts = {'P': 0, 'D': 0, 'C': 0, 'A': 0}
+    for p in players:
+        role = p.get('role', 'C').upper()
+        if role in counts:
+            counts[role] += 1
+    return {
+        'total': len(players),
+        'counts': counts,
+        'players': players
+    }
+
+@app.post("/api/squad")
+async def update_squad(req: SquadUpdateRequest):
+    success = save_user_squad(req.players)
+    optimizer.reload_data()
+    return {"success": success, "count": len(req.players)}
+
+@app.post("/api/squad/add")
+async def add_player_to_squad(player: Dict[str, Any]):
+    current_squad = get_user_squad()
+    # Check if already present
+    p_name = player.get('name', '').lower()
+    for existing in current_squad:
+        if existing.get('name', '').lower() == p_name:
+            return {"success": False, "message": "Calciatore già presente nella rosa!"}
+            
+    current_squad.append(player)
+    save_user_squad(current_squad)
+    return {"success": True, "players_count": len(current_squad)}
+
+@app.post("/api/squad/remove")
+async def remove_player_from_squad(payload: Dict[str, str]):
+    player_name = payload.get('name', '').lower()
+    current_squad = get_user_squad()
+    updated = [p for p in current_squad if p.get('name', '').lower() != player_name]
+    save_user_squad(updated)
+    return {"success": True, "players_count": len(updated)}
+
+@app.post("/api/squad/reset")
+async def reset_squad():
+    save_user_squad(DEFAULT_SAMPLE_SQUAD)
+    return {"success": True, "message": "Rosa reimpostata con successo!", "players_count": len(DEFAULT_SAMPLE_SQUAD)}
+
+@app.post("/api/squad/import-text")
+async def import_squad_text(req: ImportTextRequest):
+    matched = parse_text_and_match_players(req.text)
+    if not matched:
+        return {"success": False, "message": "Nessun giocatore riconosciuto nel testo incollato. Prova a scrivere i nomi chiaramente separati da virgole o a capo."}
+    
+    current_squad = get_user_squad()
+    existing_names = {p.get('name', '').lower() for p in current_squad}
+    added_count = 0
+    for m in matched:
+        if m.get('name', '').lower() not in existing_names:
+            current_squad.append(m)
+            existing_names.add(m.get('name', '').lower())
+            added_count += 1
+            
+    save_user_squad(current_squad)
+    return {
+        "success": True,
+        "added_count": added_count,
+        "matched_count": len(matched),
+        "total_players": len(current_squad)
+    }
+
+# Popular nicknames and aliases for common Fantacalcio player searches
+PLAYER_ALIASES = {
+    'lautaro': 'martinez l.',
+    'kvara': 'kvaratskhelia',
+    'calha': 'calhanoglu',
+    'chalanoglu': 'calhanoglu',
+    'theo': 'hernandez',
+    'mike': 'maignan',
+    'gigio': 'donnarumma',
+    'nico': 'paz n.',
+    'chico': 'conceicao',
+    'leao': 'leao'
+}
+
+# --- Player Search & Catalog ---
+@app.get("/api/players/search")
+async def search_players(query: str = "", role: str = "", team: str = "", limit: int = 30):
+    catalog = load_all_players_catalog()
+    query = query.lower().strip()
+    role = role.upper().strip()
+    team = team.upper().strip()
+    
+    alias_target = PLAYER_ALIASES.get(query, '')
+    
+    results = []
+    for p in catalog:
+        if role and p.get('role', '') != role:
+            continue
+        if team and p.get('team', '') != team:
+            continue
+        p_name = p.get('name', '').lower()
+        p_team = p.get('team', '').lower()
+        if query:
+            matches_direct = query in p_name or query in p_team
+            matches_alias = alias_target and (alias_target in p_name)
+            if not (matches_direct or matches_alias):
+                continue
+        results.append(p)
+        if len(results) >= limit:
+            break
+            
+    return {"results": results, "total": len(results)}
+
+# --- Lineup Recommendation API ---
+@app.get("/api/lineup/recommendation")
+async def get_lineup_recommendation(formation: Optional[str] = None, use_modifier: Optional[bool] = None):
+    user_players = get_user_squad()
+    settings = get_settings()
+    
+    if formation == 'auto' or not formation:
+        formation = None
+    if use_modifier is None:
+        use_modifier = settings.get('defense_modifier', False)
+        
+    lineup_res = optimizer.optimize_lineup(
+        user_players=user_players,
+        preferred_formation=formation,
+        use_defense_modifier=use_modifier
+    )
+    return lineup_res
+
+# --- Fixtures, Injuries & Intel ---
+@app.get("/api/fixtures")
+async def get_fixtures():
+    data = optimizer._load_json(FIXTURES_FILE, {'fixtures': []})
+    return data
+
+@app.get("/api/injuries")
+async def get_injuries():
+    data = optimizer._load_json(INJURIES_FILE, {})
+    return {"injuries": list(data.values()), "count": len(data)}
+
+# --- Alert & Countdown API ---
+@app.get("/api/alert-info")
+async def get_alert_info():
+    return alert_manager.get_alert_info()
+
+# --- Sync Data ---
+@app.post("/api/sync")
+async def trigger_sync():
+    res = sync_all_data()
+    optimizer.reload_data()
+    return {"success": True, "result": res}
+
+# --- Tunnel Info ---
+from backend.tunnel import tunnel_instance
+
+@app.get("/api/tunnel-info")
+async def get_tunnel_info():
+    url = tunnel_instance.get_url()
+    return {
+        "active": url is not None,
+        "public_url": url or ""
+    }
+
+# --- Settings ---
+@app.get("/api/settings")
+async def read_settings():
+    return get_settings()
+
+@app.post("/api/settings")
+async def update_settings(req: SettingsUpdateRequest):
+    update_data = {k: v for k, v in req.dict().items() if v is not None}
+    save_settings(update_data)
+    return {"success": True, "settings": get_settings()}
