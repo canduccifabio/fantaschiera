@@ -208,6 +208,29 @@ async def trigger_sync():
     optimizer.reload_data()
     return {"success": True, "result": res}
 
+# --- SOS Fanta Intelligence API ---
+from backend.sosfanta_analyzer import sosfanta_analyzer
+
+class SOSFantaUrlRequest(BaseModel):
+    url: str
+
+@app.get("/api/sosfanta/analysis")
+async def get_sosfanta_analysis():
+    user_players = get_user_squad()
+    analysis = sosfanta_analyzer.analyze_entire_squad(user_players)
+    return {
+        "success": True,
+        "preview_url": sosfanta_analyzer.preview_url,
+        "results": analysis
+    }
+
+@app.post("/api/sosfanta/update-url")
+async def update_sosfanta_url(req: SOSFantaUrlRequest):
+    sosfanta_analyzer.preview_url = req.url.rstrip('/') + '/'
+    sosfanta_analyzer.scrape_all_slides()
+    optimizer.reload_data()
+    return {"success": True, "preview_url": sosfanta_analyzer.preview_url}
+
 # --- Tunnel Info ---
 from backend.tunnel import tunnel_instance
 

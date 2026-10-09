@@ -2,6 +2,7 @@ import json
 import os
 import re
 from typing import List, Dict, Any, Tuple
+from backend.sosfanta_analyzer import sosfanta_analyzer
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 PLAYERS_FILE = os.path.join(DATA_DIR, 'players_cache.json')
@@ -184,8 +185,12 @@ class LineupOptimizer:
         if role == 'D' and is_home and qa >= 12: # attacking wingback
             special_bonus += 2.5
 
+        # E) SOS Fanta editorial boost / penalty
+        sf_analysis = sosfanta_analyzer.analyze_player(player['name'], team)
+        sf_bonus = sf_analysis.get('bonus_score', 0.0) if sf_analysis.get('mentioned') else 0.0
+
         # Final composite score
-        total_score = titolarita_factor + matchup_score + quality_score + special_bonus
+        total_score = titolarita_factor + matchup_score + quality_score + special_bonus + sf_bonus
         total_score = round(max(10.0, min(99.0, total_score)), 1)
 
         # Star rating (1 to 5)
@@ -235,6 +240,8 @@ class LineupOptimizer:
             reasons.append("alta probabilità di Clean Sheet / imbattibilità")
 
         advice_text = f"{'🌟 ' if stars >= 4 else '👉 '}{status}: {', '.join(reasons).capitalize()}."
+        if sf_analysis.get('mentioned'):
+            advice_text += f" | {sf_analysis['icon']} SOS Fanta: \"{sf_analysis['quote']}\""
 
         match_venue_str = f"vs {opponent_code} ({'C' if is_home else 'T'})"
 
@@ -250,7 +257,8 @@ class LineupOptimizer:
             'opponent_name': opponent_name,
             'is_home': is_home,
             'advice': advice_text,
-            'ballottaggio_note': ballottaggio_note
+            'ballottaggio_note': ballottaggio_note,
+            'sosfanta': sf_analysis
         }
 
     def optimize_lineup(self, user_players: List[Dict], preferred_formation: str = None, use_defense_modifier: bool = False) -> Dict:

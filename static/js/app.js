@@ -24,6 +24,8 @@ function switchTab(tabName) {
     loadLineupRecommendation();
   } else if (tabName === 'rosa') {
     loadSquad();
+  } else if (tabName === 'sosfanta') {
+    loadSOSFantaAnalysis();
   } else if (tabName === 'probabili') {
     loadFixtures();
   } else if (tabName === 'infortuni') {
@@ -386,6 +388,20 @@ function openPlayerModal(player) {
   document.getElementById('modalPlayerQA').innerText = player.qa || '-';
   document.getElementById('modalPlayerFVM').innerText = player.fvm || '-';
 
+  // SOS Fanta Quote
+  const sfBox = document.getElementById('modalSOSFantaBox');
+  if (player.sosfanta && player.sosfanta.mentioned) {
+    if (sfBox) {
+      sfBox.style.display = 'block';
+      document.getElementById('modalSOSFantaBadge').innerText = player.sosfanta.category;
+      document.getElementById('modalSOSFantaBadge').className = `badge-status badge-${player.sosfanta.badge}`;
+      document.getElementById('modalSOSFantaQuote').innerText = `"${player.sosfanta.quote}"`;
+      document.getElementById('modalSOSFantaSummary').innerText = player.sosfanta.summary;
+    }
+  } else if (sfBox) {
+    sfBox.style.display = 'none';
+  }
+
   dialog.showModal();
 }
 
@@ -570,6 +586,105 @@ async function loadTunnelInfo() {
     }
   } catch (e) {
     console.warn("Could not load tunnel info", e);
+  }
+}
+
+// --- SOS FANTA INTELLIGENCE TAB ---
+async function loadSOSFantaAnalysis() {
+  const container = document.getElementById('sosfantaCardsContainer');
+  const statsContainer = document.getElementById('sosfantaStatsContainer');
+  if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Analisi preview SOS Fanta in corso...</div>`;
+
+  try {
+    const res = await fetch('/api/sosfanta/analysis');
+    if (!res.ok) throw new Error("Errore recupero SOS Fanta");
+    const data = await res.json();
+    const results = data.results || [];
+
+    // Stats count
+    const mentionedCount = results.filter(r => r.sosfanta.mentioned).length;
+    const topCount = results.filter(r => r.sosfanta.category === 'SCHIERARE ASSOLUTO').length;
+    const promossiCount = results.filter(r => r.sosfanta.category === 'PROMOSSO').length;
+
+    if (statsContainer) {
+      statsContainer.innerHTML = `
+        <div class="counter-box">
+          <div class="counter-val" style="color:#ef4444;">${mentionedCount}/${results.length}</div>
+          <div class="counter-lbl">Citati nell'articolo</div>
+        </div>
+        <div class="counter-box">
+          <div class="counter-val" style="color:#10b981;">${topCount}</div>
+          <div class="counter-lbl">Schierare Assoluto</div>
+        </div>
+        <div class="counter-box">
+          <div class="counter-val" style="color:#3b82f6;">${promossiCount}</div>
+          <div class="counter-lbl">Promossi / In Forma</div>
+        </div>
+      `;
+    }
+
+    if (container) {
+      container.innerHTML = results.map(r => {
+        const sf = r.sosfanta;
+        const isMentioned = sf.mentioned;
+        return `
+          <div class="player-row" style="margin-bottom:10px; flex-direction:column; align-items:stretch; gap:8px;" onclick='openPlayerModal(${JSON.stringify(r).replace(/'/g, "&#39;")})'>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="player-left">
+                <span class="role-badge role-${r.role}">${r.role}</span>
+                <img class="player-avatar" src="${r.photo || '/static/icon.svg'}" onerror="this.src='/static/icon.svg'" />
+                <div>
+                  <div class="player-name-main">${r.name} <span style="font-weight:400; font-size:0.8rem; color:#94a3b8;">(${r.team})</span></div>
+                  <div class="player-meta">Quotaz: ${r.qa} • FVM: ${r.fvm}</div>
+                </div>
+              </div>
+              <div>
+                <span class="badge-status badge-${sf.badge}">${sf.icon} ${sf.category}</span>
+              </div>
+            </div>
+            
+            ${isMentioned ? `
+              <div style="background:rgba(255,255,255,0.03); border-left:3px solid var(--accent-emerald); padding:8px 12px; border-radius:6px; font-size:0.83rem;">
+                <div style="font-style:italic; color:#ffffff; margin-bottom:3px;">"${sf.quote}"</div>
+                <div style="font-size:0.75rem; color:#94a3b8;">${sf.summary}</div>
+              </div>
+            ` : `
+              <div style="font-size:0.75rem; color:var(--text-muted); padding:4px 8px;">
+                ${sf.summary}
+              </div>
+            `}
+          </div>
+        `;
+      }).join('');
+    }
+  } catch (e) {
+    if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Errore nel caricamento dei dati SOS Fanta.</div>`;
+  }
+}
+
+async function syncSOSFantaPreview() {
+  const input = document.getElementById('sosfantaUrlInput');
+  const url = input ? input.value.trim() : '';
+  if (!url) {
+    showToast("Inserisci un URL valido per la preview.");
+    return;
+  }
+
+  showToast("🔄 Scarico e analizzo la preview di SOS Fanta...");
+  try {
+    const res = await fetch('/api/sosfanta/update-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: url })
+    });
+    const result = await res.json();
+    if (result.success) {
+      showToast("✅ Analisi SOS Fanta aggiornata con successo!");
+      loadSOSFantaAnalysis();
+      loadLineupRecommendation();
+    }
+  } catch (e) {
+    showToast("Errore durante l'aggiornamento da SOS Fanta.");
   }
 }
 
