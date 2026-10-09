@@ -342,6 +342,13 @@ async function resetSquadToDefault() {
 // --- FIXTURES TAB ---
 async function loadFixtures() {
   try {
+    // Ensure squad data is available so player highlighting always works
+    if (!currentSquadData && (!currentLineupData || !currentLineupData.starters)) {
+      try {
+        const sqRes = await fetch('/api/squad');
+        if (sqRes.ok) currentSquadData = await sqRes.json();
+      } catch (e) {}
+    }
     const res = await fetch('/api/fixtures');
     if (!res.ok) throw new Error("Errore recupero calendario");
     const data = await res.json();
@@ -360,19 +367,37 @@ function renderFixturesView(fixtures) {
     return;
   }
 
-  // Set of user players for fast instant lookup
-  const userPlayerNames = new Set(
-    (currentSquadData?.players || []).map(p => p.name.toLowerCase().replace('.', '').trim())
-  );
+  // Gather all squad players from all available caches
+  const allUserPlayers = [];
+  if (currentSquadData && currentSquadData.players) {
+    allUserPlayers.push(...currentSquadData.players);
+  }
+  if (currentLineupData) {
+    if (currentLineupData.starters) allUserPlayers.push(...currentLineupData.starters);
+    if (currentLineupData.bench) allUserPlayers.push(...currentLineupData.bench);
+    if (currentLineupData.injured_players) allUserPlayers.push(...currentLineupData.injured_players);
+  }
+
+  // Build clean search tokens for robust surname/alias matching
+  function cleanTokens(str) {
+    if (!str) return [];
+    return str.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter(t => t.length >= 3 && !['del', 'dei', 'della', 'degli', 'van', 'von', 'san'].includes(t));
+  }
+
+  const userTokensSet = new Set();
+  allUserPlayers.forEach(p => {
+    if (!p || !p.name) return;
+    cleanTokens(p.name).forEach(t => userTokensSet.add(t));
+  });
 
   function isUserPlayer(pName) {
-    if (!pName) return false;
-    const norm = pName.toLowerCase().replace('.', '').trim();
-    if (userPlayerNames.has(norm)) return true;
-    for (let un of userPlayerNames) {
-      if (norm === un || norm.includes(un) || un.includes(norm)) return true;
-    }
-    return false;
+    if (!pName || userTokensSet.size === 0) return false;
+    const tokens = cleanTokens(pName);
+    return tokens.some(t => userTokensSet.has(t));
   }
 
   function formatLineup(lineupList, percentagesMap) {
@@ -387,7 +412,7 @@ function renderFixturesView(fixtures) {
       const isMine = isUserPlayer(pName);
 
       if (isMine) {
-        return `<span class="badge-my-starter" title="Titolare nella tua rosa!">⭐ ${pName} (${pct}%)</span>`;
+        return `<span class="badge-my-starter" title="⭐ Giocatore nella tua rosa!">⭐ ${pName} (${pct}%)</span>`;
       } else {
         const ballotStr = pct < 75 ? ` <span style="color:#f59e0b; font-size:0.7rem;">(${pct}%)</span>` : '';
         return `<span style="display:inline-flex; align-items:center; gap:3px; margin:2px 4px 2px 0; font-size:0.78rem; color:#cbd5e1;"><span class="role-badge role-${role}" style="font-size:0.65rem; padding:1px 4px;">${role}</span>${pName}${ballotStr}</span>`;
@@ -395,46 +420,103 @@ function renderFixturesView(fixtures) {
     }).join(' • ');
   }
 
-  container.innerHTML = fixtures.map(m => `
-    <div class="card" style="padding:14px; margin-bottom:14px;">
-      <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:8px; flex-wrap:wrap; gap:4px;">
-        <span>📅 ${m.date_str}</span>
-        <span>🏟️ ${m.stadium || 'Stadio Serie A'}</span>
-      </div>
-      <div style="display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:1.05rem; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
-        <span style="color:#60a5fa;">${m.home_team} (${m.home_formation})</span>
-        <span style="color:var(--text-muted); font-size:0.8rem;">VS</span>
-        <span style="color:#f87171;">${m.away_team} (${m.away_formation})</span>
-      </div>
-      
-      <!-- Complete 11 Home Lineup -->
-      <div style="background:rgba(255,255,255,0.02); border-radius:10px; padding:10px; margin-bottom:8px;">
-        <div style="font-size:0.75rem; font-weight:800; color:#60a5fa; margin-bottom:6px; text-transform:uppercase;">
-          🔵 Titolari ${m.home_team} (${m.home_lineup?.length || 0}/11):
-        </div>
-        <div style="line-height:1.8;">
-          ${formatLineup(m.home_lineup, m.player_percentages)}
-        </div>
-      </div>
+  container.innerHTML = fixtures.map(m => {
+    // Separate ballottaggi cleanly between Home and Away team
+    const homeLineupLower = (m.home_lineup || []).map(p => p.toLowerCase());
+    const awayLineupLower = (m.away_lineup || []).map(p => p.toLowerCase());
 
-      <!-- Complete 11 Away Lineup -->
-      <div style="background:rgba(255,255,255,0.02); border-radius:10px; padding:10px; margin-bottom:10px;">
-        <div style="font-size:0.75rem; font-weight:800; color:#f87171; margin-bottom:6px; text-transform:uppercase;">
-          🔴 Titolari ${m.away_team} (${m.away_lineup?.length || 0}/11):
-        </div>
-        <div style="line-height:1.8;">
-          ${formatLineup(m.away_lineup, m.player_percentages)}
-        </div>
-      </div>
+    const homeBal = [];
+    const awayBal = [];
+    const otherBal = [];
 
-      <!-- Ballottaggi -->
-      ${(m.ballottaggi && m.ballottaggi.length > 0) ? `
-        <div style="background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25); border-radius:8px; padding:8px 12px; font-size:0.75rem; color:#f59e0b;">
-          <strong>⚖️ Ballottaggi:</strong> ${m.ballottaggi.join(' • ')}
+    (m.ballottaggi || []).forEach(bal => {
+      const bLow = bal.toLowerCase();
+      const isHome = homeLineupLower.some(p => bLow.includes(p.split(' ')[0]));
+      const isAway = awayLineupLower.some(p => bLow.includes(p.split(' ')[0]));
+      if (isHome && !isAway) {
+        homeBal.push(bal);
+      } else if (isAway && !isHome) {
+        awayBal.push(bal);
+      } else {
+        if (isHome) homeBal.push(bal);
+        else if (isAway) awayBal.push(bal);
+        else otherBal.push(bal);
+      }
+    });
+
+    // Highlight user player inside ballottaggi
+    function formatBalText(str) {
+      let res = str;
+      userTokensSet.forEach(t => {
+        const reg = new RegExp(`\\b(${t})\\b`, 'gi');
+        if (reg.test(res)) {
+          res = res.replace(reg, '<strong style="color:#34d399; background:rgba(16,185,129,0.22); padding:1px 4px; border-radius:4px;">⭐ $1</strong>');
+        }
+      });
+      return res;
+    }
+
+    return `
+      <div class="card" style="padding:14px; margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:8px; flex-wrap:wrap; gap:4px;">
+          <span>📅 ${m.date_str}</span>
+          <span>🏟️ ${m.stadium || 'Stadio Serie A'}</span>
         </div>
-      ` : ''}
-    </div>
-  `).join('');
+        <div style="display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:1.05rem; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
+          <span style="color:#60a5fa;">${m.home_team} (${m.home_formation})</span>
+          <span style="color:var(--text-muted); font-size:0.8rem;">VS</span>
+          <span style="color:#f87171;">${m.away_team} (${m.away_formation})</span>
+        </div>
+        
+        <!-- Complete 11 Home Lineup -->
+        <div style="background:rgba(255,255,255,0.02); border-radius:10px; padding:10px; margin-bottom:8px;">
+          <div style="font-size:0.75rem; font-weight:800; color:#60a5fa; margin-bottom:6px; text-transform:uppercase;">
+            🔵 Titolari ${m.home_team} (${m.home_lineup?.length || 0}/11):
+          </div>
+          <div style="line-height:1.8;">
+            ${formatLineup(m.home_lineup, m.player_percentages)}
+          </div>
+        </div>
+
+        <!-- Complete 11 Away Lineup -->
+        <div style="background:rgba(255,255,255,0.02); border-radius:10px; padding:10px; margin-bottom:10px;">
+          <div style="font-size:0.75rem; font-weight:800; color:#f87171; margin-bottom:6px; text-transform:uppercase;">
+            🔴 Titolari ${m.away_team} (${m.away_lineup?.length || 0}/11):
+          </div>
+          <div style="line-height:1.8;">
+            ${formatLineup(m.away_lineup, m.player_percentages)}
+          </div>
+        </div>
+
+        <!-- Differentiated Ballottaggi -->
+        ${(m.ballottaggi && m.ballottaggi.length > 0) ? `
+          <div style="background:rgba(245, 158, 11, 0.05); border:1px solid rgba(245, 158, 11, 0.22); border-radius:10px; padding:10px 12px; margin-top:8px;">
+            <div style="font-size:0.76rem; font-weight:800; color:#f59e0b; margin-bottom:6px; text-transform:uppercase;">
+              ⚖️ Ballottaggi per Squadra:
+            </div>
+            
+            <div style="display:flex; flex-direction:column; gap:6px; font-size:0.77rem; line-height:1.5;">
+              <div style="background:rgba(96, 165, 250, 0.08); border-left:3px solid #60a5fa; padding:5px 8px; border-radius:4px;">
+                <span style="font-weight:700; color:#60a5fa;">🔵 ${m.home_team}:</span> 
+                <span style="color:#cbd5e1;">${homeBal.length > 0 ? homeBal.map(formatBalText).join(' • ') : '<em style="color:var(--text-muted);">Nessun ballottaggio</em>'}</span>
+              </div>
+
+              <div style="background:rgba(248, 113, 113, 0.08); border-left:3px solid #f87171; padding:5px 8px; border-radius:4px;">
+                <span style="font-weight:700; color:#f87171;">🔴 ${m.away_team}:</span> 
+                <span style="color:#cbd5e1;">${awayBal.length > 0 ? awayBal.map(formatBalText).join(' • ') : '<em style="color:var(--text-muted);">Nessun ballottaggio</em>'}</span>
+              </div>
+
+              ${otherBal.length > 0 ? `
+                <div style="padding:4px 8px; color:#cbd5e1;">
+                  <span style="font-weight:700; color:#f59e0b;">⚪ Altri:</span> ${otherBal.map(formatBalText).join(' • ')}
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
 }
 
 // --- INJURIES TAB ---
