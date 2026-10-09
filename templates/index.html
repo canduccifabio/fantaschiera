@@ -191,24 +191,11 @@
             <button class="segment-btn" data-livefilter="active" onclick="setLiveFilter('active')">🔴 In Corso / Conclusi</button>
           </div>
           <div style="display:flex; gap:6px; align-items:center;">
-            <button id="btnToggleLiveDemo" class="btn btn-secondary btn-sm" onclick="toggleLiveDemoMode()" title="Simula una partita in corso per testare l'interfaccia">
-              🧪 Prova Demo Live
-            </button>
             <button id="btnRefreshLive" class="btn btn-primary btn-sm" onclick="refreshLiveVotes(this)" style="display:flex; align-items:center; gap:5px;">
               <span>⚡ Aggiorna Voti Live</span>
             </button>
           </div>
         </div>
-      </div>
-
-      <!-- Live Demo Mode Alert Banner -->
-      <div id="liveDemoAlertBanner" style="display:none; background:rgba(245, 158, 11, 0.12); border:1px solid #f59e0b; border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:0.82rem; color:#fef3c7; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <div>
-          <strong>🧪 MODALITÀ DEMO / SIMULAZIONE ATTIVA:</strong> Stai visualizzando dati di test simulati. Per vedere gli orari e i voti ufficiali della Serie A, torna alla modalità reale.
-        </div>
-        <button class="btn btn-warning btn-sm" onclick="toggleLiveDemoMode()" style="padding:3px 10px; font-size:0.75rem; font-weight:800;">
-          🟢 Torna al Live Reale
-        </button>
       </div>
 
       <!-- AI Self-Improvement & Matchday Retrospective ("Tiriamo le Somme") -->
@@ -261,6 +248,21 @@
             </div>
           </div>
 
+          <!-- Concise Real Observations Report Box -->
+          <div id="aiObservationsReportBox" style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.25); border-radius:10px; padding:10px 14px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              <span style="font-size:0.75rem; color:#6ee7b7; font-weight:800; text-transform:uppercase;">
+                📋 Report Reale & Calibrazione Prudente
+              </span>
+              <span class="badge-status badge-success" style="font-size:0.7rem; padding:2px 6px;">
+                🟢 Calibrazione Prudente (α = 0.02)
+              </span>
+            </div>
+            <div id="aiObservationsReportList" style="font-size:0.8rem; color:var(--text-secondary); line-height:1.5; display:flex; flex-direction:column; gap:5px;">
+              <!-- Populated via JS with real observations -->
+            </div>
+          </div>
+
           <!-- Highlights List -->
           <div id="retrospectiveHighlightsList" style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
             <!-- Populated via JS -->
@@ -275,17 +277,14 @@
                   🤖 Sistema di Auto-Apprendimento 100% Autonomo
                 </div>
                 <div style="font-size:0.73rem; color:var(--text-muted); line-height:1.2;">
-                  L'algoritmo tara e ottimizza i pesi da solo a fine turno confrontando i voti reali con le attese.
+                  L'algoritmo valuta e tara i parametri da solo a fine turno con micro-correzioni prudenti (max ±2% per parametro).
                 </div>
               </div>
             </div>
             <div style="display:flex; gap:6px; align-items:center;">
               <span id="aiAutoStatusPill" class="badge-status badge-success" style="font-size:0.72rem;">
-                🟢 Pesi Calibrati
+                🟢 Calibrazione Autonoma Attiva
               </span>
-              <button id="btnTriggerLearning" class="btn btn-secondary btn-sm" onclick="triggerAILearning(this)" style="font-size:0.72rem; padding:3px 8px; opacity:0.85;" title="Opzionale: Forza una ricalibrazione immediata">
-                ⚡ Forza Ricalibrazione
-              </button>
             </div>
           </div>
         </div>

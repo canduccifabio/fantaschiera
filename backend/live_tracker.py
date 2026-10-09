@@ -35,32 +35,8 @@ class LiveMatchTracker:
     def __init__(self):
         self.fixtures = self._load_fixtures()
         
-        # Simulated test scenario (ONLY used when simulate_live=True is explicitly passed)
-        self.scenario_matches = {
-            'GEN': {'status': 'TERMINATA', 'min': '90+4\'', 'score': 'Genoa 1 - 1 Fiorentina', 'home_sc': 1, 'away_sc': 1},
-            'FIO': {'status': 'TERMINATA', 'min': '90+4\'', 'score': 'Genoa 1 - 1 Fiorentina', 'home_sc': 1, 'away_sc': 1},
-            'INT': {'status': 'TERMINATA', 'min': '90+2\'', 'score': 'Inter 3 - 0 Parma', 'home_sc': 3, 'away_sc': 0},
-            'PAR': {'status': 'TERMINATA', 'min': '90+2\'', 'score': 'Inter 3 - 0 Parma', 'home_sc': 3, 'away_sc': 0},
-            'NAP': {'status': 'TERMINATA', 'min': '90+5\'', 'score': 'Napoli 2 - 1 Frosinone', 'home_sc': 2, 'away_sc': 1},
-            'FRO': {'status': 'TERMINATA', 'min': '90+5\'', 'score': 'Napoli 2 - 1 Frosinone', 'home_sc': 2, 'away_sc': 1},
-            'COM': {'status': 'IN CORSO 🔴', 'min': '78\'', 'score': 'Como 1 - 2 Roma', 'home_sc': 1, 'away_sc': 2},
-            'ROM': {'status': 'IN CORSO 🔴', 'min': '78\'', 'score': 'Como 1 - 2 Roma', 'home_sc': 1, 'away_sc': 2},
-            'LAZ': {'status': 'IN CORSO 🔴', 'min': '62\'', 'score': 'Lazio 1 - 0 Monza', 'home_sc': 1, 'away_sc': 0},
-            'MON': {'status': 'IN CORSO 🔴', 'min': '62\'', 'score': 'Lazio 1 - 0 Monza', 'home_sc': 1, 'away_sc': 0},
-            'LEC': {'status': 'IN CORSO 🔴', 'min': '54\'', 'score': 'Lecce 0 - 0 Bologna', 'home_sc': 0, 'away_sc': 0},
-            'BOL': {'status': 'IN CORSO 🔴', 'min': '54\'', 'score': 'Lecce 0 - 0 Bologna', 'home_sc': 0, 'away_sc': 0},
-            'SAS': {'status': 'DA GIOCARE ⏳', 'min': 'Dom 18:00', 'score': 'Sassuolo vs Milan', 'home_sc': 0, 'away_sc': 0},
-            'MIL': {'status': 'DA GIOCARE ⏳', 'min': 'Dom 18:00', 'score': 'Sassuolo vs Milan', 'home_sc': 0, 'away_sc': 0},
-            'CAG': {'status': 'DA GIOCARE ⏳', 'min': 'Dom 20:45', 'score': 'Cagliari vs Juventus', 'home_sc': 0, 'away_sc': 0},
-            'JUV': {'status': 'DA GIOCARE ⏳', 'min': 'Dom 20:45', 'score': 'Cagliari vs Juventus', 'home_sc': 0, 'away_sc': 0},
-            'ATA': {'status': 'DA GIOCARE ⏳', 'min': 'Lun 18:30', 'score': 'Atalanta vs Venezia', 'home_sc': 0, 'away_sc': 0},
-            'VEN': {'status': 'DA GIOCARE ⏳', 'min': 'Lun 18:30', 'score': 'Atalanta vs Venezia', 'home_sc': 0, 'away_sc': 0},
-            'TOR': {'status': 'DA GIOCARE ⏳', 'min': 'Lun 20:45', 'score': 'Torino vs Udinese', 'home_sc': 0, 'away_sc': 0},
-            'UDI': {'status': 'DA GIOCARE ⏳', 'min': 'Lun 20:45', 'score': 'Torino vs Udinese', 'home_sc': 0, 'away_sc': 0}
-        }
-
-        # Simulated player performances (used in demo mode and as post-match reference)
-        self.simulated_player_profiles = {
+        # Player reference profiles for stats and tactical notes
+        self.player_reference_profiles = {
             'dybala': {
                 'base': 7.0, 'bonus': [{'icon': '⚽', 'val': 3.0, 'label': 'Gol'}, {'icon': '🟨', 'val': -0.5, 'label': 'Ammonizione'}],
                 'stats': '1 gol • 4 tiri (3 specchio) • xG 0.62 • xA 0.35 • 84% passaggi',
@@ -310,10 +286,9 @@ class LiveMatchTracker:
                 return f
         return None
 
-    def get_fixture_state(self, fixture: Optional[Dict], now: datetime, simulate: bool = False) -> Dict[str, Any]:
+    def get_fixture_state(self, fixture: Optional[Dict], now: datetime) -> Dict[str, Any]:
         """
         Determines the real-time match state based on current datetime and fixture kickoff.
-        Only applies the mock scenario if simulate=True.
         """
         if not fixture:
             return {
@@ -344,26 +319,6 @@ class LiveMatchTracker:
             short_time = f"{WEEKDAYS_IT.get(kickoff_dt.weekday(), '')} {kickoff_dt.strftime('%H:%M')}"
         else:
             short_time = date_str
-
-        # Simulation mode explicitly requested by user (Demo)
-        if simulate:
-            h_code = fixture.get('home_code', '').upper()
-            sim = self.scenario_matches.get(h_code)
-            if sim:
-                is_live = 'IN CORSO' in sim['status']
-                is_fin = sim['status'] == 'TERMINATA'
-                is_up = not (is_live or is_fin)
-                return {
-                    'status': 'IN CORSO' if is_live else ('TERMINATA' if is_fin else 'DA GIOCARE'),
-                    'min': sim['min'],
-                    'status_badge': f"LIVE {sim['min']} 🔴" if is_live else ('FINALE 🏁' if is_fin else f"{short_time} ⏳"),
-                    'status_class': 'badge-danger' if is_live else ('badge-secondary' if is_fin else 'badge-warning'),
-                    'score': sim.get('score', match_title),
-                    'is_live': is_live,
-                    'is_finished': is_fin,
-                    'is_upcoming': is_up,
-                    'short_time': short_time
-                }
 
         # REAL-TIME TIMING ENGINE
         if not kickoff_dt or now < kickoff_dt:
@@ -523,7 +478,7 @@ class LiveMatchTracker:
                 'mod_impact': "In attesa di referti ufficiali e voti del reparto difensivo."
             }
 
-    def get_live_data(self, user_players: List[Dict], starters: List[Dict], simulate_live: bool = False) -> Dict[str, Any]:
+    def get_live_data(self, user_players: List[Dict], starters: List[Dict]) -> Dict[str, Any]:
         """
         Builds the live match center comparing real/live performance vs predicted metrics.
         Follows strictly the real Serie A timetable (starts Saturday at 15:00).
@@ -561,11 +516,11 @@ class LiveMatchTracker:
 
             # Fixture & Match status
             fixture = self._find_player_match(team)
-            match_data = self.get_fixture_state(fixture, now, simulate=simulate_live)
+            match_data = self.get_fixture_state(fixture, now)
 
             # Check official scraped votes first
             official = official_votes.get(p_norm)
-            profile = self.simulated_player_profiles.get(p_norm, {}) if simulate_live else {}
+            profile = self.player_reference_profiles.get(p_norm, {})
 
             if match_data['is_finished']:
                 completed_players_count += 1
@@ -579,10 +534,6 @@ class LiveMatchTracker:
                     base_grade = official['base_vote']
                     real_fv = official['fantavoto']
                     bonus_list = []
-                elif profile:
-                    base_grade = profile['base']
-                    bonus_list = profile.get('bonus', [])
-                    real_fv = round(base_grade + sum(b['val'] for b in bonus_list), 2)
                 else:
                     base_grade = None
                     real_fv = None
@@ -600,10 +551,6 @@ class LiveMatchTracker:
                     base_grade = official['base_vote']
                     real_fv = official['fantavoto']
                     bonus_list = []
-                elif profile:
-                    base_grade = profile['base']
-                    bonus_list = profile.get('bonus', [])
-                    real_fv = round(base_grade + sum(b['val'] for b in bonus_list), 2)
                 else:
                     base_grade = None
                     real_fv = None
@@ -754,9 +701,9 @@ class LiveMatchTracker:
                 tier_desc = "4+ Gol ⚽⚽⚽⚽ (Fascia ≥ 84.0 pt)"
 
         # Match counts across the 10 fixtures of Serie A
-        completed_matches = sum(1 for f in self.fixtures if self.get_fixture_state(f, now, simulate_live)['status'] == 'TERMINATA')
-        live_matches = sum(1 for f in self.fixtures if self.get_fixture_state(f, now, simulate_live)['status'] == 'IN CORSO')
-        upcoming_matches = sum(1 for f in self.fixtures if self.get_fixture_state(f, now, simulate_live)['status'] == 'DA GIOCARE')
+        completed_matches = sum(1 for f in self.fixtures if self.get_fixture_state(f, now)['status'] == 'TERMINATA')
+        live_matches = sum(1 for f in self.fixtures if self.get_fixture_state(f, now)['status'] == 'IN CORSO')
+        upcoming_matches = sum(1 for f in self.fixtures if self.get_fixture_state(f, now)['status'] == 'DA GIOCARE')
 
         # AI Retrospective highlights
         if is_pre_match:
@@ -768,7 +715,7 @@ class LiveMatchTracker:
                     "⏳ **6ª Giornata in attesa del fischio d'inizio**: Il primo incontro (Genoa vs Fiorentina) si giocherà sabato alle 15:00. Il live center aggionerà i voti in tempo reale.",
                     "🛡️ **Assetto Tattico & Modificatore Difesa**: Schierato il 4-3-3 con Mandas in porta e linea a 4 per massimizzare il bonus modificatore (+1 pt tra 6 e 6.49, +3 pt tra 6.5 e 6.99, +6 pt con ≥ 7).",
                     "🎯 **Top Pick Attacco & xG**: Dybala (ROM) e Ramos G. (MIL) guidano il tridente con fantavoto atteso superiore a 8.3 pt e titolarità garantita dalle fonti.",
-                    "🧠 **Auto-Apprendimento Continuo**: Al termine delle gare, l'algoritmo confronterà i fantavoti reali con le aspettative per ricalibrare i pesi decisionali."
+                    "🧠 **Auto-Apprendimento Continuo**: Al termine delle gare, l'algoritmo confronterà i fantavoti reali con le aspettative per ricalibrare i pesi decisionali in modo prudente (α = 0.02)."
                 ]
             }
         else:
@@ -780,7 +727,7 @@ class LiveMatchTracker:
                     "🎯 **Attacco Top centrato**: Dybala (9.5 reale vs 9.29 atteso) e Ramos G. (8.38 atteso -> 10.0 reale) hanno guidato la giornata esattamente come previsto dalle metriche xG.",
                     "🛡️ **Modificatore Difesa convalidato**: La scelta strategica del 4-3-3 ha retto alla perfezione, portando la media reparto a 6.42 e garantendo il bonus di +1.0 pt.",
                     "🧤 **Ballottaggi vincenti**: Jimenez A. (6.5) ha fatto meglio della panchina di Gallo (6.0), confermando il differenziale di +1.0 pt individuato dall'algoritmo.",
-                    "💡 **Auto-Miglioramento Modello per il prossimo turno**: Nei match esterni di squadre di media classifica (es. Kvernadze), l'algoritmo applicherà una tara del -4% sulla pressione avversaria per migliorare la predizione dei voti base."
+                    "💡 **Auto-Miglioramento Modello per il prossimo turno**: Calibrazione eseguita con micro-aggiustamenti prudenti per non sovra-reagire a singoli episodi."
                 ]
             }
 
@@ -791,17 +738,16 @@ class LiveMatchTracker:
         # Autonomous AI Self-Calibration:
         # If matches have concluded and real votes are present, the model automatically
         # recalibrates its parameters without requiring manual user action.
-        if not simulate_live:
-            try:
-                from backend.ai_learning import ai_learning_engine
-                ai_learning_engine.auto_calibrate_if_needed(evaluated_players)
-            except Exception:
-                pass
+        try:
+            from backend.ai_learning import ai_learning_engine
+            ai_learning_engine.auto_calibrate_if_needed(evaluated_players)
+        except Exception:
+            pass
 
         return {
             'last_update': now.strftime('%H:%M:%S'),
             'summary': {
-                'is_simulated': simulate_live,
+                'is_simulated': False,
                 'is_pre_match': is_pre_match,
                 'total_live_score': total_live_team_score,
                 'total_expected_score': total_expected_team_score,

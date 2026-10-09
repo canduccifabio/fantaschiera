@@ -255,7 +255,7 @@ async def update_sosfanta_url(req: SOSFantaUrlRequest):
 from backend.live_tracker import live_tracker
 
 @app.get("/api/live/votes")
-async def get_live_votes(simulate: bool = False):
+async def get_live_votes():
     user_players = get_user_squad()
     settings = get_settings()
     use_modifier = settings.get('defense_modifier', True)
@@ -267,15 +267,15 @@ async def get_live_votes(simulate: bool = False):
         use_defense_modifier=use_modifier
     )
     starters = lineup_res.get('starters', [])
-    data = live_tracker.get_live_data(user_players=user_players, starters=starters, simulate_live=simulate)
+    data = live_tracker.get_live_data(user_players=user_players, starters=starters)
     return data
 
 @app.post("/api/live/refresh")
-async def refresh_live_votes(simulate: bool = False):
+async def refresh_live_votes():
     user_players = get_user_squad()
     settings = get_settings()
     lineup_res = optimizer.optimize_lineup(user_players=user_players, use_defense_modifier=settings.get('defense_modifier', True))
-    data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), simulate_live=simulate)
+    data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []))
     return {"success": True, "data": data}
 
 # --- AI Self-Learning & Auto-Improvement API ---
@@ -293,7 +293,7 @@ async def trigger_ai_learning():
     user_players = get_user_squad()
     settings = get_settings()
     lineup_res = optimizer.optimize_lineup(user_players=user_players, use_defense_modifier=settings.get('defense_modifier', True))
-    live_data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), simulate_live=True)
+    live_data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []))
     
     recalibration_result = ai_learning_engine.run_recalibration(live_data.get('players', []))
     optimizer.reload_data()

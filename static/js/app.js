@@ -252,30 +252,6 @@ function toggleSquadSection() {
   body.style.display = isSquadSectionOpen ? 'block' : 'none';
 }
 
-let isLiveDemoMode = false;
-
-function toggleLiveDemoMode() {
-  isLiveDemoMode = !isLiveDemoMode;
-  const demoBanner = document.getElementById('liveDemoAlertBanner');
-  const toggleBtn = document.getElementById('btnToggleLiveDemo');
-  
-  if (demoBanner) {
-    demoBanner.style.display = isLiveDemoMode ? 'flex' : 'none';
-  }
-  if (toggleBtn) {
-    if (isLiveDemoMode) {
-      toggleBtn.innerText = '🟢 Torna al Live Reale';
-      toggleBtn.className = 'btn btn-warning btn-sm';
-    } else {
-      toggleBtn.innerText = '🧪 Prova Demo Live';
-      toggleBtn.className = 'btn btn-secondary btn-sm';
-    }
-  }
-  
-  showToast(isLiveDemoMode ? '🧪 Attivata modalità Demo Live (simulazione matchday)' : '🟢 Ripristinata modalità Live Reale (orari Serie A)');
-  loadLiveVotes();
-}
-
 function setLiveFilter(filterType) {
   currentLiveFilter = filterType;
   document.querySelectorAll('[data-livefilter]').forEach(btn => {
@@ -292,7 +268,7 @@ async function loadLiveVotes() {
     container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Connessione al live match center...</div>`;
   }
   try {
-    const res = await fetch(`/api/live/votes?simulate=${isLiveDemoMode ? 'true' : 'false'}`);
+    const res = await fetch('/api/live/votes');
     if (!res.ok) throw new Error("Errore nel recupero dei voti live");
     const data = await res.json();
     currentLiveData = data;
@@ -311,12 +287,12 @@ async function refreshLiveVotes(btn) {
     btn.innerHTML = `<span style="display:inline-block;">🔄</span> Aggiorno...`;
   }
   try {
-    const res = await fetch(`/api/live/refresh?simulate=${isLiveDemoMode ? 'true' : 'false'}`, { method: 'POST' });
+    const res = await fetch('/api/live/refresh', { method: 'POST' });
     const json = await res.json();
     if (json.success && json.data) {
       currentLiveData = json.data;
       renderLiveView(json.data);
-      showToast(isLiveDemoMode ? "⚡ Simulazione live aggiornata!" : "⚡ Orari e voti live sincronizzati!");
+      showToast("⚡ Orari e voti live sincronizzati!");
     } else {
       await loadLiveVotes();
     }
@@ -339,10 +315,7 @@ function renderLiveView(data) {
   // Header status badge
   const statusBadge = document.getElementById('liveStatusBadge');
   if (statusBadge) {
-    if (summary.is_simulated) {
-      statusBadge.className = 'badge-status badge-warning';
-      statusBadge.innerText = '🧪 Demo / Simulazione';
-    } else if (summary.is_pre_match) {
+    if (summary.is_pre_match) {
       statusBadge.className = 'badge-status badge-warning';
       statusBadge.innerText = '⏳ In attesa del 1° match (Sab 15:00)';
     } else if (summary.live_matches > 0 || summary.live_players > 0) {
@@ -456,6 +429,31 @@ function renderAILearningUI(status) {
       <span class="badge-status badge-secondary">SOS Fanta: x${w.editorial_bonus_multiplier}</span>
       <span class="badge-status badge-success">MAE: ${status.overall_mae} pt</span>
     `;
+  }
+
+  // Render Concise Real Observations Report
+  const reportList = document.getElementById('aiObservationsReportList');
+  if (reportList) {
+    const report = status.last_report;
+    if (report && report.observations && report.observations.length > 0) {
+      reportList.innerHTML = report.observations.map(obs => `
+        <div style="display:flex; align-items:flex-start; gap:8px;">
+          <span style="color:#10b981; font-weight:800; font-size:0.9rem; line-height:1.2;">•</span>
+          <div>${obs.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')}</div>
+        </div>
+      `).join('');
+    } else {
+      reportList.innerHTML = `
+        <div style="display:flex; align-items:flex-start; gap:8px;">
+          <span style="color:#10b981; font-weight:800; font-size:0.9rem; line-height:1.2;">•</span>
+          <div><strong>Calibrazione Prudente Attiva:</strong> Il sistema monitora costantemente i voti ufficiali della Serie A. In caso di scostamenti, applica correzioni minime controllate (tasso α = 0.02, max ±2% per parametro).</div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:8px;">
+          <span style="color:#10b981; font-weight:800; font-size:0.9rem; line-height:1.2;">•</span>
+          <div><strong>Monitoraggio in corso:</strong> Il report su cosa ha notato realmente l'algoritmo verrà visualizzato in questo riquadro al termine dei primi anticipi.</div>
+        </div>
+      `;
+    }
   }
 
   const autoPill = document.getElementById('aiAutoStatusPill');

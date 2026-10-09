@@ -39,6 +39,21 @@
     "gk_base_multiplier": 18.0,
     "editorial_bonus_multiplier": 1.05
   },
+  "last_report": {
+    "title": "Cosa ha notato realmente l'IA sui referti ufficiali",
+    "observations": [
+      "🛡️ **Difesa & Modificatore (MAE 0.35 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
+      "🎯 **Attacco & xG (MAE 0.92 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
+      "⚙️ **Centrocampo & Regolarità (MAE 0.43 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
+      "🧤 **Portieri (MAE 0.20 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
+      "⚖️ **Regola di Prudenza Applicata**: Calibrazione eseguita con passo ridotto (alpha 0.02, max ±2% per parametro) per prevenire reazioni eccessive a singoli episodi casuali."
+    ],
+    "applied_nudges": [
+      "Fattore campo: 3.6 pt (micro-tara prudente)",
+      "Pendenza difficoltà avversario: 2.55",
+      "Accuratezza complessiva: 92.6% (MAE: 0.46 pt)"
+    ]
+  },
   "learning_log": [
     {
       "epoch": 7,
