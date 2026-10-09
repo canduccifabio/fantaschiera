@@ -90,7 +90,7 @@ class LineupOptimizer:
         team = player.get('team', '')
         qa = player.get('qa', 10)
         fvm = player.get('fvm', 50)
-        is_penalty = player.get('is_penalty_taker', False)
+        is_penalty = player.get('is_penalty_taker', False) or player.get('is_penalty', False)
         
         # 1. Injuries & Suspensions check
         injury_info = None
@@ -125,6 +125,7 @@ class LineupOptimizer:
                 'opponent_name': "-",
                 'is_home': False,
                 'advice': f"❌ {injury_type.upper()}: {injury_reason}",
+                'sosfanta': {'category': 'INFORTUNATO', 'summary': injury_reason or 'Indisponibile', 'quote': '', 'mentioned': False},
                 'motivation': {
                     'verdict_title': f"Indisponibile ({injury_type})",
                     'why_starter_or_bench': f"Escluso categoricamente dai titolari a causa di {injury_type.lower()}: {injury_reason}.",
@@ -187,69 +188,65 @@ class LineupOptimizer:
 
         # 6. Editorial boost from SOS Fanta
         sf_analysis = sosfanta_analyzer.analyze_player(player['name'], team)
-        sf_bonus = sf_analysis.get('bonus_score', 0.0) if sf_analysis.get('mentioned') else 0.0
+        sf_cat = sf_analysis.get('category', 'NEUTRO')
+        
+        editorial_bonus_map = {
+            'SCHIERARE ASSOLUTO': 12.0,
+            'PROMOSSO': 7.5,
+            'IDEA A SORPRESA': 5.0,
+            'SCHIERABILE': 3.0,
+            'CITATO': 2.0,
+            'COPERTURA': 1.0,
+            'NEUTRO': 0.0,
+            'ATTENZIONE / RISCHIOSO': -7.0,
+            'SCONSIGLIATO': -12.0
+        }
+        editorial_pts = editorial_bonus_map.get(sf_cat, 0.0)
 
         # --- COMPUTE COMPOSITE FANTA-SCORE INDEX (0 - 100) ---
-        # A) Titolarità Consensus Factor (0 - 30 pt)
-        titolarita_pts = (calibrated_titolarita / 100.0) * 30.0
+        # A) Titolarità Consensus Factor (0 - 35 pt)
+        titolarita_pts = (calibrated_titolarita / 100.0) * 35.0
 
         # B) Matchup & Opponent Factor (0 - 25 pt)
-        home_bonus = 4.0 if is_home else 0.0
-        if role in ['A', 'C']:
-            matchup_pts = max(6.0, (5.2 - opp_diff) * 4.8 + home_bonus)
-        elif role == 'P':
-            cs_pct = gk_data['clean_sheet_prob'] if gk_data else 35
-            matchup_pts = (cs_pct / 100.0) * 16.0 + (5.0 - opp_diff) * 2.0 + home_bonus
-        else: # D
-            matchup_pts = max(6.0, (5.2 - opp_diff) * 4.6 + (home_bonus * 1.2))
-        matchup_pts = min(25.0, matchup_pts)
+        home_bonus = 3.5 if is_home else 0.0
+        matchup_pts = min(25.0, max(6.0, 11.0 + (5.0 - opp_diff) * 2.5 + home_bonus))
 
         # C) Advanced Threat & Metrics Factor (0 - 25 pt) calibrated across all roles
         pure_base = metrics_data.get('pure_base_grade', 6.20)
+        threat_score = metrics_data.get('threat_score', 3.0)
+
         if role == 'P':
-            base_pts = min(15.0, max(8.0, (pure_base - 5.8) * 25.0))
-            fvm_pts = (min(80, fvm) / 80.0) * 6.0
-            qa_pts = (min(16, max(1, qa)) / 16.0) * 4.0
-            threat_pts = min(25.0, base_pts + fvm_pts + qa_pts)
+            cs_pct = gk_data['clean_sheet_prob'] if gk_data else 35
+            xgc = gk_data['expected_goals_conceded'] if gk_data else 1.2
+            base_pts = min(12.0, max(6.0, (pure_base - 5.8) * 18.0))
+            cs_pts = (cs_pct / 100.0) * 8.0
+            xgc_pts = max(0.0, min(5.0, (2.0 - xgc) * 3.0))
+            threat_pts = min(25.0, base_pts + cs_pts + xgc_pts)
         elif role == 'D':
-            # Defenders valued on high base vote (modifier capability) + wingback threat + QA
-            base_pts = min(15.0, max(8.0, (pure_base - 5.8) * 25.0))
-            offensive_pts = min(6.0, (metrics_data.get('threat_score', 2.0) / 10.0) * 8.0)
-            qa_pts = min(4.0, (min(25, qa) / 25.0) * 4.0)
-            threat_pts = min(25.0, base_pts + offensive_pts + qa_pts)
+            base_pts = min(14.0, max(7.0, 9.0 + (pure_base - 5.8) * 11.0))
+            off_pts = min(6.0, (threat_score / 10.0) * 6.0)
+            qa_pts = min(5.0, (min(25, qa) / 25.0) * 5.0)
+            threat_pts = min(25.0, base_pts + off_pts + qa_pts)
         elif role == 'C':
-            base_pts = min(10.0, max(5.0, (pure_base - 5.8) * 16.0))
-            threat_pts = min(25.0, base_pts + min(11.0, (metrics_data.get('threat_score', 3.0) / 10.0) * 14.0) + min(4.0, (qa / 30.0) * 4.0))
+            base_pts = min(13.0, max(6.0, 8.0 + (pure_base - 5.8) * 10.0))
+            off_pts = min(7.0, (threat_score / 10.0) * 7.0)
+            qa_pts = min(5.0, (min(30, qa) / 30.0) * 5.0)
+            threat_pts = min(25.0, base_pts + off_pts + qa_pts)
         else: # A
-            threat_pts = min(25.0, (metrics_data.get('threat_score', 4.0) / 10.0) * 20.0 + min(5.0, (qa / 36.0) * 5.0))
+            base_pts = min(11.0, max(5.0, 7.0 + (pure_base - 5.8) * 8.0))
+            off_pts = min(10.0, (threat_score / 10.0) * 10.0)
+            qa_pts = min(4.0, (min(36, qa) / 36.0) * 4.0)
+            threat_pts = min(25.0, base_pts + off_pts + qa_pts)
 
         # D) Penalties & Specialties (0 - 10 pt)
         special_pts = 0.0
         if is_penalty:
-            special_pts += 7.0
-        if role == 'D' and is_home and qa >= 11:
-            special_pts += 3.0
+            special_pts += 6.0
+        if role == 'D' and pure_base >= 6.25 and is_home:
+            special_pts += 2.5
 
-        # E) SOS Fanta Editorial (0 - 10 pt)
-        editorial_pts = max(-6.0, min(10.0, sf_bonus))
-
+        # E) Composite total score with natural nuances (no clamping to artificial floor)
         total_score = round(max(10.0, min(99.0, titolarita_pts + matchup_pts + threat_pts + special_pts + editorial_pts)), 1)
-
-        # F) Direct SOS Fanta & Titolarità Floor Calibration
-        # Ensure ratings faithfully reflect editorial advice and certainty of starting
-        sf_cat = sf_analysis.get('category', 'NEUTRO')
-        if sf_cat == 'SCHIERARE ASSOLUTO':
-            total_score = max(total_score, 82.0)
-        elif sf_cat == 'PROMOSSO':
-            total_score = max(total_score, 72.0)
-        elif sf_cat in ['SCHIERABILE', 'IDEA A SORPRESA']:
-            total_score = max(total_score, 62.0)
-        elif sf_cat == 'COPERTURA':
-            total_score = max(total_score, 56.0)
-
-        # A confirmed starter (titolarità >= 80%) with no negative advice must never be "RISCHIOSO" (< 58 pt)
-        if calibrated_titolarita >= 80 and sf_cat != 'ATTENZIONE / RISCHIOSO':
-            total_score = max(total_score, 62.0)
 
         # --- COMPUTE REALISTIC EXPECTED FANTAVOTO (5.0 - 8.5) ---
         if role == 'P':
@@ -544,7 +541,7 @@ class LineupOptimizer:
                         'starter_score': lowest_starter['score'],
                         'benched': highest_bench['name'],
                         'benched_score': highest_bench['score'],
-                        'note': f"Ballottaggio serrato: {lowest_starter['name']} (★ {lowest_starter['score']}) vs {highest_bench['name']} (★ {highest_bench['score']}). Differenza minima: {round(diff, 1)} pt."
+                        'note': f"Ballottaggio serrato: {lowest_starter['name']} (★ {lowest_starter['score']}) vs {highest_bench['name']} (★ {highest_bench['score']}). Vantaggio: +{round(diff, 1)} pt a favore di {lowest_starter['name']}."
                     })
 
         return {
