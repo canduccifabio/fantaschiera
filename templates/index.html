@@ -155,7 +155,7 @@
             <span class="live-dot"></span> ⚡ Live Match Center • Voti & Pagelle AI
           </span>
           <div style="display:flex; gap:6px; align-items:center;">
-            <span id="liveStatusBadge" class="badge-status badge-success">🔴 Live Attivo</span>
+            <span id="liveStatusBadge" class="badge-status badge-warning">⏳ In attesa del 1° match (Sab 15:00)</span>
             <span id="liveLastUpdateBadge" style="font-size:0.75rem; color:var(--text-muted);">Aggiornato: --:--</span>
           </div>
         </div>
@@ -190,12 +190,25 @@
             <button class="segment-btn" data-livefilter="all" onclick="setLiveFilter('all')">Tutta la Rosa (25)</button>
             <button class="segment-btn" data-livefilter="active" onclick="setLiveFilter('active')">🔴 In Corso / Conclusi</button>
           </div>
-          <div>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <button id="btnToggleLiveDemo" class="btn btn-secondary btn-sm" onclick="toggleLiveDemoMode()" title="Simula una partita in corso per testare l'interfaccia">
+              🧪 Prova Demo Live
+            </button>
             <button id="btnRefreshLive" class="btn btn-primary btn-sm" onclick="refreshLiveVotes(this)" style="display:flex; align-items:center; gap:5px;">
               <span>⚡ Aggiorna Voti Live</span>
             </button>
           </div>
         </div>
+      </div>
+
+      <!-- Live Demo Mode Alert Banner -->
+      <div id="liveDemoAlertBanner" style="display:none; background:rgba(245, 158, 11, 0.12); border:1px solid #f59e0b; border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:0.82rem; color:#fef3c7; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <strong>🧪 MODALITÀ DEMO / SIMULAZIONE ATTIVA:</strong> Stai visualizzando dati di test simulati. Per vedere gli orari e i voti ufficiali della Serie A, torna alla modalità reale.
+        </div>
+        <button class="btn btn-warning btn-sm" onclick="toggleLiveDemoMode()" style="padding:3px 10px; font-size:0.75rem; font-weight:800;">
+          🟢 Torna al Live Reale
+        </button>
       </div>
 
       <!-- AI Self-Improvement & Matchday Retrospective ("Tiriamo le Somme") -->

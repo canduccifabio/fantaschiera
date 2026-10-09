@@ -252,6 +252,30 @@ function toggleSquadSection() {
   body.style.display = isSquadSectionOpen ? 'block' : 'none';
 }
 
+let isLiveDemoMode = false;
+
+function toggleLiveDemoMode() {
+  isLiveDemoMode = !isLiveDemoMode;
+  const demoBanner = document.getElementById('liveDemoAlertBanner');
+  const toggleBtn = document.getElementById('btnToggleLiveDemo');
+  
+  if (demoBanner) {
+    demoBanner.style.display = isLiveDemoMode ? 'flex' : 'none';
+  }
+  if (toggleBtn) {
+    if (isLiveDemoMode) {
+      toggleBtn.innerText = '🟢 Torna al Live Reale';
+      toggleBtn.className = 'btn btn-warning btn-sm';
+    } else {
+      toggleBtn.innerText = '🧪 Prova Demo Live';
+      toggleBtn.className = 'btn btn-secondary btn-sm';
+    }
+  }
+  
+  showToast(isLiveDemoMode ? '🧪 Attivata modalità Demo Live (simulazione matchday)' : '🟢 Ripristinata modalità Live Reale (orari Serie A)');
+  loadLiveVotes();
+}
+
 function setLiveFilter(filterType) {
   currentLiveFilter = filterType;
   document.querySelectorAll('[data-livefilter]').forEach(btn => {
@@ -268,7 +292,7 @@ async function loadLiveVotes() {
     container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Connessione al live match center...</div>`;
   }
   try {
-    const res = await fetch('/api/live/votes?simulate=true');
+    const res = await fetch(`/api/live/votes?simulate=${isLiveDemoMode ? 'true' : 'false'}`);
     if (!res.ok) throw new Error("Errore nel recupero dei voti live");
     const data = await res.json();
     currentLiveData = data;
@@ -287,12 +311,12 @@ async function refreshLiveVotes(btn) {
     btn.innerHTML = `<span style="display:inline-block;">🔄</span> Aggiorno...`;
   }
   try {
-    const res = await fetch('/api/live/refresh', { method: 'POST' });
+    const res = await fetch(`/api/live/refresh?simulate=${isLiveDemoMode ? 'true' : 'false'}`, { method: 'POST' });
     const json = await res.json();
     if (json.success && json.data) {
       currentLiveData = json.data;
       renderLiveView(json.data);
-      showToast("⚡ Voti live e pagelle aggiornati!");
+      showToast(isLiveDemoMode ? "⚡ Simulazione live aggiornata!" : "⚡ Orari e voti live sincronizzati!");
     } else {
       await loadLiveVotes();
     }
@@ -312,30 +336,71 @@ function renderLiveView(data) {
   const summary = data.summary || {};
   const retro = data.ai_retrospective || {};
 
-  // Header badges
+  // Header status badge
+  const statusBadge = document.getElementById('liveStatusBadge');
+  if (statusBadge) {
+    if (summary.is_simulated) {
+      statusBadge.className = 'badge-status badge-warning';
+      statusBadge.innerText = '🧪 Demo / Simulazione';
+    } else if (summary.is_pre_match) {
+      statusBadge.className = 'badge-status badge-warning';
+      statusBadge.innerText = '⏳ In attesa del 1° match (Sab 15:00)';
+    } else if (summary.live_matches > 0 || summary.live_players > 0) {
+      statusBadge.className = 'badge-status badge-danger';
+      statusBadge.innerHTML = '<span class="live-dot" style="margin-right:4px;"></span> LIVE in Corso 🔴';
+    } else {
+      statusBadge.className = 'badge-status badge-secondary';
+      statusBadge.innerText = '🏁 Partite Concluse';
+    }
+  }
+
+  // Header last update
   const lastUp = document.getElementById('liveLastUpdateBadge');
   if (lastUp) lastUp.innerText = `Aggiornato: ${data.last_update || '--:--'}`;
 
   // Big score & delta
   const scoreDisp = document.getElementById('liveTotalScoreDisplay');
-  if (scoreDisp) scoreDisp.innerHTML = `${summary.total_live_score || 0} <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
+  if (scoreDisp) {
+    if (summary.is_pre_match) {
+      scoreDisp.innerHTML = `0.0 <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
+    } else {
+      scoreDisp.innerHTML = `${summary.total_live_score || 0} <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
+    }
+  }
 
   const goalsDisp = document.getElementById('liveGoalsDisplay');
   if (goalsDisp) goalsDisp.innerText = summary.goals_tier_desc || '0 Gol';
 
   const deltaDisp = document.getElementById('liveDeltaScoreDisplay');
   if (deltaDisp) {
-    const dVal = summary.team_delta || 0;
-    const sign = dVal >= 0 ? '+' : '';
-    deltaDisp.innerHTML = `<span style="color:${dVal >= 0 ? '#34d399' : '#f59e0b'};">${sign}${dVal}</span> <span style="font-size:0.85rem; color:var(--text-muted);">pt (su ${summary.total_expected_score})</span>`;
+    if (summary.is_pre_match) {
+      deltaDisp.innerHTML = `<span style="color:#60a5fa;">In attesa</span> <span style="font-size:0.82rem; color:var(--text-muted);">(${summary.total_expected_score} pt previsti)</span>`;
+    } else {
+      const dVal = summary.team_delta || 0;
+      const sign = dVal >= 0 ? '+' : '';
+      deltaDisp.innerHTML = `<span style="color:${dVal >= 0 ? '#34d399' : '#f59e0b'};">${sign}${dVal}</span> <span style="font-size:0.85rem; color:var(--text-muted);">pt (su ${summary.total_expected_score})</span>`;
+    }
   }
 
   const modDisp = document.getElementById('liveModDisplay');
-  if (modDisp) modDisp.innerText = `🛡️ Mod. Difesa: +${summary.defense_modifier_bonus || 0} pt (Media ${summary.defense_modifier_avg || 0})`;
+  if (modDisp) {
+    if (summary.is_pre_match) {
+      modDisp.innerText = `🛡️ Mod. Difesa: In attesa dei referti`;
+    } else {
+      modDisp.innerText = `🛡️ Mod. Difesa: +${summary.defense_modifier_bonus || 0} pt (Media ${summary.defense_modifier_avg || 0})`;
+    }
+  }
 
   const progDisp = document.getElementById('liveMatchesProgressDisplay');
   if (progDisp) {
-    progDisp.innerHTML = `🏁 ${summary.completed_players || 0} Finiti • 🔴 ${summary.live_players || 0} In corso • ⏳ ${summary.upcoming_players || 0} Da giocare`;
+    if (summary.is_pre_match) {
+      progDisp.innerHTML = `🏁 0 Terminate • 🔴 0 In Corso • ⏳ ${summary.upcoming_matches || 10} da Giocare (11 Titolari)`;
+    } else {
+      const fin = summary.completed_matches !== undefined ? summary.completed_matches : (summary.completed_players || 0);
+      const cur = summary.live_matches !== undefined ? summary.live_matches : (summary.live_players || 0);
+      const up = summary.upcoming_matches !== undefined ? summary.upcoming_matches : (summary.upcoming_players || 0);
+      progDisp.innerHTML = `🏁 ${fin} Terminate • 🔴 ${cur} In corso • ⏳ ${up} da Giocare`;
+    }
   }
 
   const accDisp = document.getElementById('liveAccuracyDisplay');
@@ -436,7 +501,10 @@ function renderLivePlayerCards(data) {
   if (countBadge) countBadge.innerText = `${players.length} Calciatori`;
 
   if (players.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);">Nessun calciatore corrispondente al filtro selezionato.</div>`;
+    const emptyMsg = currentLiveFilter === 'active' 
+      ? '⏳ Nessun match è ancora iniziato (la 6ª giornata comincia sabato alle 15:00 con Genoa-Fiorentina).'
+      : 'Nessun calciatore corrispondente al filtro selezionato.';
+    container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);">${emptyMsg}</div>`;
     return;
   }
 
