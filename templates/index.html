@@ -194,6 +194,9 @@
             <button id="btnRefreshLive" class="btn btn-primary btn-sm" onclick="refreshLiveVotes(this)" style="display:flex; align-items:center; gap:5px;">
               <span>⚡ Aggiorna Voti Live</span>
             </button>
+            <button class="btn btn-secondary btn-sm" onclick="forceHardReload()" title="Ricarica da zero cancellando la cache del telefono" style="display:flex; align-items:center; gap:4px; font-size:0.75rem;">
+              <span>🔄 Reset Cache</span>
+            </button>
           </div>
         </div>
       </div>
@@ -206,11 +209,11 @@
           </span>
           <div style="display:flex; gap:6px; align-items:center;">
             <span id="aiLearningEpochBadge" class="badge-status badge-primary" style="background:rgba(139, 92, 246, 0.3); color:#e9d5ff;">Epoca 6</span>
-            <span id="retrospectiveToggleBadge" class="badge-status badge-success" style="font-size:0.75rem;">Report Giornata ▼</span>
+            <span id="retrospectiveToggleBadge" class="badge-status badge-success" style="font-size:0.75rem;">Mostra Report ▶</span>
           </div>
         </div>
 
-        <div id="retrospectiveBody" style="font-size:0.85rem; line-height:1.6; margin-top:8px;">
+        <div id="retrospectiveBody" style="font-size:0.85rem; line-height:1.6; margin-top:8px; display:none;">
           <!-- Role Confidence Matrix -->
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
             <div style="background:rgba(0,0,0,0.25); border:1px solid var(--glass-border); border-radius:8px; padding:6px 4px; text-align:center;">
@@ -793,8 +796,8 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
   <div id="appToast" class="toast">Notifica</div>
 
   <!-- Scripts -->
-  <script src="/static/js/notifications.js?v=2.6"></script>
-  <script src="/static/js/pitch.js?v=2.6"></script>
-  <script src="/static/js/app.js?v=2.6"></script>
+  <script src="/static/js/notifications.js?v=3.0"></script>
+  <script src="/static/js/pitch.js?v=3.0"></script>
+  <script src="/static/js/app.js?v=3.0"></script>
 </body>
 </html>

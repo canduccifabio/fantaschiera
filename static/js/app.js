@@ -8,7 +8,7 @@ let currentLineupData = null;
 let currentSquadData = null;
 let currentLiveData = null;
 let currentLiveFilter = 'starters';
-let isRetrospectiveOpen = true;
+let isRetrospectiveOpen = false;
 let isSquadSectionOpen = true;
 
 // Tab Switching
@@ -631,8 +631,16 @@ function renderLiveMatches(matches) {
   if (!container) return;
 
   if (!matches || matches.length === 0) {
-    container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Nessuna partita disponibile per la 6ª giornata.</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Nessuna partita disponibile per questa giornata.</div>`;
     return;
+  }
+
+  // Build set of own player names (lowercased) for highlighting
+  const myPlayerNames = new Set();
+  if (currentLiveData && currentLiveData.players) {
+    currentLiveData.players.forEach(p => {
+      if (p.name) myPlayerNames.add(p.name.toLowerCase().trim());
+    });
   }
 
   container.innerHTML = matches.map(m => {
@@ -643,6 +651,7 @@ function renderLiveMatches(matches) {
     if (isLive) cardBorder = 'border-color: rgba(239, 68, 68, 0.45); background: rgba(239, 68, 68, 0.04); box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);';
     else if (isFin) cardBorder = 'border-color: rgba(148, 163, 184, 0.2);';
 
+    // My players in this match
     let myPlayersHtml = '';
     if (m.my_players && m.my_players.length > 0) {
       const tags = m.my_players.map(p => {
@@ -666,6 +675,47 @@ function renderLiveMatches(matches) {
           </div>
         </div>
       `;
+    }
+
+    // Events (goals, assists, cards, subs) with special highlight for user's players
+    let eventsHtml = '';
+    if ((isLive || isFin) && m.events && m.events.length > 0) {
+      const eventItems = m.events.map(ev => {
+        const evP = (ev.player_name || '').toLowerCase().trim();
+        const isMyPlayer = Array.from(myPlayerNames).some(myName => {
+          return myName && (myName === evP || myName.includes(evP) || evP.includes(myName));
+        });
+
+        const minText = ev.minute ? `<span style="opacity:0.7; font-size:0.7rem; margin-right:2px;">${ev.minute}</span>` : '';
+        const descText = ev.desc ? ` <span style="font-size:0.68rem; opacity:0.8;">(${ev.desc})</span>` : '';
+
+        if (isMyPlayer) {
+          return `
+            <span style="background:linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25)); border:1px solid #f59e0b; color:#fbbf24; font-weight:800; padding:2px 7px; border-radius:6px; font-size:0.76rem; display:inline-flex; align-items:center; gap:4px; box-shadow:0 0 8px rgba(245, 158, 11, 0.3);">
+              ⭐ ${ev.icon} ${minText}${ev.player_name}${descText}
+            </span>
+          `;
+        }
+
+        return `
+          <span style="font-size:0.74rem; color:var(--text-secondary); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:2px 6px; border-radius:5px; display:inline-flex; align-items:center; gap:3px;">
+            ${ev.icon} ${minText}<strong>${ev.player_name}</strong>${descText}
+          </span>
+        `;
+      }).join(' ');
+
+      eventsHtml = `
+        <div style="background:rgba(0,0,0,0.22); border-radius:8px; padding:6px 10px; margin-top:8px;">
+          <div style="font-size:0.68rem; color:var(--text-muted); font-weight:800; text-transform:uppercase; margin-bottom:5px; letter-spacing:0.5px;">
+            ⚡ Dettagli & Statistiche Live Fantacalcio:
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
+            ${eventItems}
+          </div>
+        </div>
+      `;
+    } else if (isLive || isFin) {
+      eventsHtml = `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px; padding:4px 0;">📊 Statistiche ed eventi in aggiornamento dai referti di Lega...</div>`;
     }
 
     const officialBadge = m.is_official_lineup 
@@ -713,12 +763,16 @@ function renderLiveMatches(matches) {
           </div>
         </div>
 
+        <!-- Events row (goals, cards, assists) -->
+        ${eventsHtml}
+
         <!-- Bottom row: My players involved -->
         ${myPlayersHtml}
       </div>
     `;
   }).join('');
 }
+
 
 // --- SQUAD MANAGEMENT TAB ---
 async function loadSquad() {
@@ -1818,3 +1872,12 @@ function copyPublicTunnelUrl() {
     showToast("Impossibile copiare negli appunti.");
   });
 }
+
+function forceHardReload() {
+  showToast("🔄 Svuoto la cache locale e ricarico...");
+  setTimeout(() => {
+    const sep = window.location.href.includes('?') ? '&' : '?';
+    window.location.href = window.location.href.split('?')[0] + sep + '_bust=' + Date.now();
+  }, 350);
+}
+

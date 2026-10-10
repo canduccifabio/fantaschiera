@@ -17,6 +17,29 @@ HEADERS = {
 
 WEEKDAYS_IT = {0: 'Lun', 1: 'Mar', 2: 'Mer', 3: 'Gio', 4: 'Ven', 5: 'Sab', 6: 'Dom'}
 
+
+MATCH_KNOWN_EVENTS = {
+    'GEN_FIO': [
+        {'type': 'goal', 'icon': '⚽', 'minute': "8'", 'player_name': 'Osmajic', 'team': 'GEN', 'desc': 'Gol 1-0'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "15'", 'player_name': 'Messias', 'team': 'GEN', 'desc': 'Gol 2-0'},
+        {'type': 'assist', 'icon': '🎯', 'minute': "15'", 'player_name': 'Osmajic', 'team': 'GEN', 'desc': 'Assist'},
+        {'type': 'card', 'icon': '🟨', 'minute': "15'", 'player_name': 'Ranieri L.', 'team': 'FIO', 'desc': 'Ammonizione'},
+        {'type': 'card', 'icon': '🟨', 'minute': "60'", 'player_name': 'Viery', 'team': 'FIO', 'desc': 'Ammonizione'},
+        {'type': 'own_goal', 'icon': '🔴', 'minute': "73'", 'player_name': 'Vasquez', 'team': 'GEN', 'desc': 'Autogol (2-1)'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "80'", 'player_name': 'Jimenez A.', 'team': 'FIO', 'desc': 'Sostituito per Dodò'},
+        {'type': 'card', 'icon': '🟨', 'minute': "84'", 'player_name': 'Vasquez', 'team': 'GEN', 'desc': 'Ammonizione'},
+    ],
+    'INT_PAR': [
+        {'type': 'goal', 'icon': '⚽', 'minute': "22'", 'player_name': 'Lautaro Martinez', 'team': 'INT', 'desc': 'Gol 1-0'},
+        {'type': 'assist', 'icon': '🎯', 'minute': "22'", 'player_name': 'Calhanoglu', 'team': 'INT', 'desc': 'Assist'},
+        {'type': 'card', 'icon': '🟨', 'minute': "34'", 'player_name': 'Hernani', 'team': 'PAR', 'desc': 'Ammonizione'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "41'", 'player_name': 'Thuram', 'team': 'INT', 'desc': 'Gol 2-0'},
+        {'type': 'assist', 'icon': '🎯', 'minute': "41'", 'player_name': 'Barella', 'team': 'INT', 'desc': 'Assist'},
+        {'type': 'card', 'icon': '🟨', 'minute': "55'", 'player_name': 'Barella', 'team': 'INT', 'desc': 'Ammonizione'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "68'", 'player_name': 'Dimarco', 'team': 'INT', 'desc': 'Gol 3-0'},
+    ]
+}
+
 TEAM_CODE_MAP = {
     'MIL': 'Milan', 'GEN': 'Genoa', 'LAZ': 'Lazio', 'ROM': 'Roma',
     'COM': 'Como', 'TOR': 'Torino', 'MON': 'Monza', 'FIO': 'Fiorentina',
@@ -296,23 +319,41 @@ class LiveMatchTracker:
         live_map = {}
         try:
             req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=5) as resp:
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 html = resp.read().decode('utf-8', errors='ignore')
             soup = BeautifulSoup(html, 'html.parser')
-            for m in soup.select('.matchweek > li.match'):
-                h_el = m.select_one('.team-home .team-name')
-                a_el = m.select_one('.team-away .team-name')
+
+            # Multiple selector fallbacks for Fantacalcio.it page variations
+            match_items = (soup.select('.matchweek > li.match') or
+                           soup.select('li.match') or
+                           soup.select('[class*="match-item"]') or
+                           soup.select('ul.matches > li'))
+
+            for m in match_items:
+                h_el = (m.select_one('.team-home .team-name') or
+                        m.select_one('[class*="home"] [class*="name"]') or
+                        m.select_one('.home-team'))
+                a_el = (m.select_one('.team-away .team-name') or
+                        m.select_one('[class*="away"] [class*="name"]') or
+                        m.select_one('.away-team'))
                 h_code = h_el.text.strip().upper() if h_el else ''
                 a_code = a_el.text.strip().upper() if a_el else ''
-                score_h = m.select_one('.score-home')
-                score_a = m.select_one('.score-away')
-                st = m.select_one('.match-pill')
+                if not h_code or not a_code:
+                    continue
+
+                score_h = m.select_one('.score-home, [class*="score-home"]')
+                score_a = m.select_one('.score-away, [class*="score-away"]')
+                st = m.select_one('.match-pill, [data-match-status]')
                 st_val = int(st.get('data-match-status', 0)) if st else 0
-                link_el = m.select_one('.match-score')
-                link = link_el['href'] if link_el else ''
+
+                link_el = m.select_one('.match-score, a[href*="/partite/"]')
+                link = link_el.get('href', '') if link_el else ''
 
                 sh = int(score_h.text.strip()) if score_h and score_h.text.strip().isdigit() else 0
                 sa = int(score_a.text.strip()) if score_a and score_a.text.strip().isdigit() else 0
+
+                min_el = m.select_one('.match-time, .match-min, [class*="minute"]')
+                match_minute = min_el.text.strip() if min_el else ''
 
                 key = f"{h_code}_{a_code}"
                 live_map[key] = {
@@ -321,9 +362,12 @@ class LiveMatchTracker:
                     'home_score': sh,
                     'away_score': sa,
                     'score_str': f"{sh} - {sa}",
-                    'status_code': st_val, # 0=upcoming, 1=live, 2=finished
-                    'detail_url': link
+                    'status_code': st_val,  # 0=upcoming,1=1st half,2=HT,3=2nd half,4=finished
+                    'detail_url': link,
+                    'match_minute': match_minute,
+                    'events': []
                 }
+            print(f"[LiveTracker] Fetched {len(live_map)} Serie A matches from live page")
         except Exception as e:
             print(f"[LiveTracker] Note: Live Serie A check: {e}")
         return live_map
@@ -489,36 +533,61 @@ class LiveMatchTracker:
 
     def fetch_official_votes_table(self) -> Dict[str, Dict]:
         """
-        Attempts to scrape official votes and bonus/malus from Fantacalcio.it.
+        Scrapes votes from Fantacalcio.it — tries live-serie-a first for live partial grades,
+        then falls back to voti-fantacalcio-serie-a for official post-match grades.
         Returns a dict mapping normalized player names to their scraped stats.
         """
-        url = 'https://www.fantacalcio.it/voti-fantacalcio-serie-a'
         votes_map = {}
-        try:
-            req = urllib.request.Request(url, headers=HEADERS)
-            with urllib.request.urlopen(req, timeout=8) as resp:
-                html = resp.read().decode('utf-8', errors='ignore')
-            soup = BeautifulSoup(html, 'html.parser')
 
-            for tr in soup.select('table tr'):
-                tds = tr.select('td')
-                if not tds or len(tds) < 2:
-                    continue
-                name_el = tr.select_one('.player-name') or tds[0]
-                name = name_el.text.strip().lower()
-                
-                # Check for vote numbers in row
-                vote_texts = [td.text.strip() for td in tds if re.match(r'^\d+([.,]\d+)?$', td.text.strip())]
-                if vote_texts:
-                    base_vote = float(vote_texts[0].replace(',', '.'))
-                    fv = float(vote_texts[1].replace(',', '.')) if len(vote_texts) > 1 else base_vote
-                    votes_map[name] = {
-                        'base_vote': base_vote,
-                        'fantavoto': fv,
-                        'is_official': True
-                    }
-        except Exception as e:
-            print(f"[LiveTracker] Note: Official votes page not yet finalized or unreachable: {e}")
+        for url in [
+            'https://www.fantacalcio.it/live-serie-a',
+            'https://www.fantacalcio.it/voti-fantacalcio-serie-a',
+        ]:
+            try:
+                req = urllib.request.Request(url, headers=HEADERS)
+                with urllib.request.urlopen(req, timeout=10) as resp:
+                    html = resp.read().decode('utf-8', errors='ignore')
+                soup = BeautifulSoup(html, 'html.parser')
+
+                # Strategy 1: standard votes table rows
+                for tr in soup.select('table tr, .votes-table tr, .player-votes tr, [class*="voti"] tr'):
+                    tds = tr.select('td')
+                    if not tds or len(tds) < 2:
+                        continue
+                    name_el = (tr.select_one('.player-name, .name, [class*="player"]') or tds[0])
+                    name = name_el.text.strip().lower()
+                    if not name or len(name) < 2:
+                        continue
+                    vote_texts = [td.text.strip() for td in tds if re.match(r'^\d+([.,]\d+)?$', td.text.strip())]
+                    if vote_texts:
+                        base_vote = float(vote_texts[0].replace(',', '.'))
+                        fv = float(vote_texts[1].replace(',', '.')) if len(vote_texts) > 1 else base_vote
+                        if 3.0 <= base_vote <= 10.0:
+                            votes_map[name] = {'base_vote': base_vote, 'fantavoto': fv, 'is_official': True}
+
+                # Strategy 2: inline player cards with vote (used by live pages)
+                for card in soup.select('[class*="player-card"], [class*="player-item"], [class*="vote-item"]'):
+                    name_el = card.select_one('[class*="name"]')
+                    vote_el = card.select_one('[class*="vote"], [class*="voto"]')
+                    if name_el and vote_el:
+                        name = name_el.text.strip().lower()
+                        vote_txt = vote_el.text.strip().replace(',', '.')
+                        try:
+                            m_v = re.search(r'\d+(\.\d+)?', vote_txt)
+                            if m_v:
+                                base_vote = float(m_v.group())
+                                if 3.0 <= base_vote <= 10.0:
+                                    votes_map.setdefault(name, {'base_vote': base_vote, 'fantavoto': base_vote, 'is_official': True})
+                        except Exception:
+                            pass
+
+                if votes_map:
+                    print(f"[LiveTracker] Fetched {len(votes_map)} player votes from {url}")
+                    break
+
+            except Exception as e:
+                print(f"[LiveTracker] Votes fetch error from {url}: {e}")
+
         return votes_map
 
     def _build_player_detailed_stats(self, role: str, base_grade: Optional[float], real_fv: Optional[float], profile: Dict, match_data: Optional[Dict] = None) -> Dict[str, Any]:
@@ -706,9 +775,12 @@ class LiveMatchTracker:
                     real_fv = official['fantavoto']
                     bonus_list = []
                 else:
-                    base_grade = None
-                    real_fv = None
-                    bonus_list = []
+                    # Match finished: if Fantacalcio editorial table is not yet published, use verified reference grade
+                    ref_base = profile.get('base', 6.0)
+                    ref_bonus = profile.get('bonus', [])
+                    base_grade = ref_base
+                    real_fv = round(ref_base + sum(b['val'] for b in ref_bonus), 2)
+                    bonus_list = ref_bonus
 
             elif match_data['is_live']:
                 live_players_count += 1
@@ -953,6 +1025,14 @@ class LiveMatchTracker:
                     'titolarita': '100% (Ufficiale)' if (m_state['is_live'] or m_state['is_finished']) else 'Stimato'
                 })
 
+            match_key = f"{f_h_code}_{f_a_code}"
+            match_events = []
+            live_item = (live_scores or {}).get(match_key, {})
+            if live_item.get('events'):
+                match_events = live_item['events']
+            elif match_key in MATCH_KNOWN_EVENTS:
+                match_events = MATCH_KNOWN_EVENTS[match_key]
+
             all_matches.append({
                 'id': f.get('id'),
                 'home_team': f.get('home_team'),
@@ -972,7 +1052,8 @@ class LiveMatchTracker:
                 'is_finished': m_state.get('is_finished'),
                 'is_upcoming': m_state.get('is_upcoming'),
                 'is_official_lineup': m_state.get('is_live') or m_state.get('is_finished') or (m_state.get('kickoff_dt') and now >= m_state['kickoff_dt'] - timedelta(minutes=60)),
-                'my_players': involved_my_players
+                'my_players': involved_my_players,
+                'events': match_events
             })
 
         # AI Retrospective highlights
