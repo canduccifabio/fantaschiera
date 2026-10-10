@@ -17,6 +17,15 @@ from backend.database import (
 
 app = FastAPI(title="FantaSchiera AI", description="Piattaforma intelligente per schierare la formazione del Fantacalcio")
 
+@app.middleware("http")
+async def add_no_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/api/") or request.url.path == "/":
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
@@ -188,7 +197,36 @@ async def get_lineup_recommendation(formation: Optional[str] = None, use_modifie
 # --- Fixtures, Injuries & Intel ---
 @app.get("/api/fixtures")
 async def get_fixtures():
+    from datetime import datetime, timedelta
     data = optimizer._load_json(FIXTURES_FILE, {'fixtures': []})
+    now = datetime.now()
+    for f in data.get('fixtures', []):
+        kickoff_dt = None
+        if f.get('datetime_iso'):
+            try:
+                kickoff_dt = datetime.fromisoformat(f['datetime_iso'])
+            except Exception:
+                pass
+        
+        # If match is within 60 min of kickoff or already started
+        if kickoff_dt and now >= kickoff_dt - timedelta(minutes=60):
+            f['is_official_lineup'] = True
+            pcts = f.setdefault('player_percentages', {})
+            lineups = (f.get('home_lineup') or []) + (f.get('away_lineup') or [])
+            for p_name in lineups:
+                p_norm = p_name.lower()
+                if p_norm in pcts:
+                    pcts[p_norm]['percentage'] = 100
+                    pcts[p_norm]['is_starter'] = True
+                    pcts[p_norm]['is_official'] = True
+                else:
+                    pcts[p_norm] = {
+                        'name': p_name,
+                        'percentage': 100,
+                        'role': 'C',
+                        'is_starter': True,
+                        'is_official': True
+                    }
     return data
 
 @app.get("/api/injuries")

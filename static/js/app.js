@@ -51,8 +51,8 @@ function showToast(message) {
 // --- LINEUP TAB LOGIC ---
 async function loadLineupRecommendation() {
   try {
-    const url = `/api/lineup/recommendation?formation=${encodeURIComponent(currentFormation)}&use_modifier=${useDefenseModifier}`;
-    const res = await fetch(url);
+    const url = `/api/lineup/recommendation?formation=${encodeURIComponent(currentFormation)}&use_modifier=${useDefenseModifier}&_t=${Date.now()}`;
+    const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore recupero formazione");
     
     currentLineupData = await res.json();
@@ -252,6 +252,26 @@ function toggleSquadSection() {
   body.style.display = isSquadSectionOpen ? 'block' : 'none';
 }
 
+let isLivePlayersSectionOpen = true;
+function toggleLivePlayersSection() {
+  const body = document.getElementById('livePlayersBody');
+  const badge = document.getElementById('livePlayersToggleBadge');
+  if (!body) return;
+  isLivePlayersSectionOpen = !isLivePlayersSectionOpen;
+  body.style.display = isLivePlayersSectionOpen ? 'block' : 'none';
+  if (badge) badge.innerText = isLivePlayersSectionOpen ? 'Mostra Pagelle ▼' : 'Mostra Pagelle ▶';
+}
+
+let isLiveMatchesSectionOpen = true;
+function toggleLiveMatchesSection() {
+  const body = document.getElementById('liveMatchesBody');
+  const badge = document.getElementById('liveMatchesToggleBadge');
+  if (!body) return;
+  isLiveMatchesSectionOpen = !isLiveMatchesSectionOpen;
+  body.style.display = isLiveMatchesSectionOpen ? 'block' : 'none';
+  if (badge) badge.innerText = isLiveMatchesSectionOpen ? 'Mostra Partite ▼' : 'Mostra Partite ▶';
+}
+
 function setLiveFilter(filterType) {
   currentLiveFilter = filterType;
   document.querySelectorAll('[data-livefilter]').forEach(btn => {
@@ -268,14 +288,14 @@ async function loadLiveVotes() {
     container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Connessione al live match center...</div>`;
   }
   try {
-    const res = await fetch('/api/live/votes');
+    const res = await fetch(`/api/live/votes?_t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore nel recupero dei voti live");
     const data = await res.json();
     currentLiveData = data;
     renderLiveView(data);
   } catch (err) {
     console.error("Error loading live votes:", err);
-    if (container) {
+    if (container && !currentLiveData) {
       container.innerHTML = `<div style="text-align:center; padding:24px; color:#f87171;">Impossibile recuperare i voti live. Verifica la connessione e riprova.</div>`;
     }
   }
@@ -287,11 +307,13 @@ async function refreshLiveVotes(btn) {
     btn.innerHTML = `<span style="display:inline-block;">🔄</span> Aggiorno...`;
   }
   try {
-    const res = await fetch('/api/live/refresh', { method: 'POST' });
+    showToast("🔄 Sincronizzo voti e formazioni live...");
+    const res = await fetch(`/api/live/refresh?_t=${Date.now()}`, { method: 'POST', cache: 'no-store' });
     const json = await res.json();
     if (json.success && json.data) {
       currentLiveData = json.data;
       renderLiveView(json.data);
+      loadLineupRecommendation();
       showToast("⚡ Orari e voti live sincronizzati!");
     } else {
       await loadLiveVotes();
@@ -336,8 +358,12 @@ function renderLiveView(data) {
   if (scoreDisp) {
     if (summary.is_pre_match) {
       scoreDisp.innerHTML = `0.0 <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
+    } else if (summary.completed_starters > 0) {
+      scoreDisp.innerHTML = `${summary.total_live_score} <span style="font-size:0.85rem; color:var(--text-muted);">pt (${summary.completed_starters}/11 a voto)</span>`;
+    } else if (summary.live_starters > 0) {
+      scoreDisp.innerHTML = `${summary.total_live_score} <span style="font-size:0.85rem; color:#ef4444; font-weight:700;">pt (${summary.live_starters} titolare in campo)</span>`;
     } else {
-      scoreDisp.innerHTML = `${summary.total_live_score || 0} <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
+      scoreDisp.innerHTML = `0.0 <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
     }
   }
 
@@ -348,10 +374,11 @@ function renderLiveView(data) {
   if (deltaDisp) {
     if (summary.is_pre_match) {
       deltaDisp.innerHTML = `<span style="color:#60a5fa;">In attesa</span> <span style="font-size:0.82rem; color:var(--text-muted);">(${summary.total_expected_score} pt previsti)</span>`;
+    } else if (summary.completed_starters === 0) {
+      deltaDisp.innerHTML = `<span style="color:#ef4444; font-weight:800;">${summary.team_delta_formatted}</span> <span style="font-size:0.82rem; color:var(--text-muted);">(Proiezione: ${summary.projected_final_score || summary.total_expected_score} pt)</span>`;
     } else {
       const dVal = summary.team_delta || 0;
-      const sign = dVal >= 0 ? '+' : '';
-      deltaDisp.innerHTML = `<span style="color:${dVal >= 0 ? '#34d399' : '#f59e0b'};">${sign}${dVal}</span> <span style="font-size:0.85rem; color:var(--text-muted);">pt (su ${summary.total_expected_score})</span>`;
+      deltaDisp.innerHTML = `<span style="color:${dVal >= 0 ? '#34d399' : '#f59e0b'}; font-weight:800;">${summary.team_delta_formatted}</span> <span style="font-size:0.82rem; color:var(--text-muted);">(Proiezione: ${summary.projected_final_score} pt)</span>`;
     }
   }
 
@@ -389,10 +416,19 @@ function renderLiveView(data) {
     `).join('');
   }
 
+  // Live Matches badge
+  const matchSumBadge = document.getElementById('liveMatchesSummaryBadge');
+  if (matchSumBadge) {
+    matchSumBadge.innerText = `${summary.live_matches || 0} Live • ${summary.upcoming_matches || 0} In Programma`;
+    matchSumBadge.className = (summary.live_matches > 0) ? 'badge-status badge-danger' : 'badge-status badge-secondary';
+  }
+
   // Load and render AI learning status
   loadAILearningStatus();
 
+  // Render cards and all 10 matches
   renderLivePlayerCards(data);
+  renderLiveMatches(data.all_matches || []);
 }
 
 // --- AI SELF-LEARNING & PARAMETER CALIBRATION ---
@@ -528,15 +564,24 @@ function renderLivePlayerCards(data) {
 
     const realVoteText = p.real_fantavoto !== null ? `
       <div style="text-align:right;">
-        <div style="font-size:1.25rem; font-weight:900; color:#34d399;">${p.real_fantavoto} <span style="font-size:0.7rem; font-weight:600; color:var(--text-muted);">FV</span></div>
-        <div style="font-size:0.72rem; color:var(--text-secondary);">Voto: <strong>${p.base_grade}</strong></div>
+        <div style="font-size:1.25rem; font-weight:900; color:${p.is_live_grade ? '#ef4444' : '#34d399'};">
+          ${p.real_fantavoto} <span style="font-size:0.7rem; font-weight:600; color:var(--text-muted);">${p.is_live_grade ? 'LIVE FV' : 'FV'}</span>
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-secondary);">
+          Voto: <strong>${p.base_grade}</strong> ${p.is_live_grade ? '<span style="color:#ef4444; font-size:0.68rem;">(Provvisorio)</span>' : ''}
+        </div>
+      </div>
+    ` : (p.match_status === 'IN CORSO' ? `
+      <div style="text-align:right;">
+        <div style="font-size:1.05rem; font-weight:900; color:#ef4444;"><span class="live-dot" style="margin-right:4px;"></span>LIVE</div>
+        <div style="font-size:0.72rem; color:#f87171;">In campo (${p.match_min || '1°T'})</div>
       </div>
     ` : `
       <div style="text-align:right;">
         <div style="font-size:1rem; font-weight:800; color:var(--text-muted);">-.-</div>
         <div style="font-size:0.72rem; color:var(--text-muted);">Da giocare</div>
       </div>
-    `;
+    `);
 
     return `
       <div class="live-player-card" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
@@ -575,6 +620,101 @@ function renderLivePlayerCards(data) {
         <div style="font-size:0.76rem; color:#c4b5fd; line-height:1.4; margin-top:4px;">
           🤖 ${p.ai_review || ''}
         </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// --- SERIE A LIVE MATCH CENTER (TUTTE LE 10 PARTITE) ---
+function renderLiveMatches(matches) {
+  const container = document.getElementById('liveMatchesListContainer');
+  if (!container) return;
+
+  if (!matches || matches.length === 0) {
+    container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Nessuna partita disponibile per la 6ª giornata.</div>`;
+    return;
+  }
+
+  container.innerHTML = matches.map(m => {
+    const isLive = m.is_live;
+    const isFin = m.is_finished;
+
+    let cardBorder = 'border-color: rgba(255,255,255,0.08);';
+    if (isLive) cardBorder = 'border-color: rgba(239, 68, 68, 0.45); background: rgba(239, 68, 68, 0.04); box-shadow: 0 0 15px rgba(239, 68, 68, 0.15);';
+    else if (isFin) cardBorder = 'border-color: rgba(148, 163, 184, 0.2);';
+
+    let myPlayersHtml = '';
+    if (m.my_players && m.my_players.length > 0) {
+      const tags = m.my_players.map(p => {
+        const starterBadge = p.is_starter ? 'TITOLARE' : 'PANCHINA';
+        const badgeColor = p.is_starter ? 'rgba(16, 185, 129, 0.25)' : 'rgba(148, 163, 184, 0.15)';
+        const textColor = p.is_starter ? '#34d399' : '#94a3b8';
+        return `
+          <span style="display:inline-flex; align-items:center; gap:4px; background:${badgeColor}; color:${textColor}; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">
+            ⭐ ${p.name} (${p.role}) • <span style="font-size:0.7rem; font-weight:800; text-transform:uppercase;">${starterBadge}</span>
+          </span>
+        `;
+      }).join(' ');
+
+      myPlayersHtml = `
+        <div style="background:rgba(16, 185, 129, 0.06); border:1px solid rgba(16, 185, 129, 0.2); border-radius:8px; padding:6px 10px; margin-top:8px;">
+          <div style="font-size:0.7rem; color:#34d399; font-weight:800; text-transform:uppercase; margin-bottom:4px;">
+            I Tuoi Calciatori in questa Gara:
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;">
+            ${tags}
+          </div>
+        </div>
+      `;
+    }
+
+    const officialBadge = m.is_official_lineup 
+      ? `<span class="badge-status badge-success" style="font-size:0.68rem; padding:1px 6px;">🟢 UFFICIALI</span>`
+      : '';
+
+    return `
+      <div class="card" style="padding:12px 14px; margin-bottom:10px; ${cardBorder}">
+        <!-- Top row: Status, min, timing -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.78rem; flex-wrap:wrap; gap:4px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span class="badge-status ${m.status_class || 'badge-secondary'}" style="font-size:0.72rem;">${m.status_badge || '⏳'}</span>
+            ${officialBadge}
+          </div>
+          <div style="color:var(--text-muted); font-size:0.75rem;">
+            📅 ${m.date_str} • 🏟️ ${m.stadium || 'Serie A'}
+          </div>
+        </div>
+
+        <!-- Middle row: Big Teams & Real Score -->
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-top:1px solid rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.04);">
+          <!-- Home Team -->
+          <div style="display:flex; align-items:center; gap:8px; width:40%;">
+            <div style="font-weight:800; font-size:1.05rem; color:#ffffff;">${m.home_team}</div>
+          </div>
+
+          <!-- Score Box -->
+          <div style="display:flex; flex-direction:column; align-items:center; width:20%;">
+            ${(m.is_live || m.is_finished) ? `
+              <div style="font-size:1.35rem; font-weight:900; color:${isLive ? '#ef4444' : '#34d399'}; letter-spacing:2px;">
+                ${m.home_score} - ${m.away_score}
+              </div>
+              <div style="font-size:0.7rem; color:${isLive ? '#ef4444' : 'var(--text-muted)'}; font-weight:700;">
+                ${isLive ? `<span class="live-dot" style="margin-right:3px;"></span>${m.min}` : 'FINALE'}
+              </div>
+            ` : `
+              <div style="font-size:1.05rem; font-weight:800; color:var(--text-muted);">VS</div>
+              <div style="font-size:0.7rem; color:var(--text-muted);">${m.min || 'In programma'}</div>
+            `}
+          </div>
+
+          <!-- Away Team -->
+          <div style="display:flex; align-items:center; justify-content:flex-end; gap:8px; width:40%;">
+            <div style="font-weight:800; font-size:1.05rem; color:#ffffff; text-align:right;">${m.away_team}</div>
+          </div>
+        </div>
+
+        <!-- Bottom row: My players involved -->
+        ${myPlayersHtml}
       </div>
     `;
   }).join('');
@@ -700,7 +840,7 @@ async function loadFixtures() {
         if (sqRes.ok) currentSquadData = await sqRes.json();
       } catch (e) {}
     }
-    const res = await fetch('/api/fixtures');
+    const res = await fetch(`/api/fixtures?_t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore recupero calendario");
     const data = await res.json();
     renderFixturesView(data.fixtures || []);
@@ -751,7 +891,7 @@ function renderFixturesView(fixtures) {
     return tokens.some(t => userTokensSet.has(t));
   }
 
-  function formatLineup(lineupList, percentagesMap) {
+  function formatLineup(lineupList, percentagesMap, isOfficialLineup = false) {
     if (!lineupList || lineupList.length === 0) {
       return `<div style="color:var(--text-muted); font-size:0.8rem;">Formazione non ancora disponibile</div>`;
     }
@@ -759,13 +899,16 @@ function renderFixturesView(fixtures) {
     return lineupList.map(pName => {
       const pInfo = percentagesMap ? percentagesMap[pName.toLowerCase()] : null;
       const role = pInfo?.role || 'C';
-      const pct = pInfo?.percentage || 90;
+      const isOfficial = isOfficialLineup || pInfo?.is_official;
+      const pct = isOfficial ? 100 : (pInfo?.percentage || 90);
       const isMine = isUserPlayer(pName);
 
       if (isMine) {
-        return `<span class="badge-my-starter" title="⭐ Giocatore nella tua rosa!">⭐ ${pName} (${pct}%)</span>`;
+        const officialBadge = isOfficial ? ' ✅ Ufficiale' : '';
+        return `<span class="badge-my-starter" title="⭐ Giocatore nella tua rosa! ${isOfficial ? 'Titolare ufficiale confermato!' : ''}">⭐ ${pName} (${pct}%${officialBadge})</span>`;
       } else {
-        const ballotStr = pct < 75 ? ` <span style="color:#f59e0b; font-size:0.7rem;">(${pct}%)</span>` : '';
+        const officialBadge = isOfficial ? ' <span style="color:#10b981; font-size:0.7rem; font-weight:700;">(100% ✅)</span>' : '';
+        const ballotStr = !officialBadge && pct < 75 ? ` <span style="color:#f59e0b; font-size:0.7rem;">(${pct}%)</span>` : officialBadge;
         return `<span style="display:inline-flex; align-items:center; gap:3px; margin:2px 4px 2px 0; font-size:0.78rem; color:#cbd5e1;"><span class="role-badge role-${role}" style="font-size:0.65rem; padding:1px 4px;">${role}</span>${pName}${ballotStr}</span>`;
       }
     }).join(' • ');
@@ -808,9 +951,9 @@ function renderFixturesView(fixtures) {
     }
 
     return `
-      <div class="card" style="padding:14px; margin-bottom:14px;">
-        <div style="display:flex; justify-content:space-between; font-size:0.8rem; color:var(--text-muted); margin-bottom:8px; flex-wrap:wrap; gap:4px;">
-          <span>📅 ${m.date_str}</span>
+      <div class="card" style="padding:14px; margin-bottom:14px; ${m.is_official_lineup ? 'border:1px solid rgba(16,185,129,0.3); box-shadow:0 0 15px rgba(16,185,129,0.08);' : ''}">
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.8rem; color:var(--text-muted); margin-bottom:8px; flex-wrap:wrap; gap:4px;">
+          <span>📅 ${m.date_str} ${m.is_official_lineup ? '<span class="badge" style="background:rgba(16,185,129,0.18); color:#34d399; border:1px solid rgba(16,185,129,0.3); font-size:0.7rem; padding:2px 7px; border-radius:4px; font-weight:800; margin-left:6px;">🟢 FORMAZIONI UFFICIALI (100%)</span>' : ''}</span>
           <span>🏟️ ${m.stadium || 'Stadio Serie A'}</span>
         </div>
         <div style="display:flex; align-items:center; justify-content:space-between; font-weight:800; font-size:1.05rem; margin-bottom:12px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:8px;">
@@ -825,7 +968,7 @@ function renderFixturesView(fixtures) {
             🔵 Titolari ${m.home_team} (${m.home_lineup?.length || 0}/11):
           </div>
           <div style="line-height:1.8;">
-            ${formatLineup(m.home_lineup, m.player_percentages)}
+            ${formatLineup(m.home_lineup, m.player_percentages, m.is_official_lineup)}
           </div>
         </div>
 
@@ -835,7 +978,7 @@ function renderFixturesView(fixtures) {
             🔴 Titolari ${m.away_team} (${m.away_lineup?.length || 0}/11):
           </div>
           <div style="line-height:1.8;">
-            ${formatLineup(m.away_lineup, m.player_percentages)}
+            ${formatLineup(m.away_lineup, m.player_percentages, m.is_official_lineup)}
           </div>
         </div>
 
@@ -944,7 +1087,8 @@ function openPlayerModal(player) {
   document.getElementById('modalPlayerTeam').innerText = `${player.team_full || player.team} • Ruolo ${player.role}`;
   document.getElementById('modalPlayerScore').innerText = `★ ${Math.round(player.score || 0)}`;
   document.getElementById('modalPlayerExpectedFV').innerText = `${player.expected_fantavoto || 6.5} pt`;
-  document.getElementById('modalPlayerTitolarita').innerText = `${player.titolarita_pct || player.titolarita_fonti || 70}%`;
+  const isOfficialTit = player.is_official || player.titolarita_pct === 100;
+  document.getElementById('modalPlayerTitolarita').innerText = isOfficialTit ? '100% (Titolare Ufficiale ✅)' : `${player.titolarita_pct || player.titolarita_fonti || 70}%`;
   document.getElementById('modalPlayerMatch').innerText = player.match_info || "Prossimo turno";
   document.getElementById('modalPlayerQA').innerText = player.qa || '-';
   document.getElementById('modalPlayerFVM').innerText = player.fvm || '-';
@@ -952,8 +1096,9 @@ function openPlayerModal(player) {
   // Live & Post-Match Performance Card Population
   const livePerfCard = document.getElementById('modalLivePerformanceCard');
   if (livePerfCard) {
+    const isLiveMatch = player.match_status === 'IN CORSO' || player.is_live;
     const isLiveOrDone = player.real_fantavoto !== null && player.real_fantavoto !== undefined;
-    const hasLiveContext = player.match_status !== undefined || isLiveOrDone;
+    const hasLiveContext = isLiveMatch || player.match_status !== undefined || isLiveOrDone;
 
     if (hasLiveContext) {
       livePerfCard.style.display = 'block';
@@ -961,8 +1106,8 @@ function openPlayerModal(player) {
       // Status Badge
       const statusBadge = document.getElementById('modalLiveStatusBadge');
       if (statusBadge) {
-        statusBadge.innerText = player.status_badge || (player.match_status === 'TERMINATA' ? 'FINALE 🏁' : (player.match_status === 'IN CORSO' ? 'LIVE 🔴' : 'DA GIOCARE ⏳'));
-        statusBadge.className = `badge-status ${player.status_class || 'badge-warning'}`;
+        statusBadge.innerText = player.status_badge || (player.match_status === 'TERMINATA' ? 'FINALE 🏁' : (isLiveMatch ? 'LIVE 🔴' : 'DA GIOCARE ⏳'));
+        statusBadge.className = `badge-status ${player.status_class || (isLiveMatch ? 'badge-danger' : 'badge-warning')}`;
       }
 
       // Fantavoto & Base Grade
@@ -971,28 +1116,56 @@ function openPlayerModal(player) {
       const baseGradeVal = document.getElementById('modalLiveBaseGradeVal');
       const bonusHtml = document.getElementById('modalLiveBonusListHtml');
 
-      if (isLiveOrDone) {
-        if (fvDisp) fvDisp.innerText = `${player.real_fantavoto}`;
-        if (deltaDisp) {
-          deltaDisp.style.display = 'inline-block';
-          deltaDisp.innerText = `Δ ${player.delta_formatted || '0 pt'} vs Atteso`;
-          deltaDisp.className = `badge-status ${player.delta_class || 'badge-success'}`;
-        }
-        if (baseGradeVal) baseGradeVal.innerText = `${player.base_grade !== null ? player.base_grade : '-'}`;
-        if (bonusHtml) {
-          if (player.bonus_malus && player.bonus_malus.length > 0) {
-            bonusHtml.innerHTML = player.bonus_malus.map(b => 
-              `<span class="bonus-pill ${b.val < 0 ? 'malus' : ''}">${b.icon} ${b.label} (${b.val > 0 ? '+' : ''}${b.val})</span>`
-            ).join(' ');
-          } else {
-            bonusHtml.innerText = 'Nessun bonus/malus';
+      if (player.real_fantavoto !== null && player.real_fantavoto !== undefined) {
+        if (player.is_live_grade || isLiveMatch) {
+          if (fvDisp) fvDisp.innerHTML = `<span style="color:#ef4444; font-weight:900;">${player.real_fantavoto}</span> <span style="font-size:0.8rem; font-weight:700; color:#ef4444;">LIVE FV</span> <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">(Atteso: ${player.expected_fantavoto || 6.5} pt)</span>`;
+          if (deltaDisp) {
+            deltaDisp.style.display = 'inline-block';
+            deltaDisp.innerText = `🔴 In campo (${player.match_min || '1°T'}) • Parziale: ${player.real_fantavoto} pt`;
+            deltaDisp.className = 'badge-status badge-danger';
+          }
+          if (baseGradeVal) baseGradeVal.innerHTML = `${player.base_grade !== null ? player.base_grade : '6.5'} <span style="color:#ef4444; font-size:0.75rem;">(Provvisorio)</span>`;
+          if (bonusHtml) {
+            if (player.bonus_malus && player.bonus_malus.length > 0) {
+              bonusHtml.innerHTML = player.bonus_malus.map(b => 
+                `<span class="bonus-pill ${b.val < 0 ? 'malus' : ''}">${b.icon} ${b.label} (${b.val > 0 ? '+' : ''}${b.val})</span>`
+              ).join(' ') + ` <span style="color:#f87171; font-size:0.75rem;">(Live)</span>`;
+            } else {
+              bonusHtml.innerHTML = `<span style="color:#f87171; font-size:0.8rem;">⚡ Voto parziale stimato da statistiche live in attesa del referto finale Fantacalcio.it</span>`;
+            }
+          }
+        } else {
+          if (fvDisp) fvDisp.innerText = `${player.real_fantavoto}`;
+          if (deltaDisp) {
+            deltaDisp.style.display = 'inline-block';
+            deltaDisp.innerText = `Δ ${player.delta_formatted || '0 pt'} vs Atteso`;
+            deltaDisp.className = `badge-status ${player.delta_class || 'badge-success'}`;
+          }
+          if (baseGradeVal) baseGradeVal.innerText = `${player.base_grade !== null ? player.base_grade : '-'}`;
+          if (bonusHtml) {
+            if (player.bonus_malus && player.bonus_malus.length > 0) {
+              bonusHtml.innerHTML = player.bonus_malus.map(b => 
+                `<span class="bonus-pill ${b.val < 0 ? 'malus' : ''}">${b.icon} ${b.label} (${b.val > 0 ? '+' : ''}${b.val})</span>`
+              ).join(' ');
+            } else {
+              bonusHtml.innerText = 'Nessun bonus/malus';
+            }
           }
         }
+      } else if (isLiveMatch) {
+        if (fvDisp) fvDisp.innerHTML = `<span style="color:#ef4444;"><span class="live-dot" style="margin-right:4px;"></span>LIVE</span> <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">(Atteso: ${player.expected_fantavoto || 6.5} pt)</span>`;
+        if (deltaDisp) {
+          deltaDisp.style.display = 'inline-block';
+          deltaDisp.innerText = `🔴 In campo (${player.match_min || '1°T'})`;
+          deltaDisp.className = 'badge-status badge-danger';
+        }
+        if (baseGradeVal) baseGradeVal.innerText = 'In corso';
+        if (bonusHtml) bonusHtml.innerHTML = `<span style="color:#f87171; font-size:0.8rem;">⚡ Gara in corso (${player.match_info || ''}): pagelle ufficiali Fantacalcio.it disponibili al termine del match</span>`;
       } else {
         if (fvDisp) fvDisp.innerHTML = `-.- <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">(Atteso: ${player.expected_fantavoto || 6.5})</span>`;
         if (deltaDisp) {
           deltaDisp.style.display = 'inline-block';
-          deltaDisp.innerText = `In attesa del fischio d'inizio`;
+          deltaDisp.innerText = `⏳ Da giocare`;
           deltaDisp.className = 'badge-status badge-secondary';
         }
         if (baseGradeVal) baseGradeVal.innerText = '-.-';
@@ -1271,6 +1444,14 @@ document.addEventListener('DOMContentLoaded', () => {
   loadTunnelInfo();
   loadLiveVotes();
 
+  // Automatic background refresh every 30 seconds for live data
+  setInterval(() => {
+    const liveView = document.getElementById('tab-live');
+    if (liveView && liveView.classList.contains('active')) {
+      loadLiveVotes();
+    }
+  }, 30000);
+
   // Pre-fetch SOS Fanta full article in the background so modal opens with 0 latency
   fetch('/api/sosfanta/full-article')
     .then(r => r.json())
@@ -1279,7 +1460,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- TUNNEL INFO & COPY ---
-let publicTunnelUrl = 'https://trans-equipment-cove-commonwealth.trycloudflare.com';
+let publicTunnelUrl = 'https://representatives-eleven-mae-briefing.trycloudflare.com';
 
 async function loadTunnelInfo() {
   try {

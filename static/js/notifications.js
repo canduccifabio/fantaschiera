@@ -67,7 +67,7 @@ class AlertController {
 
   async fetchAlertInfo() {
     try {
-      const res = await fetch('/api/alert-info');
+      const res = await fetch(`/api/alert-info?_t=${Date.now()}`, { cache: 'no-store' });
       if (res.ok) {
         this.alertData = await res.json();
         this.updateAlertUI();

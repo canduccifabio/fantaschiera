@@ -2,6 +2,7 @@ import json
 import os
 import re
 from typing import List, Dict, Any, Tuple
+from datetime import datetime, timedelta
 from backend.sosfanta_analyzer import sosfanta_analyzer
 from backend.intelligence import super_intelligence
 from backend.ai_learning import ai_learning_engine
@@ -146,16 +147,42 @@ class LineupOptimizer:
         opp_diff = TEAM_DIFFICULTY.get(opponent_code, 3.0)
         match_date = match.get('date_str', 'Prossimo turno') if match else 'Prossimo turno'
 
+        now = datetime.now()
+        is_official = False
+        is_live = False
+        is_finished = False
+        kickoff_dt = None
+        if match and match.get('datetime_iso'):
+            try:
+                kickoff_dt = datetime.fromisoformat(match['datetime_iso'])
+            except Exception:
+                pass
+        
+        if kickoff_dt:
+            if now >= kickoff_dt - timedelta(minutes=60):
+                is_official = True
+            if kickoff_dt <= now < kickoff_dt + timedelta(minutes=115):
+                is_live = True
+            elif now >= kickoff_dt + timedelta(minutes=115):
+                is_finished = True
+
         official_pct = 70
         is_starter = False
         ballottaggio_note = ""
         if match:
+            lineups = (match.get('home_lineup') or []) + (match.get('away_lineup') or [])
+            is_in_lineup = any(p_n.lower() in norm_name or norm_name in p_n.lower() for p_n in lineups)
+
             p_pcts = match.get('player_percentages', {})
             for p_key, p_val in p_pcts.items():
                 if p_key in norm_name or norm_name in p_key:
                     official_pct = p_val.get('percentage', 70)
                     is_starter = p_val.get('is_starter', False)
                     break
+
+            if is_official and is_in_lineup:
+                official_pct = 100
+                is_starter = True
 
             # Exact ballottaggio matching avoiding 1-letter false positives (e.g. 'g' in 'ramos g.' matching 'doig')
             clean_tokens = [re.sub(r'[^a-z0-9]', '', p) for p in norm_name.split()]
@@ -177,7 +204,30 @@ class LineupOptimizer:
 
         # 3. SUPER-INTELLIGENCE MODULE 1: Triple Consensus Lineups
         consensus_data = super_intelligence.evaluate_triple_consensus(player['name'], team, official_pct, is_starter)
-        calibrated_titolarita = consensus_data['consensus_percentage']
+        if is_official and is_starter:
+            calibrated_titolarita = 100
+            consensus_data['consensus_percentage'] = 100
+            consensus_data['consensus_level'] = '100% UFFICIALE'
+            consensus_data['summary'] = 'Titolare confermato nelle formazioni ufficiali Serie A.'
+        else:
+            calibrated_titolarita = consensus_data['consensus_percentage']
+
+        if is_live:
+            match_status_label = 'IN CORSO'
+            status_badge_label = 'LIVE 🔴'
+            display_match_info = f"🔴 LIVE vs {opponent_code} ({'C' if is_home else 'T'}) • In corso"
+        elif is_finished:
+            match_status_label = 'TERMINATA'
+            status_badge_label = 'FINALE 🏁'
+            display_match_info = f"🏁 FINALE vs {opponent_code} ({'C' if is_home else 'T'})"
+        elif is_official:
+            match_status_label = 'UFFICIALI'
+            status_badge_label = 'UFFICIALI 🟢'
+            display_match_info = f"🟢 UFFICIALI vs {opponent_code} ({'C' if is_home else 'T'}) • {match_date}"
+        else:
+            match_status_label = 'DA GIOCARE'
+            status_badge_label = 'DA GIOCARE ⏳'
+            display_match_info = f"vs {opponent_code} ({'C' if is_home else 'T'}) • {match_date}"
 
         # 4. SUPER-INTELLIGENCE MODULE 2: SofaScore/Understat Advanced Metrics
         metrics_data = super_intelligence.get_advanced_metrics(player['name'], role)
@@ -353,7 +403,12 @@ class LineupOptimizer:
             'badge_class': badge_class,
             'stars': stars,
             'is_out': False,
-            'match_info': f"vs {opponent_code} ({'C' if is_home else 'T'}) • {match_date}",
+            'match_info': display_match_info,
+            'match_status': match_status_label,
+            'status_badge': status_badge_label,
+            'is_live': is_live,
+            'is_finished': is_finished,
+            'is_official': is_official,
             'opponent': opponent_code,
             'opponent_name': opponent_name,
             'is_home': is_home,

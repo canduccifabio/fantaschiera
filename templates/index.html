@@ -290,14 +290,39 @@
         </div>
       </div>
 
-      <!-- Live Players Table / Cards -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">📊 Pagelle & Voti Reali • I Tuoi Calciatori</span>
-          <span id="livePlayersCountBadge" class="badge-status badge-primary">11 Calciatori</span>
+      <!-- Live Players Table / Cards (Compressible) -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-header" style="cursor:pointer;" onclick="toggleLivePlayersSection()">
+          <span class="card-title" style="display:flex; align-items:center; gap:8px;">
+            📊 Pagelle & Voti Reali • I Tuoi Calciatori
+          </span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span id="livePlayersCountBadge" class="badge-status badge-primary">11 Calciatori</span>
+            <span id="livePlayersToggleBadge" class="badge-status badge-success" style="font-size:0.75rem;">Mostra Pagelle ▼</span>
+          </div>
         </div>
-        <div id="livePlayersListContainer">
-          <div style="text-align:center; padding:24px; color:var(--text-muted);">Caricamento voti in corso...</div>
+        <div id="livePlayersBody">
+          <div id="livePlayersListContainer">
+            <div style="text-align:center; padding:24px; color:var(--text-muted);">Caricamento voti in corso...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= LIVE MATCH CENTER: TUTTE LE 10 PARTITE DELLA GIORNATA ================= -->
+      <div class="card">
+        <div class="card-header" style="cursor:pointer;" onclick="toggleLiveMatchesSection()">
+          <span class="card-title" style="display:flex; align-items:center; gap:8px;">
+            ⚽ Diretta Partite 6ª Giornata • Serie A Live
+          </span>
+          <div style="display:flex; gap:6px; align-items:center;">
+            <span id="liveMatchesSummaryBadge" class="badge-status badge-danger">1 Live • 9 In Programma</span>
+            <span id="liveMatchesToggleBadge" class="badge-status badge-success" style="font-size:0.75rem;">Mostra Partite ▼</span>
+          </div>
+        </div>
+        <div id="liveMatchesBody">
+          <div id="liveMatchesListContainer" style="display:flex; flex-direction:column; gap:10px; margin-top:8px;">
+            <div style="text-align:center; padding:24px; color:var(--text-muted);">Caricamento diretta partite...</div>
+          </div>
         </div>
       </div>
     </section>
@@ -768,8 +793,8 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
   <div id="appToast" class="toast">Notifica</div>
 
   <!-- Scripts -->
-  <script src="/static/js/notifications.js"></script>
-  <script src="/static/js/pitch.js"></script>
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/notifications.js?v=2.6"></script>
+  <script src="/static/js/pitch.js?v=2.6"></script>
+  <script src="/static/js/app.js?v=2.6"></script>
 </body>
 </html>
