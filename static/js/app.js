@@ -609,23 +609,23 @@ function renderLivePlayerCards(data) {
               <span class="role-badge role-${p.role}" style="position:absolute; bottom:-3px; right:-4px; font-size:0.62rem; padding:1px 4px; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.5);">${p.role}</span>
             </div>
 
-            <div style="min-width:0;">
-              <div style="font-weight:800; font-size:0.96rem; color:#ffffff; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</span>
+            <div style="min-width:0; flex:1;">
+              <div style="font-weight:800; font-size:0.95rem; color:#ffffff; display:flex; align-items:center; gap:5px; flex-wrap:wrap; line-height:1.25;">
+                <span style="color:#ffffff;">${p.name}</span>
                 <span style="font-size:0.75rem; font-weight:600; color:#94a3b8;">(${p.team})</span>
                 ${isStarterBadge}
               </div>
-              <div style="font-size:0.73rem; color:var(--text-secondary); margin-top:2px;">
-                ${p.match_info || ''} • Voto Base: <strong style="color:#ffffff;">${p.base_grade !== null ? p.base_grade : '-'}</strong>
+              <div style="font-size:0.73rem; color:var(--text-secondary); margin-top:3px; line-height:1.3;">
+                ${p.match_info || ''} • Voto: <strong style="color:#ffffff;">${p.base_grade !== null ? p.base_grade : '-'}</strong>
               </div>
             </div>
           </div>
 
           <!-- Right: Score Box & Status -->
-          <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
-            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
-              <span class="badge-status ${p.status_class || 'badge-secondary'}" style="font-size:0.7rem; padding:2px 6px;">${p.status_badge || '⏳'}</span>
-              ${p.real_fantavoto !== null ? `<span class="delta-badge ${deltaClass}" style="font-size:0.68rem; padding:1px 5px;">Δ ${p.delta_formatted}</span>` : ''}
+          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
+              <span class="badge-status ${p.status_class || 'badge-secondary'}" style="font-size:0.68rem; padding:2px 5px;">${p.status_badge || '⏳'}</span>
+              ${p.real_fantavoto !== null ? `<span class="delta-badge ${deltaClass}" style="font-size:0.66rem; padding:1px 5px;">Δ ${p.delta_formatted}</span>` : ''}
             </div>
             ${scoreBoxHtml}
           </div>

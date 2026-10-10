@@ -560,16 +560,20 @@ class LiveMatchTracker:
 
     def fetch_official_votes_table(self) -> Dict[str, Dict]:
         """
-        Scrapes votes from Fantacalcio.it — tries live-serie-a first for live partial grades,
-        then falls back to voti-fantacalcio-serie-a for official post-match grades.
-        Returns a dict mapping normalized player names to their scraped stats.
+        Scrapes votes from Fantacalcio.it — tries live-serie-a, voti-fantacalcio-serie-a,
+        and match-specific URLs (e.g. /napoli-frosinone/18012/voti, /inter-parma/18009/voti).
         """
         votes_map = {}
 
-        for url in [
+        urls_to_try = [
             'https://www.fantacalcio.it/live-serie-a',
             'https://www.fantacalcio.it/voti-fantacalcio-serie-a',
-        ]:
+            'https://www.fantacalcio.it/serie-a/calendario/6/2026-27/napoli-frosinone/18012/voti',
+            'https://www.fantacalcio.it/serie-a/calendario/6/2026-27/inter-parma/18009/voti',
+            'https://www.fantacalcio.it/serie-a/calendario/6/2026-27/genoa-fiorentina/18008/voti'
+        ]
+
+        for url in urls_to_try:
             try:
                 req = urllib.request.Request(url, headers=HEADERS)
                 with urllib.request.urlopen(req, timeout=10) as resp:

@@ -210,13 +210,14 @@ class LineupOptimizer:
         # 3. SUPER-INTELLIGENCE MODULE 1: Triple Consensus Lineups
         consensus_data = super_intelligence.evaluate_triple_consensus(player['name'], team, official_pct, is_starter)
         
-        # When a player is known to be a sure starter (from official matchday lineups, in-game/finished, or unanimous 90%+ consensus without ballottaggio)
-        if (is_official and is_starter) or is_live or is_finished or (is_starter and official_pct >= 90 and not ballottaggio_note):
+        # 100% titolarità is assigned ONLY when official lineups are out, match is live, or match is finished
+        if (is_official and is_starter) or is_live or is_finished:
             calibrated_titolarita = 100
             consensus_data['consensus_percentage'] = 100
-            consensus_data['consensus_level'] = '100% TITOLARE SICURO'
-            consensus_data['summary'] = 'Titolare certo e confermato (100% presenza dal 1° minuto).'
+            consensus_data['consensus_level'] = '100% UFFICIALE'
+            consensus_data['summary'] = 'Titolare confermato nelle formazioni ufficiali Serie A.'
         else:
+            # For upcoming matches without official lineups, strictly respect the real statistical percentages
             calibrated_titolarita = consensus_data['consensus_percentage']
 
         if is_live:
