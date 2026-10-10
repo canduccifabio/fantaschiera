@@ -37,6 +37,14 @@ MATCH_KNOWN_EVENTS = {
         {'type': 'assist', 'icon': '🎯', 'minute': "41'", 'player_name': 'Barella', 'team': 'INT', 'desc': 'Assist'},
         {'type': 'card', 'icon': '🟨', 'minute': "55'", 'player_name': 'Barella', 'team': 'INT', 'desc': 'Ammonizione'},
         {'type': 'goal', 'icon': '⚽', 'minute': "68'", 'player_name': 'Dimarco', 'team': 'INT', 'desc': 'Gol 3-0'},
+    ],
+    'NAP_FRO': [
+        {'type': 'goal', 'icon': '⚽', 'minute': "18'", 'player_name': 'Politano', 'team': 'NAP', 'desc': 'Gol 1-0 (Sinistro all\'angolino)'},
+        {'type': 'assist', 'icon': '🎯', 'minute': "18'", 'player_name': 'De Bruyne', 'team': 'NAP', 'desc': 'Assist vincente'},
+        {'type': 'card', 'icon': '🟨', 'minute': "29'", 'player_name': 'Calò', 'team': 'FRO', 'desc': 'Fallo tattico'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "39'", 'player_name': 'Hojlund', 'team': 'NAP', 'desc': 'Gol 2-0 (Incoronata su corner)'},
+        {'type': 'assist', 'icon': '🎯', 'minute': "39'", 'player_name': 'Spinazzola', 'team': 'NAP', 'desc': 'Assist da corner'},
+        {'type': 'card', 'icon': '🟨', 'minute': "44'", 'player_name': 'Masini', 'team': 'FRO', 'desc': 'Trattenuta'}
     ]
 }
 
@@ -283,6 +291,25 @@ class LiveMatchTracker:
                     'summary': 'Subentrato nella ripresa, ha dato freschezza ma senza incidere sul risultato.',
                     'fantacalcio_breakdown': 'Voto Redazione Fantacalcio: 6.0 | Bonus/Malus: 0.0 => Fantavoto Ufficiale: 6.0',
                     'mod_impact': 'Primo panchinaro d\'attacco: presenza garantita in caso di forfait.'
+                }
+            },
+            'vasquez': {
+                'base': 6.0, 'bonus': [
+                    {'icon': '🔴', 'val': -2.0, 'label': 'Autogol (73\')'},
+                    {'icon': '🟨', 'val': -0.5, 'label': 'Ammonizione (84\')'}
+                ],
+                'stats': '1 autogol sfortunato • 1 ammonizione • 6 respinte • 4 duelli aerei vinti',
+                'review': '🔴 Partita sfortunata per il difensore del Genoa: voto base sufficiente (6.0), ma pesano i malus dell\'autogol (-2.0) e del cartellino giallo (-0.5). Fantavoto reale: 3.5.',
+                'detailed_stats': {
+                    'minutes': '90\'', 'own_goals': '1', 'yellow_cards': '1', 'clearances': '6',
+                    'aerial_duels': '4/5', 'tackles': '3', 'passes': '31/37 (84%)',
+                    'rating_source': 'Sofascore 5.8 • Tabellino Fantacalcio.it'
+                },
+                'ai_analysis': {
+                    'title': '🔴 Malus Pesanti: Autogol e Ammonizione',
+                    'summary': 'Prestazione complessiva generosa rovinata dalla deviazione sfortunata al 73\' nella propria porta e dal giallo all\'84\'. Voto base 6.0 che con i malus scende a 3.5.',
+                    'fantacalcio_breakdown': 'Voto Base: 6.0 | Malus Autogol: -2.0 | Malus Ammonizione: -0.5 => Fantavoto Finale: 3.5',
+                    'mod_impact': '🛡️ MODIFICATORE DIFESA: In caso di impiego, concorre con il voto base (6.0) ma sottrae 2.5 pt diretti al totale squadra.'
                 }
             }
         }

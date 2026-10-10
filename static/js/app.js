@@ -548,78 +548,109 @@ function renderLivePlayerCards(data) {
   }
 
   container.innerHTML = players.map(p => {
-    // Bonus/malus pills
+    // Card class based on starter and live state
+    let cardClass = p.is_starter ? 'card-starter' : 'card-bench';
+    if (p.is_live_grade || p.match_status === 'IN CORSO') cardClass += ' card-live';
+
+    // Bonus/malus pills with clear tags
     let bonusHtml = '';
     if (p.bonus_malus && p.bonus_malus.length > 0) {
       bonusHtml = p.bonus_malus.map(b => {
         const isMalus = b.val < 0;
-        return `<span class="bonus-pill ${isMalus ? 'malus' : ''}">${b.icon} ${b.val > 0 ? '+' : ''}${b.val}</span>`;
+        return `<span class="bonus-pill ${isMalus ? 'malus' : ''}">${b.icon} ${b.label || ''} (${b.val > 0 ? '+' : ''}${b.val})</span>`;
       }).join(' ');
     } else if (p.real_fantavoto !== null) {
-      bonusHtml = `<span style="font-size:0.75rem; color:var(--text-muted);">Nessun bonus/malus</span>`;
+      bonusHtml = `<span style="font-size:0.72rem; color:var(--text-muted);">Nessun bonus/malus</span>`;
     }
 
     const deltaClass = p.delta >= 0 ? 'delta-pos' : 'delta-neg';
-    const isStarterBadge = p.is_starter ? `<span class="badge-status badge-success" style="font-size:0.68rem; padding:1px 6px;">TITOLARE</span>` : `<span class="badge-status badge-secondary" style="font-size:0.68rem; padding:1px 6px;">PANCHINA</span>`;
+    const isStarterBadge = p.is_starter 
+      ? `<span class="badge-status badge-success" style="font-size:0.68rem; padding:1px 6px;">⭐ TITOLARE</span>` 
+      : `<span class="badge-status badge-secondary" style="font-size:0.68rem; padding:1px 6px;">🔄 PANCHINA</span>`;
 
-    const realVoteText = p.real_fantavoto !== null ? `
-      <div style="text-align:right;">
-        <div style="font-size:1.25rem; font-weight:900; color:${p.is_live_grade ? '#ef4444' : '#34d399'};">
-          ${p.real_fantavoto} <span style="font-size:0.7rem; font-weight:600; color:var(--text-muted);">${p.is_live_grade ? 'LIVE FV' : 'FV'}</span>
+    // Modern Big Score Box
+    let scoreBoxHtml = '';
+    if (p.real_fantavoto !== null) {
+      const fvColor = p.real_fantavoto >= 6.5 ? '#34d399' : (p.real_fantavoto < 5.5 ? '#f87171' : '#fbbf24');
+      scoreBoxHtml = `
+        <div class="live-score-box">
+          <div style="font-size:1.35rem; font-weight:900; color:${p.is_live_grade ? '#ef4444' : fvColor}; line-height:1;">
+            ${p.real_fantavoto}
+          </div>
+          <div style="font-size:0.65rem; font-weight:800; color:${p.is_live_grade ? '#ef4444' : 'var(--text-muted)'}; text-transform:uppercase; margin-top:2px;">
+            ${p.is_live_grade ? '🔴 LIVE FV' : 'FANTAVOTO'}
+          </div>
         </div>
-        <div style="font-size:0.72rem; color:var(--text-secondary);">
-          Voto: <strong>${p.base_grade}</strong> ${p.is_live_grade ? '<span style="color:#ef4444; font-size:0.68rem;">(Provvisorio)</span>' : ''}
+      `;
+    } else if (p.match_status === 'IN CORSO') {
+      scoreBoxHtml = `
+        <div class="live-score-box" style="border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.1);">
+          <div style="font-size:1.05rem; font-weight:900; color:#ef4444;"><span class="live-dot"></span> LIVE</div>
+          <div style="font-size:0.65rem; color:#f87171; font-weight:700;">${p.match_min || '1°T'}</div>
         </div>
-      </div>
-    ` : (p.match_status === 'IN CORSO' ? `
-      <div style="text-align:right;">
-        <div style="font-size:1.05rem; font-weight:900; color:#ef4444;"><span class="live-dot" style="margin-right:4px;"></span>LIVE</div>
-        <div style="font-size:0.72rem; color:#f87171;">In campo (${p.match_min || '1°T'})</div>
-      </div>
-    ` : `
-      <div style="text-align:right;">
-        <div style="font-size:1rem; font-weight:800; color:var(--text-muted);">-.-</div>
-        <div style="font-size:0.72rem; color:var(--text-muted);">Da giocare</div>
-      </div>
-    `);
+      `;
+    } else {
+      scoreBoxHtml = `
+        <div class="live-score-box">
+          <div style="font-size:1.05rem; font-weight:800; color:var(--text-muted);">-.-</div>
+          <div style="font-size:0.65rem; color:var(--text-muted);">IN ATTESA</div>
+        </div>
+      `;
+    }
 
     return `
-      <div class="live-player-card" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
-        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-          <div style="display:flex; align-items:center; gap:8px;">
-            <span class="role-badge role-${p.role}">${p.role}</span>
-            <img src="${p.photo || '/static/icon.svg'}" onerror="this.src='/static/icon.svg'" style="width:34px; height:34px; border-radius:50%; object-fit:cover;" />
-            <div>
-              <div style="font-weight:800; font-size:0.95rem; color:#ffffff; display:flex; align-items:center; gap:6px;">
-                ${p.name} <span style="font-size:0.78rem; font-weight:400; color:#94a3b8;">(${p.team})</span> ${isStarterBadge}
+      <div class="live-player-card ${cardClass}" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+          
+          <!-- Left: Player Info -->
+          <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+            <div style="position:relative; flex-shrink:0;">
+              <img src="${p.photo || '/static/icon.svg'}" onerror="this.src='/static/icon.svg'" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:1.5px solid rgba(255,255,255,0.15);" />
+              <span class="role-badge role-${p.role}" style="position:absolute; bottom:-3px; right:-4px; font-size:0.62rem; padding:1px 4px; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.5);">${p.role}</span>
+            </div>
+
+            <div style="min-width:0;">
+              <div style="font-weight:800; font-size:0.96rem; color:#ffffff; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${p.name}</span>
+                <span style="font-size:0.75rem; font-weight:600; color:#94a3b8;">(${p.team})</span>
+                ${isStarterBadge}
               </div>
-              <div style="font-size:0.75rem; color:var(--text-muted);">
-                ${p.match_info || ''}
+              <div style="font-size:0.73rem; color:var(--text-secondary); margin-top:2px;">
+                ${p.match_info || ''} • Voto Base: <strong style="color:#ffffff;">${p.base_grade !== null ? p.base_grade : '-'}</strong>
               </div>
             </div>
           </div>
-          <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
-            <span class="badge-status ${p.status_class || 'badge-secondary'}" style="font-size:0.72rem;">${p.status_badge || '⏳'}</span>
-            ${realVoteText}
+
+          <!-- Right: Score Box & Status -->
+          <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:3px;">
+              <span class="badge-status ${p.status_class || 'badge-secondary'}" style="font-size:0.7rem; padding:2px 6px;">${p.status_badge || '⏳'}</span>
+              ${p.real_fantavoto !== null ? `<span class="delta-badge ${deltaClass}" style="font-size:0.68rem; padding:1px 5px;">Δ ${p.delta_formatted}</span>` : ''}
+            </div>
+            ${scoreBoxHtml}
           </div>
+
         </div>
 
-        <!-- Middle stats & comparison -->
-        <div style="background:rgba(0,0,0,0.22); border-radius:8px; padding:6px 10px; margin:6px 0; display:flex; justify-content:space-between; align-items:center; font-size:0.75rem; flex-wrap:wrap; gap:6px;">
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span>Bonus/Malus:</span>
-            ${bonusHtml}
+        <!-- Bonus/Malus Bar (if any or finished) -->
+        ${(bonusHtml || p.real_fantavoto !== null) ? `
+          <div style="background:rgba(0,0,0,0.25); border-radius:8px; padding:5px 8px; margin-top:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.74rem; flex-wrap:wrap; gap:4px;">
+            <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+              <span style="color:var(--text-muted); font-size:0.68rem; text-transform:uppercase; font-weight:700;">Bonus/Malus:</span>
+              ${bonusHtml}
+            </div>
+            <div style="font-size:0.7rem; color:var(--text-muted);">
+              Atteso: <strong style="color:#e2e8f0;">${p.expected_fantavoto || '-'} pt</strong>
+            </div>
           </div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <span style="color:var(--text-muted);">Atteso: <strong>${p.expected_fantavoto || '-'}</strong></span>
-            ${p.real_fantavoto !== null ? `<span class="delta-badge ${deltaClass}">Δ ${p.delta_formatted}</span>` : ''}
-          </div>
-        </div>
+        ` : ''}
 
-        <!-- AI Review line -->
-        <div style="font-size:0.76rem; color:#c4b5fd; line-height:1.4; margin-top:4px;">
-          🤖 ${p.ai_review || ''}
-        </div>
+        <!-- AI Review summary line -->
+        ${p.ai_review ? `
+          <div style="font-size:0.75rem; color:#c4b5fd; line-height:1.35; margin-top:6px; padding-left:4px;">
+            🤖 ${p.ai_review}
+          </div>
+        ` : ''}
       </div>
     `;
   }).join('');

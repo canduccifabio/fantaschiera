@@ -147,7 +147,12 @@ class LineupOptimizer:
         opp_diff = TEAM_DIFFICULTY.get(opponent_code, 3.0)
         match_date = match.get('date_str', 'Prossimo turno') if match else 'Prossimo turno'
 
-        now = datetime.now()
+        try:
+            from zoneinfo import ZoneInfo
+            now = datetime.now(ZoneInfo('Europe/Rome')).replace(tzinfo=None)
+        except Exception:
+            now = datetime.now()
+
         is_official = False
         is_live = False
         is_finished = False
@@ -180,7 +185,7 @@ class LineupOptimizer:
                     is_starter = p_val.get('is_starter', False)
                     break
 
-            if is_official and is_in_lineup:
+            if (is_official or is_live or is_finished) and (is_in_lineup or is_starter):
                 official_pct = 100
                 is_starter = True
 
@@ -204,11 +209,13 @@ class LineupOptimizer:
 
         # 3. SUPER-INTELLIGENCE MODULE 1: Triple Consensus Lineups
         consensus_data = super_intelligence.evaluate_triple_consensus(player['name'], team, official_pct, is_starter)
-        if is_official and is_starter:
+        
+        # When a player is known to be a sure starter (from official matchday lineups, in-game/finished, or unanimous 90%+ consensus without ballottaggio)
+        if (is_official and is_starter) or is_live or is_finished or (is_starter and official_pct >= 90 and not ballottaggio_note):
             calibrated_titolarita = 100
             consensus_data['consensus_percentage'] = 100
-            consensus_data['consensus_level'] = '100% UFFICIALE'
-            consensus_data['summary'] = 'Titolare confermato nelle formazioni ufficiali Serie A.'
+            consensus_data['consensus_level'] = '100% TITOLARE SICURO'
+            consensus_data['summary'] = 'Titolare certo e confermato (100% presenza dal 1° minuto).'
         else:
             calibrated_titolarita = consensus_data['consensus_percentage']
 
