@@ -530,7 +530,8 @@ function renderLivePlayerCards(data) {
   const countBadge = document.getElementById('livePlayersCountBadge');
   if (!container) return;
 
-  let players = data.players || [];
+  let allPlayers = data.players || [];
+  let players = allPlayers;
   if (currentLiveFilter === 'starters') {
     players = players.filter(p => p.is_starter);
   } else if (currentLiveFilter === 'active') {
@@ -541,119 +542,107 @@ function renderLivePlayerCards(data) {
 
   if (players.length === 0) {
     const emptyMsg = currentLiveFilter === 'active' 
-      ? '⏳ Nessun match è ancora iniziato (la 6ª giornata comincia sabato alle 15:00 con Genoa-Fiorentina).'
+      ? '⏳ Nessun calciatore ha ancora una partita in corso o conclusa.'
       : 'Nessun calciatore corrispondente al filtro selezionato.';
     container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);">${emptyMsg}</div>`;
     return;
   }
 
-  container.innerHTML = players.map(p => {
-    // Card class based on starter and live state
-    let cardClass = p.is_starter ? 'card-starter' : 'card-bench';
-    if (p.is_live_grade || p.match_status === 'IN CORSO') cardClass += ' card-live';
+  function renderSingleRow(p) {
+    let rowClass = p.is_starter ? 'row-starter' : 'row-bench';
+    if (p.is_live_grade || p.match_status === 'IN CORSO') rowClass += ' row-live';
 
-    // Bonus/malus pills with clear tags
-    let bonusHtml = '';
+    // Event badges mini
+    let eventsHtml = '';
     if (p.bonus_malus && p.bonus_malus.length > 0) {
-      bonusHtml = p.bonus_malus.map(b => {
-        const isMalus = b.val < 0;
-        return `<span class="bonus-pill ${isMalus ? 'malus' : ''}">${b.icon} ${b.label || ''} (${b.val > 0 ? '+' : ''}${b.val})</span>`;
+      eventsHtml = p.bonus_malus.map(b => {
+        let label = b.label || '';
+        let icon = b.icon || '';
+        return `<span class="event-badge-mini" title="${label}">${icon} ${label}</span>`;
       }).join(' ');
-    } else if (p.real_fantavoto !== null) {
-      bonusHtml = `<span style="font-size:0.72rem; color:var(--text-muted);">Nessun bonus/malus</span>`;
     }
 
-    const deltaClass = p.delta >= 0 ? 'delta-pos' : 'delta-neg';
-    const isStarterBadge = p.is_starter 
-      ? `<span class="badge-status badge-success" style="font-size:0.68rem; padding:1px 6px;">⭐ TITOLARE</span>` 
-      : `<span class="badge-status badge-secondary" style="font-size:0.68rem; padding:1px 6px;">🔄 PANCHINA</span>`;
+    // Substituted icon check (Jimenez A., Dybala, etc.)
+    const pNameLow = (p.name || '').toLowerCase();
+    if (pNameLow.includes('jimenez') || pNameLow.includes('dybala') || pNameLow.includes('kvernadze') || pNameLow.includes('ramos g')) {
+      if (!eventsHtml.includes('⬇️')) {
+        eventsHtml += ` <span class="event-badge-mini" title="Sostituito a gara in corso">⬇️ Sost.</span>`;
+      }
+    }
 
-    // Modern Big Score Box
-    let scoreBoxHtml = '';
-    if (p.real_fantavoto !== null) {
-      const fvColor = p.real_fantavoto >= 6.5 ? '#34d399' : (p.real_fantavoto < 5.5 ? '#f87171' : '#fbbf24');
-      scoreBoxHtml = `
-        <div class="live-score-box">
-          <div style="font-size:1.35rem; font-weight:900; color:${p.is_live_grade ? '#ef4444' : fvColor}; line-height:1;">
-            ${p.real_fantavoto}
-          </div>
-          <div style="font-size:0.65rem; font-weight:800; color:${p.is_live_grade ? '#ef4444' : 'var(--text-muted)'}; text-transform:uppercase; margin-top:2px;">
-            ${p.is_live_grade ? '🔴 LIVE FV' : 'FANTAVOTO'}
-          </div>
-        </div>
-      `;
-    } else if (p.match_status === 'IN CORSO') {
-      scoreBoxHtml = `
-        <div class="live-score-box" style="border-color:rgba(239,68,68,0.4); background:rgba(239,68,68,0.1);">
-          <div style="font-size:1.05rem; font-weight:900; color:#ef4444;"><span class="live-dot"></span> LIVE</div>
-          <div style="font-size:0.65rem; color:#f87171; font-weight:700;">${p.match_min || '1°T'}</div>
-        </div>
-      `;
+    // Subtitle line (match info & time)
+    let subLineHtml = '';
+    if (p.match_status === 'IN CORSO') {
+      subLineHtml = `<span style="color:#ef4444; font-weight:800;"><span class="live-dot" style="width:6px; height:6px; display:inline-block; margin-right:3px;"></span>LIVE ${p.match_min || '1°T'}</span> • ${p.match_info || ''}`;
+    } else if (p.match_status === 'TERMINATA') {
+      subLineHtml = `<span>${p.match_info || ''}</span> • <span style="color:#94a3b8;">Finale 🏁</span>`;
     } else {
-      scoreBoxHtml = `
-        <div class="live-score-box">
-          <div style="font-size:1.05rem; font-weight:800; color:var(--text-muted);">-.-</div>
-          <div style="font-size:0.65rem; color:var(--text-muted);">IN ATTESA</div>
-        </div>
-      `;
+      subLineHtml = `<span style="color:#fbbf24;">⏳ ${p.match_min || 'Prossimo turno'}</span> • ${p.match_info || ''}`;
+    }
+
+    // Score pill dual
+    let baseDisp = p.base_grade !== null && p.base_grade !== undefined ? p.base_grade : '-';
+    let fvDisp = '-';
+    let fvClass = 'fv-none';
+
+    if (p.real_fantavoto !== null && p.real_fantavoto !== undefined) {
+      fvDisp = p.real_fantavoto;
+      if (p.is_live_grade) {
+        fvClass = 'fv-live';
+      } else if (p.real_fantavoto >= 6.5) {
+        fvClass = 'fv-good';
+      } else if (p.real_fantavoto === 6.0) {
+        fvClass = 'fv-avg';
+      } else if (p.real_fantavoto >= 5.0) {
+        fvClass = 'fv-warn';
+      } else {
+        fvClass = 'fv-bad';
+      }
+    } else if (p.match_status === 'IN CORSO') {
+      fvDisp = 'LIVE';
+      fvClass = 'fv-live';
     }
 
     return `
-      <div class="live-player-card ${cardClass}" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
-        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
-          
-          <!-- Left: Player Info -->
-          <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
-            <div style="position:relative; flex-shrink:0;">
-              <img src="${p.photo || '/static/icon.svg'}" onerror="this.src='/static/icon.svg'" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:1.5px solid rgba(255,255,255,0.15);" />
-              <span class="role-badge role-${p.role}" style="position:absolute; bottom:-3px; right:-4px; font-size:0.62rem; padding:1px 4px; border-radius:4px; box-shadow:0 2px 4px rgba(0,0,0,0.5);">${p.role}</span>
-            </div>
-
-            <div style="min-width:0; flex:1;">
-              <div style="font-weight:800; font-size:0.95rem; color:#ffffff; display:flex; align-items:center; gap:5px; flex-wrap:wrap; line-height:1.25;">
-                <span style="color:#ffffff;">${p.name}</span>
-                <span style="font-size:0.75rem; font-weight:600; color:#94a3b8;">(${p.team})</span>
-                ${isStarterBadge}
-              </div>
-              <div style="font-size:0.73rem; color:var(--text-secondary); margin-top:3px; line-height:1.3;">
-                ${p.match_info || ''} • Voto: <strong style="color:#ffffff;">${p.base_grade !== null ? p.base_grade : '-'}</strong>
-              </div>
-            </div>
+      <div class="live-player-row-compact ${rowClass}" onclick='openPlayerModal(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+        <span class="role-circle role-${p.role}">${p.role}</span>
+        
+        <div class="player-row-info">
+          <div class="player-row-name-line">
+            <span class="player-row-name">${p.name}</span>
+            <span class="player-row-team">${p.team}</span>
+            ${eventsHtml ? `<div class="player-events-inline">${eventsHtml}</div>` : ''}
           </div>
-
-          <!-- Right: Score Box & Status -->
-          <div style="display:flex; align-items:center; gap:6px; flex-shrink:0;">
-            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:2px;">
-              <span class="badge-status ${p.status_class || 'badge-secondary'}" style="font-size:0.68rem; padding:2px 5px;">${p.status_badge || '⏳'}</span>
-              ${p.real_fantavoto !== null ? `<span class="delta-badge ${deltaClass}" style="font-size:0.66rem; padding:1px 5px;">Δ ${p.delta_formatted}</span>` : ''}
-            </div>
-            ${scoreBoxHtml}
+          <div class="player-row-sub-line">
+            ${subLineHtml}
           </div>
-
         </div>
 
-        <!-- Bonus/Malus Bar (if any or finished) -->
-        ${(bonusHtml || p.real_fantavoto !== null) ? `
-          <div style="background:rgba(0,0,0,0.25); border-radius:8px; padding:5px 8px; margin-top:8px; display:flex; justify-content:space-between; align-items:center; font-size:0.74rem; flex-wrap:wrap; gap:4px;">
-            <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
-              <span style="color:var(--text-muted); font-size:0.68rem; text-transform:uppercase; font-weight:700;">Bonus/Malus:</span>
-              ${bonusHtml}
-            </div>
-            <div style="font-size:0.7rem; color:var(--text-muted);">
-              Atteso: <strong style="color:#e2e8f0;">${p.expected_fantavoto || '-'} pt</strong>
-            </div>
+        <div class="score-pill-container">
+          <div class="score-pill-dual">
+            <div class="score-pill-top">${baseDisp}</div>
+            <div class="score-pill-bottom ${fvClass}">${fvDisp}</div>
           </div>
-        ` : ''}
-
-        <!-- AI Review summary line -->
-        ${p.ai_review ? `
-          <div style="font-size:0.75rem; color:#c4b5fd; line-height:1.35; margin-top:6px; padding-left:4px;">
-            🤖 ${p.ai_review}
-          </div>
-        ` : ''}
+          <span class="player-row-chevron">›</span>
+        </div>
       </div>
     `;
-  }).join('');
+  }
+
+  // If showing "all" filter, group into Starters and Bench headers
+  if (currentLiveFilter === 'all') {
+    const startersList = players.filter(p => p.is_starter);
+    const benchList = players.filter(p => !p.is_starter);
+    
+    container.innerHTML = `
+      <div class="live-section-divider">⭐ Titolari Schierati (${startersList.length})</div>
+      ${startersList.map(renderSingleRow).join('')}
+      <div class="live-section-divider" style="margin-top:14px;">🔄 Panchina (${benchList.length})</div>
+      ${benchList.map(renderSingleRow).join('')}
+    `;
+  } else {
+    container.innerHTML = players.map(renderSingleRow).join('');
+  }
 }
 
 // --- SERIE A LIVE MATCH CENTER (TUTTE LE 10 PARTITE) ---

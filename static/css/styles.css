@@ -834,50 +834,205 @@ dialog::backdrop {
   border: 1px solid rgba(245, 158, 11, 0.4);
 }
 
-.live-player-card {
-  background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(20, 27, 45, 0.7) 100%);
+/* ==========================================================================
+   MODERN COMPACT LIVE PLAYER ROWS (Leghe Fantacalcio Style)
+   ========================================================================== */
+.live-player-row-compact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: rgba(15, 23, 42, 0.75);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin-bottom: 10px;
-  transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+  margin-bottom: 6px;
   cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-.live-player-card:hover {
-  background: linear-gradient(135deg, rgba(24, 34, 60, 0.95) 0%, rgba(30, 41, 69, 0.85) 100%);
+.live-player-row-compact:hover {
+  background: rgba(30, 41, 59, 0.9);
   border-color: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 0 15px rgba(16, 185, 129, 0.08);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-.live-player-card.card-starter {
+.live-player-row-compact:active {
+  transform: scale(0.99);
+}
+
+.live-player-row-compact.row-starter {
   border-left: 3.5px solid #10b981;
 }
 
-.live-player-card.card-bench {
+.live-player-row-compact.row-bench {
   border-left: 3.5px solid #64748b;
   opacity: 0.92;
 }
 
-.live-player-card.card-live {
+.live-player-row-compact.row-live {
   border-left: 3.5px solid #ef4444;
-  box-shadow: 0 0 16px rgba(239, 68, 68, 0.15);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.2);
 }
 
-.live-score-box {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 10px;
-  padding: 5px 10px;
+/* Circular Role Badge */
+.role-circle {
+  width: 26px;
+  height: 26px;
+  min-width: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.75rem;
+  color: #ffffff;
+  flex-shrink: 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
+}
+
+.role-circle.role-P { background: #f59e0b; }
+.role-circle.role-D { background: #10b981; }
+.role-circle.role-C { background: #3b82f6; }
+.role-circle.role-A { background: #ef4444; }
+
+/* Info Area */
+.player-row-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  margin-left: 10px;
+  margin-right: 8px;
+}
+
+.player-row-name-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-row-name {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-row-team {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+
+.player-row-sub-line {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-top: 1px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.player-events-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.event-badge-mini {
+  font-size: 0.72rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 0 4px;
+  border-radius: 4px;
+}
+
+/* Stacked Dual Score Pill (Leghe Fantacalcio Style) */
+.score-pill-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.score-pill-dual {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-width: 68px;
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 2px 8px;
+  min-width: 48px;
+}
+
+.score-pill-top {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #94a3b8;
+  line-height: 1.1;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 1px;
+  width: 100%;
+  text-align: center;
+}
+
+.score-pill-bottom {
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1.1;
+  padding-top: 1px;
+  width: 100%;
+  text-align: center;
+}
+
+.score-pill-bottom.fv-good { color: #34d399; }
+.score-pill-bottom.fv-avg { color: #60a5fa; }
+.score-pill-bottom.fv-warn { color: #fbbf24; }
+.score-pill-bottom.fv-bad { color: #f87171; }
+.score-pill-bottom.fv-live { color: #ef4444; }
+.score-pill-bottom.fv-none { color: #64748b; }
+
+.player-row-chevron {
+  font-size: 1.1rem;
+  color: #64748b;
+  font-weight: 700;
+  transition: transform 0.16s ease, color 0.16s ease;
+}
+
+.live-player-row-compact:hover .player-row-chevron {
+  color: #ffffff;
+  transform: translateX(2px);
+}
+
+.live-section-divider {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  margin: 12px 0 6px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
