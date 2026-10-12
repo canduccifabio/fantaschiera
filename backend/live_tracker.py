@@ -10,6 +10,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 FIXTURES_FILE = os.path.join(DATA_DIR, 'fixtures_cache.json')
 LIVE_CACHE_FILE = os.path.join(DATA_DIR, 'live_votes_cache.json')
+MATCH_EVENTS_FILE = os.path.join(DATA_DIR, 'match_events_cache.json')
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -18,57 +19,95 @@ HEADERS = {
 WEEKDAYS_IT = {0: 'Lun', 1: 'Mar', 2: 'Mer', 3: 'Gio', 4: 'Ven', 5: 'Sab', 6: 'Dom'}
 
 
-MATCH_KNOWN_EVENTS = {
+def _load_known_events_from_cache() -> Dict[str, List[Dict]]:
+    if os.path.exists(MATCH_EVENTS_FILE):
+        try:
+            with open(MATCH_EVENTS_FILE, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+                if isinstance(data, dict) and data:
+                    return data
+        except Exception as e:
+            print(f"[LiveTracker] Note: error loading match_events_cache: {e}")
+    return {}
+
+_CACHED_EVENTS = _load_known_events_from_cache()
+
+MATCH_KNOWN_EVENTS = _CACHED_EVENTS if _CACHED_EVENTS else {
+    'CAG_JUV': [
+        {'type': 'card', 'icon': '🟨', 'minute': "17'", 'player_name': 'McKennie', 'team': 'JUV', 'desc': 'Ammonizione (17\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "20'", 'player_name': 'Maldini', 'team': 'CAG', 'desc': 'Gol 1-0 (20\') • Assist: Mendy P.', 'assist_player': 'Mendy P.'},
+        {'type': 'assist', 'icon': '👟', 'minute': "20'", 'player_name': 'Mendy P.', 'team': 'CAG', 'desc': 'Assist per Maldini (20\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "20'", 'player_name': 'Vicario', 'team': 'JUV', 'desc': 'Gol subito (20\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "46'", 'player_name': 'Rodriguez Ju.', 'team': 'CAG', 'desc': 'Ammonizione (46\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "46'", 'player_name': 'Deiola', 'team': 'CAG', 'player_out': 'Rodriguez Ju.', 'desc': 'Entra per Rodriguez Ju. (46\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "46'", 'player_name': 'Zhegrova', 'team': 'JUV', 'player_out': 'Conceicao', 'desc': 'Entra per Conceicao (46\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "46'", 'player_name': 'Alajbegovic', 'team': 'JUV', 'player_out': 'McKennie', 'desc': 'Entra per McKennie (46\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "60'", 'player_name': 'Fadera', 'team': 'CAG', 'player_out': 'Massolin', 'desc': 'Entra per Massolin (60\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "60'", 'player_name': 'Woltemade', 'team': 'JUV', 'player_out': 'Gonzalez N.', 'desc': 'Entra per Gonzalez N. (60\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "64'", 'player_name': 'Cambiaso', 'team': 'JUV', 'player_out': 'Celik', 'desc': 'Entra per Celik (64\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "70'", 'player_name': 'Nzola', 'team': 'CAG', 'player_out': 'Maldini', 'desc': 'Entra per Maldini (70\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "70'", 'player_name': 'Sugawara', 'team': 'CAG', 'player_out': 'Mendy P.', 'desc': 'Entra per Mendy P. (70\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "81'", 'player_name': 'Caprile', 'team': 'CAG', 'desc': 'Gol subito (81\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "81'", 'player_name': 'Kolo Muani', 'team': 'JUV', 'desc': 'Gol 1-1 (81\') • Assist: Alajbegovic', 'assist_player': 'Alajbegovic'},
+        {'type': 'assist', 'icon': '👟', 'minute': "81'", 'player_name': 'Alajbegovic', 'team': 'JUV', 'desc': 'Assist per Kolo Muani (81\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "83'", 'player_name': 'Deiola', 'team': 'CAG', 'desc': 'Ammonizione (83\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "84'", 'player_name': 'Fazzini', 'team': 'CAG', 'player_out': 'Obert', 'desc': 'Entra per Obert (84\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "84'", 'player_name': 'Koopmeiners', 'team': 'JUV', 'player_out': 'Douglas Luiz', 'desc': 'Entra per Douglas Luiz (84\')'},
+        {'type': 'card', 'icon': '🟥', 'minute': "90'", 'player_name': 'Pisacane', 'team': 'CAG', 'desc': 'Espulsione (90\')'},
+        {'type': 'card', 'icon': '🟥', 'minute': "90'", 'player_name': 'Spalletti', 'team': 'JUV', 'desc': 'Espulsione (90\')'},
+    ],
     'GEN_FIO': [
-        {'type': 'goal', 'icon': '⚽', 'minute': "8'", 'player_name': 'Osmajic', 'team': 'GEN', 'desc': 'Gol 1-0'},
-        {'type': 'goal', 'icon': '⚽', 'minute': "15'", 'player_name': 'Messias', 'team': 'GEN', 'desc': 'Gol 2-0'},
-        {'type': 'assist', 'icon': '👟', 'minute': "15'", 'player_name': 'Osmajic', 'team': 'GEN', 'desc': 'Assist'},
-        {'type': 'card', 'icon': '🟨', 'minute': "15'", 'player_name': 'Ranieri L.', 'team': 'FIO', 'desc': 'Ammonizione'},
-        {'type': 'card', 'icon': '🟨', 'minute': "60'", 'player_name': 'Viery', 'team': 'FIO', 'desc': 'Ammonizione'},
-        {'type': 'own_goal', 'icon': '🔴', 'minute': "73'", 'player_name': 'Vasquez', 'team': 'GEN', 'desc': 'Autogol (2-1)'},
-        {'type': 'sub', 'icon': '⬇️', 'minute': "80'", 'player_name': 'Jimenez A.', 'team': 'FIO', 'desc': 'Sostituito per Dodò'},
-        {'type': 'card', 'icon': '🟨', 'minute': "84'", 'player_name': 'Vasquez', 'team': 'GEN', 'desc': 'Ammonizione'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "8'", 'player_name': 'Osmajic', 'team': 'GEN', 'desc': 'Gol 1-0 (8\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "15'", 'player_name': 'Messias', 'team': 'GEN', 'desc': 'Gol 2-0 (15\') • Assist: Osmajic', 'assist_player': 'Osmajic'},
+        {'type': 'assist', 'icon': '👟', 'minute': "15'", 'player_name': 'Osmajic', 'team': 'GEN', 'desc': 'Assist per Messias (15\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "15'", 'player_name': 'Ranieri L.', 'team': 'FIO', 'desc': 'Ammonizione (15\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "21'", 'player_name': 'Oulai', 'team': 'FIO', 'desc': 'Ammonizione (21\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "60'", 'player_name': 'Viery', 'team': 'FIO', 'desc': 'Ammonizione (60\')'},
+        {'type': 'own_goal', 'icon': '🔴', 'minute': "73'", 'player_name': 'Vasquez', 'team': 'GEN', 'desc': 'Autogol (73\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "80'", 'player_name': 'Dodò', 'team': 'FIO', 'player_out': 'Jimenez A.', 'desc': 'Entra per Jimenez A. (80\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "84'", 'player_name': 'Vasquez', 'team': 'GEN', 'desc': 'Ammonizione (84\')'},
     ],
     'INT_PAR': [
-        {'type': 'goal', 'icon': '⚽', 'minute': "22'", 'player_name': 'Lautaro Martinez', 'team': 'INT', 'desc': 'Gol 1-0'},
-        {'type': 'assist', 'icon': '👟', 'minute': "22'", 'player_name': 'Calhanoglu', 'team': 'INT', 'desc': 'Assist'},
-        {'type': 'card', 'icon': '🟨', 'minute': "34'", 'player_name': 'Hernani', 'team': 'PAR', 'desc': 'Ammonizione'},
-        {'type': 'goal', 'icon': '⚽', 'minute': "41'", 'player_name': 'Thuram', 'team': 'INT', 'desc': 'Gol 2-0'},
-        {'type': 'assist', 'icon': '👟', 'minute': "41'", 'player_name': 'Barella', 'team': 'INT', 'desc': 'Assist'},
-        {'type': 'card', 'icon': '🟨', 'minute': "55'", 'player_name': 'Barella', 'team': 'INT', 'desc': 'Ammonizione'},
-        {'type': 'goal', 'icon': '⚽', 'minute': "68'", 'player_name': 'Dimarco', 'team': 'INT', 'desc': 'Gol 3-0'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "13'", 'player_name': 'Lautaro Martinez', 'team': 'INT', 'desc': 'Gol 1-0 (13\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "31'", 'player_name': 'Thuram', 'team': 'INT', 'desc': 'Gol 2-0 (31\') • Assist: Mkhitaryan', 'assist_player': 'Mkhitaryan'},
+        {'type': 'assist', 'icon': '👟', 'minute': "31'", 'player_name': 'Mkhitaryan', 'team': 'INT', 'desc': 'Assist per Thuram (31\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "34'", 'player_name': 'Hernani', 'team': 'PAR', 'desc': 'Ammonizione (34\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "55'", 'player_name': 'Barella', 'team': 'INT', 'desc': 'Ammonizione (55\')'},
     ],
     'NAP_FRO': [
-        {'type': 'goal', 'icon': '⚽', 'minute': "18'", 'player_name': 'De Bruyne', 'team': 'NAP', 'desc': 'Gol 1-0 (Rigore)'},
-        {'type': 'card', 'icon': '🟨', 'minute': "29'", 'player_name': 'Calò', 'team': 'FRO', 'desc': 'Ammonizione'},
-        {'type': 'goal', 'icon': '⚽', 'minute': "39'", 'player_name': 'Lang', 'team': 'NAP', 'desc': 'Gol 2-0'},
-        {'type': 'assist', 'icon': '👟', 'minute': "39'", 'player_name': 'Giovane', 'team': 'NAP', 'desc': 'Assist'},
-        {'type': 'sub', 'icon': '⬇️', 'minute': "70'", 'player_name': 'Kvernadze', 'team': 'FRO', 'desc': 'Sostituito per Ghedjemis'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "32'", 'player_name': 'De Bruyne', 'team': 'NAP', 'desc': 'Gol 1-0 (Rigore 32\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "29'", 'player_name': 'Calò', 'team': 'FRO', 'desc': 'Ammonizione (29\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "63'", 'player_name': 'Fini', 'team': 'FRO', 'player_out': 'Ghedjemis', 'desc': 'Entra per Ghedjemis (63\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "94'", 'player_name': 'Lang', 'team': 'NAP', 'desc': 'Gol 2-0 (94\') • Assist: Giovane', 'assist_player': 'Giovane'},
+        {'type': 'assist', 'icon': '👟', 'minute': "94'", 'player_name': 'Giovane', 'team': 'NAP', 'desc': 'Assist per Lang (94\')'},
     ],
     'COM_ROM': [
-        {'type': 'goal', 'icon': '⚽', 'minute': "34'", 'player_name': 'Maldini', 'team': 'COM', 'desc': 'Gol 1-0'},
-        {'type': 'assist', 'icon': '👟', 'minute': "34'", 'player_name': 'Mendy P.', 'team': 'COM', 'desc': 'Assist'},
-        {'type': 'sub', 'icon': '⬇️', 'minute': "65'", 'player_name': 'Dybala', 'team': 'ROM', 'desc': 'Sostituito'},
-        {'type': 'potm', 'icon': '⭐', 'minute': "90'", 'player_name': 'Ramon', 'team': 'COM', 'desc': 'Player of the Match (Voto 7.0)'},
+        {'type': 'card', 'icon': '🟨', 'minute': "46'", 'player_name': 'De Roon', 'team': 'ROM', 'desc': 'Ammonizione (46\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "47'", 'player_name': 'Diao', 'team': 'COM', 'desc': 'Ammonizione (47\')'},
+        {'type': 'card', 'icon': '🟥', 'minute': "53'", 'player_name': 'Malen', 'team': 'ROM', 'desc': 'Espulsione (53\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "58'", 'player_name': 'Konè M.', 'team': 'ROM', 'desc': 'Ammonizione (58\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "62'", 'player_name': 'Soulè', 'team': 'ROM', 'desc': 'Ammonizione (62\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "89'", 'player_name': 'Lulli', 'team': 'ROM', 'player_out': 'Dybala', 'desc': 'Entra per Dybala (89\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "91'", 'player_name': 'Baturina', 'team': 'COM', 'desc': 'Ammonizione (91\')'},
     ],
     'LAZ_MON': [
-        {'type': 'goal', 'icon': '⚽', 'minute': "21'", 'player_name': 'Tavares N.', 'team': 'LAZ', 'desc': 'Gol 1-0'},
-        {'type': 'assist', 'icon': '👟', 'minute': "21'", 'player_name': 'Noslin', 'team': 'LAZ', 'desc': 'Assist'},
-        {'type': 'goal', 'icon': '⚽', 'minute': "44'", 'player_name': 'Isaksen', 'team': 'LAZ', 'desc': 'Gol 2-0'},
-        {'type': 'goal', 'icon': '⚽', 'minute': "58'", 'player_name': 'Pinamonti', 'team': 'MON', 'desc': 'Gol 2-1 (Mandas gol subito)'},
-        {'type': 'card', 'icon': '🧤', 'minute': "58'", 'player_name': 'Mandas', 'team': 'LAZ', 'desc': 'Gol subito (-1.0 pt)'},
-        {'type': 'sub', 'icon': '⬇️', 'minute': "75'", 'player_name': 'Taylor K.', 'team': 'LAZ', 'desc': 'Sostituito'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "3'", 'player_name': 'Isaksen', 'team': 'LAZ', 'desc': 'Gol 1-0 (3\') • Assist: Noslin', 'assist_player': 'Noslin'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "23'", 'player_name': 'Pedro', 'team': 'LAZ', 'desc': 'Gol 2-0 (23\') • Assist: Noslin', 'assist_player': 'Noslin'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "46'", 'player_name': 'Maldini', 'team': 'MON', 'desc': 'Gol 2-1 (46\') • Assist: Mota', 'assist_player': 'Mota'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "46'", 'player_name': 'Mandas', 'team': 'LAZ', 'desc': 'Gol subito (46\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "70'", 'player_name': 'Bakoune', 'team': 'MON', 'player_out': 'Mangas', 'desc': 'Entra per Mangas (70\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "75'", 'player_name': 'Taylor K.', 'team': 'LAZ', 'desc': 'Sostituito (75\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "88'", 'player_name': 'Castellanos', 'team': 'LAZ', 'desc': 'Gol 3-1 (88\') • Assist: Pedraza', 'assist_player': 'Pedraza'},
     ],
     'SAS_MIL': [
-        {'type': 'goal', 'icon': '⚽', 'minute': "28'", 'player_name': 'Rabiot', 'team': 'MIL', 'desc': 'Gol 0-1'},
-        {'type': 'assist', 'icon': '👟', 'minute': "28'", 'player_name': 'Modric', 'team': 'MIL', 'desc': 'Assist'},
-        {'type': 'card', 'icon': '🟨', 'minute': "52'", 'player_name': 'Ramos G.', 'team': 'MIL', 'desc': 'Ammonizione (-0.5 pt)'},
-        {'type': 'sub', 'icon': '⬇️', 'minute': "72'", 'player_name': 'Ramos G.', 'team': 'MIL', 'desc': 'Sostituito'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "63'", 'player_name': 'Rabiot', 'team': 'MIL', 'desc': 'Gol 0-1 (63\') • Assist: Modric', 'assist_player': 'Modric'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "68'", 'player_name': 'Modric', 'team': 'MIL', 'desc': 'Gol 0-2 (68\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "87'", 'player_name': 'Ramos G.', 'team': 'MIL', 'desc': 'Ammonizione (87\')'},
     ],
     'LEC_BOL': [
-        {'type': 'goal', 'icon': '⚽', 'minute': "19'", 'player_name': 'Orsolini', 'team': 'BOL', 'desc': 'Gol 0-1'},
-        {'type': 'assist', 'icon': '👟', 'minute': "19'", 'player_name': 'Cambiaghi', 'team': 'BOL', 'desc': 'Assist'},
-        {'type': 'goal', 'icon': '⚽', 'minute': "63'", 'player_name': 'Enem', 'team': 'LEC', 'desc': 'Gol 1-1'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "17'", 'player_name': 'Orsolini', 'team': 'BOL', 'desc': 'Gol 0-1 (17\') • Assist: Cambiaghi', 'assist_player': 'Cambiaghi'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "65'", 'player_name': 'Castro', 'team': 'BOL', 'desc': 'Gol 0-2 (65\') • Assist: Veiga D.', 'assist_player': 'Veiga D.'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "76'", 'player_name': 'Ferguson', 'team': 'BOL', 'desc': 'Gol 0-3 (76\') • Assist: Cambiaghi', 'assist_player': 'Cambiaghi'},
     ]
 }
 
@@ -150,8 +189,10 @@ class LiveMatchTracker:
                 st = m.select_one('.match-pill, [data-match-status]')
                 st_val = int(st.get('data-match-status', 0)) if st else 0
 
-                link_el = m.select_one('.match-score, a[href*="/partite/"]')
+                link_el = m.select_one('.match-score, a[href*="/calendario/"], a[href*="/partite/"]')
                 link = link_el.get('href', '') if link_el else ''
+                if link and not link.startswith('http'):
+                    link = f"https://www.fantacalcio.it{link}"
 
                 sh = int(score_h.text.strip()) if score_h and score_h.text.strip().isdigit() else 0
                 sa = int(score_a.text.strip()) if score_a and score_a.text.strip().isdigit() else 0
@@ -175,6 +216,137 @@ class LiveMatchTracker:
         except Exception as e:
             print(f"[LiveTracker] Note: Live Serie A check: {e}")
         return live_map
+
+    def load_match_events(self) -> Dict[str, List[Dict]]:
+        """
+        Loads the verified match events timeline from disk cache (data/match_events_cache.json),
+        merging with MATCH_KNOWN_EVENTS as reliable fallback.
+        """
+        events = dict(MATCH_KNOWN_EVENTS)
+        if os.path.exists(MATCH_EVENTS_FILE):
+            try:
+                with open(MATCH_EVENTS_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    if isinstance(data, dict):
+                        for k, v in data.items():
+                            if v:
+                                events[k] = v
+            except Exception as e:
+                print(f"[LiveTracker] Note: reading match events cache: {e}")
+        return events
+
+    def scrape_match_timeline(self, match_url: str, h_code: str, a_code: str) -> List[Dict]:
+        """
+        Scrapes real-time match events timeline from an official Fantacalcio.it match page.
+        Identifies goals, penalties, autogol, assists, yellow/red cards, and substitutions.
+        """
+        if not match_url:
+            return []
+        if not match_url.startswith('http'):
+            match_url = f"https://www.fantacalcio.it{match_url}"
+        events = []
+        try:
+            req = urllib.request.Request(match_url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=8) as resp:
+                page_html = resp.read().decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(page_html, 'html.parser')
+            for item in soup.select('.timeline-item'):
+                min_el = item.select_one('.minute')
+                min_str = min_el.text.strip().replace('’', "'") if min_el else ''
+                for ev in item.select('.match-event'):
+                    side = ev.get('data-side', '')
+                    team_c = h_code if side == 'home' else a_code
+                    fig = ev.select_one('figure, .icon')
+                    fig_title = (fig.get('title') or '').strip().lower() if fig else ''
+                    ev_id = fig.get('data-event-id') if fig else ''
+                    players = [p.text.strip() for p in ev.select('.player-name') if p.text.strip()]
+                    main_p = players[0] if len(players) > 0 else ''
+                    sec_p = players[1] if len(players) > 1 else ''
+                    if not main_p:
+                        continue
+                    if ev_id == '3' or 'gol segnato' in fig_title:
+                        desc = f"Gol ({min_str})"
+                        if sec_p:
+                            desc += f" • Assist: {sec_p}"
+                        events.append({
+                            'type': 'goal',
+                            'icon': '⚽',
+                            'minute': min_str,
+                            'player_name': main_p,
+                            'team': team_c,
+                            'desc': desc,
+                            'assist_player': sec_p
+                        })
+                        if sec_p:
+                            events.append({
+                                'type': 'assist',
+                                'icon': '👟',
+                                'minute': min_str,
+                                'player_name': sec_p,
+                                'team': team_c,
+                                'desc': f"Assist per {main_p} ({min_str})"
+                            })
+                    elif ev_id == '9' or 'rigore segnato' in fig_title:
+                        events.append({
+                            'type': 'goal',
+                            'icon': '⚽',
+                            'minute': min_str,
+                            'player_name': main_p,
+                            'team': team_c,
+                            'desc': f"Gol su Rigore ({min_str})"
+                        })
+                    elif ev_id == '10' or 'autorete' in fig_title:
+                        events.append({
+                            'type': 'own_goal',
+                            'icon': '🔴',
+                            'minute': min_str,
+                            'player_name': main_p,
+                            'team': team_c,
+                            'desc': f"Autogol ({min_str})"
+                        })
+                    elif ev_id == '1' or 'ammonizione' in fig_title:
+                        events.append({
+                            'type': 'card',
+                            'icon': '🟨',
+                            'minute': min_str,
+                            'player_name': main_p,
+                            'team': team_c,
+                            'desc': f"Ammonizione ({min_str})"
+                        })
+                    elif ev_id == '2' or 'espulsione' in fig_title:
+                        events.append({
+                            'type': 'card',
+                            'icon': '🟥',
+                            'minute': min_str,
+                            'player_name': main_p,
+                            'team': team_c,
+                            'desc': f"Espulsione ({min_str})"
+                        })
+                    elif ev_id in ['1015', '1017'] or 'subentrato' in fig_title:
+                        desc = f"Subentrato ({min_str})"
+                        if sec_p:
+                            desc = f"Entra al posto di {sec_p} ({min_str})"
+                        events.append({
+                            'type': 'sub',
+                            'icon': '⇄',
+                            'minute': min_str,
+                            'player_name': main_p,
+                            'team': team_c,
+                            'player_out': sec_p,
+                            'desc': desc
+                        })
+                    elif ev_id == '4' or 'gol subito' in fig_title:
+                        events.append({
+                            'type': 'conceded',
+                            'icon': '🧤',
+                            'minute': min_str,
+                            'player_name': main_p,
+                            'team': team_c,
+                            'desc': f"Gol subito ({min_str})"
+                        })
+        except Exception as e:
+            print(f"[LiveTracker] Note: timeline scrape error for {match_url}: {e}")
+        return events
 
     def get_fixture_state(self, fixture: Optional[Dict], now: datetime, live_scores: Optional[Dict] = None) -> Dict[str, Any]:
         """
@@ -837,6 +1009,8 @@ class LiveMatchTracker:
             t = p.get('team', '').upper()
             user_players_by_team.setdefault(t, []).append(p)
 
+        match_events_db = self.load_match_events()
+
         for f in self.fixtures:
             m_state = self.get_fixture_state(f, now, live_scores=live_scores)
             f_h_code = f.get('home_code', '').upper()
@@ -857,12 +1031,20 @@ class LiveMatchTracker:
                 })
 
             match_key = f"{f_h_code}_{f_a_code}"
-            match_events = []
             live_item = (live_scores or {}).get(match_key, {})
-            if live_item.get('events'):
-                match_events = live_item['events']
-            elif match_key in MATCH_KNOWN_EVENTS:
-                match_events = MATCH_KNOWN_EVENTS[match_key]
+            match_events = live_item.get('events') or match_events_db.get(match_key) or MATCH_KNOWN_EVENTS.get(match_key, [])
+
+            # Dynamic on-the-fly fetch if live or finished and events missing
+            if not match_events and (m_state['is_live'] or m_state['is_finished']) and live_item.get('detail_url'):
+                try:
+                    scraped_ev = self.scrape_match_timeline(live_item['detail_url'], f_h_code, f_a_code)
+                    if scraped_ev:
+                        match_events = scraped_ev
+                        match_events_db[match_key] = scraped_ev
+                        with open(MATCH_EVENTS_FILE, 'w', encoding='utf-8') as _ev_f:
+                            json.dump(match_events_db, _ev_f, ensure_ascii=False, indent=2)
+                except Exception as _e:
+                    print(f"[LiveTracker] Note: dynamic timeline fetch failed: {_e}")
 
             all_matches.append({
                 'id': f.get('id'),

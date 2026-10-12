@@ -697,45 +697,155 @@ function renderLiveMatches(matches) {
       `;
     }
 
-    // Events (goals, assists, cards, subs) with special highlight for user's players
+    // Events (goals, assists, cards, subs) categorized & user players highlighted
     let eventsHtml = '';
     if ((isLive || isFin) && m.events && m.events.length > 0) {
-      const eventItems = m.events.map(ev => {
-        const evP = (ev.player_name || '').toLowerCase().trim();
-        const isMyPlayer = Array.from(myPlayerNames).some(myName => {
-          return myName && (myName === evP || myName.includes(evP) || evP.includes(myName));
+      const goalsAndKey = [];
+      const cards = [];
+      const subs = [];
+
+      // Helper to test if a player belongs to the user
+      function checkIsMyPlayer(name, outName) {
+        const p1 = (name || '').toLowerCase().trim();
+        const p2 = (outName || '').toLowerCase().trim();
+        return Array.from(myPlayerNames).some(myName => {
+          if (!myName) return false;
+          return (p1 && (myName === p1 || myName.includes(p1) || p1.includes(myName))) ||
+                 (p2 && (myName === p2 || myName.includes(p2) || p2.includes(myName)));
         });
+      }
 
-        const minText = ev.minute ? `<span style="opacity:0.7; font-size:0.7rem; margin-right:2px;">${ev.minute}</span>` : '';
-        const descText = ev.desc ? ` <span style="font-size:0.68rem; opacity:0.8;">(${ev.desc})</span>` : '';
+      // Filter and categorize
+      m.events.forEach(ev => {
+        const isMy = checkIsMyPlayer(ev.player_name, ev.player_out);
+        const item = { ...ev, isMyPlayer: isMy };
 
-        if (isMyPlayer) {
-          return `
-            <span style="background:linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(239, 68, 68, 0.25)); border:1px solid #f59e0b; color:#fbbf24; font-weight:800; padding:2px 7px; border-radius:6px; font-size:0.76rem; display:inline-flex; align-items:center; gap:4px; box-shadow:0 0 8px rgba(245, 158, 11, 0.3);">
-              ⭐ ${ev.icon} ${minText}${ev.player_name}${descText}
-            </span>
-          `;
+        if (ev.type === 'goal' || ev.type === 'penalty' || ev.type === 'own_goal' || ev.type === 'potm') {
+          goalsAndKey.push(item);
+        } else if (ev.type === 'assist') {
+          // If preceding goal already lists this assist, skip standalone assist unless it's user's player
+          const alreadyLinked = goalsAndKey.some(g => g.assist_player && g.assist_player.toLowerCase() === (ev.player_name || '').toLowerCase());
+          if (!alreadyLinked || isMy) {
+            goalsAndKey.push(item);
+          }
+        } else if (ev.type === 'card' || ev.type === 'card_yellow' || ev.type === 'card_red') {
+          cards.push(item);
+        } else if (ev.type === 'sub') {
+          subs.push(item);
+        } else if (ev.type === 'conceded') {
+          if (isMy) {
+            goalsAndKey.push(item);
+          }
+        }
+      });
+
+      function renderChip(ev) {
+        const minText = ev.minute ? `<span style="opacity:0.75; font-size:0.7rem; margin-right:2px;">${ev.minute}</span>` : '';
+        let chipBg = 'background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text-secondary);';
+        let starBadge = '';
+        if (ev.isMyPlayer) {
+          chipBg = 'background:linear-gradient(135deg, rgba(245, 158, 11, 0.22), rgba(239, 68, 68, 0.22)); border:1px solid #f59e0b; color:#fbbf24; font-weight:800; box-shadow:0 0 8px rgba(245, 158, 11, 0.3);';
+          starBadge = '⭐ ';
+        }
+
+        let label = '';
+        if (ev.type === 'goal') {
+          let assistPart = ev.assist_player ? ` <span style="color:#a7f3d0; font-size:0.7rem; font-weight:600;">(👟 Assist: ${ev.assist_player})</span>` : '';
+          label = `${ev.icon || '⚽'} ${minText}<strong>${ev.player_name}</strong>${assistPart}`;
+        } else if (ev.type === 'own_goal') {
+          label = `${ev.icon || '🔴'} ${minText}<strong>${ev.player_name}</strong> <span style="color:#f87171; font-size:0.7rem; font-weight:700;">(Autogol)</span>`;
+        } else if (ev.type === 'card') {
+          let cardColor = ev.icon === '🟥' ? '#f87171' : '#fbbf24';
+          label = `${ev.icon || '🟨'} ${minText}<strong style="color:${ev.isMyPlayer ? '#fbbf24' : cardColor};">${ev.player_name}</strong>`;
+        } else if (ev.type === 'sub') {
+          let outPart = ev.player_out ? ` <span style="opacity:0.75; font-size:0.7rem;">(esce ${ev.player_out})</span>` : '';
+          label = `${ev.icon || '⇄'} ${minText}<strong>${ev.player_name}</strong>${outPart}`;
+        } else if (ev.type === 'assist') {
+          label = `${ev.icon || '👟'} ${minText}<strong>${ev.player_name}</strong> <span style="opacity:0.8; font-size:0.7rem;">(Assist)</span>`;
+        } else if (ev.type === 'conceded') {
+          label = `${ev.icon || '🧤'} ${minText}<strong>${ev.player_name}</strong> <span style="opacity:0.8; font-size:0.7rem;">(Gol subito)</span>`;
+        } else {
+          label = `${ev.icon || '•'} ${minText}<strong>${ev.player_name}</strong>`;
         }
 
         return `
-          <span style="font-size:0.74rem; color:var(--text-secondary); background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); padding:2px 6px; border-radius:5px; display:inline-flex; align-items:center; gap:3px;">
-            ${ev.icon} ${minText}<strong>${ev.player_name}</strong>${descText}
+          <span style="${chipBg} padding:2px 7px; border-radius:5px; font-size:0.73rem; display:inline-flex; align-items:center; gap:3px;">
+            ${starBadge}${label}
           </span>
         `;
-      }).join(' ');
+      }
+
+      const goalsChips = goalsAndKey.map(renderChip).join(' ');
+      const cardsChips = cards.map(renderChip).join(' ');
+
+      // For subs: prioritize my players, then regular
+      const mySubs = subs.filter(s => s.isMyPlayer);
+      const otherSubs = subs.filter(s => !s.isMyPlayer);
+      let subsHtml = '';
+      if (subs.length > 0) {
+        if (subs.length <= 4) {
+          subsHtml = `
+            <div style="margin-top:6px;">
+              <div style="font-size:0.67rem; color:#94a3b8; font-weight:800; text-transform:uppercase; margin-bottom:3px;">
+                ⇄ Sostituzioni (${subs.length}):
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                ${subs.map(renderChip).join(' ')}
+              </div>
+            </div>
+          `;
+        } else {
+          subsHtml = `
+            <div style="margin-top:6px;">
+              ${mySubs.length > 0 ? `
+                <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:4px;">
+                  ${mySubs.map(renderChip).join(' ')}
+                </div>
+              ` : ''}
+              <details style="font-size:0.72rem; color:var(--text-muted);">
+                <summary style="cursor:pointer; font-size:0.68rem; color:#94a3b8; font-weight:800; text-transform:uppercase; user-select:none; padding:2px 0;">
+                  ⇄ Tutte le Sostituzioni (${subs.length}) ▾
+                </summary>
+                <div style="display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; padding-top:4px; border-top:1px dashed rgba(255,255,255,0.06);">
+                  ${otherSubs.map(renderChip).join(' ')}
+                </div>
+              </details>
+            </div>
+          `;
+        }
+      }
 
       eventsHtml = `
-        <div style="background:rgba(0,0,0,0.22); border-radius:8px; padding:6px 10px; margin-top:8px;">
-          <div style="font-size:0.68rem; color:var(--text-muted); font-weight:800; text-transform:uppercase; margin-bottom:5px; letter-spacing:0.5px;">
-            ⚡ Dettagli & Statistiche Live Fantacalcio:
-          </div>
-          <div style="display:flex; flex-wrap:wrap; gap:6px; align-items:center;">
-            ${eventItems}
-          </div>
+        <div style="background:rgba(0,0,0,0.22); border-radius:8px; padding:7px 10px; margin-top:8px;">
+          ${goalsAndKey.length > 0 ? `
+            <div style="margin-bottom:6px;">
+              <div style="font-size:0.68rem; color:#34d399; font-weight:800; text-transform:uppercase; margin-bottom:3px; letter-spacing:0.4px;">
+                ⚽ Gol & Marcatori:
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                ${goalsChips}
+              </div>
+            </div>
+          ` : ''}
+
+          ${cards.length > 0 ? `
+            <div style="margin-bottom:6px;">
+              <div style="font-size:0.68rem; color:#fbbf24; font-weight:800; text-transform:uppercase; margin-bottom:3px; letter-spacing:0.4px;">
+                🟨 Cartellini & Provvedimenti:
+              </div>
+              <div style="display:flex; flex-wrap:wrap; gap:5px;">
+                ${cardsChips}
+              </div>
+            </div>
+          ` : ''}
+
+          ${subsHtml}
         </div>
       `;
     } else if (isLive || isFin) {
-      eventsHtml = `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px; padding:4px 0;">📊 Statistiche ed eventi in aggiornamento dai referti di Lega...</div>`;
+      eventsHtml = `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px; padding:4px 0;">📊 Statistiche ed eventi in aggiornamento dai referti ufficiali...</div>`;
+    } else {
+      eventsHtml = `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px; padding:4px 0;">⏳ Gara in programma ${m.min || ''}. Eventi live e formazioni al calcio d'inizio.</div>`;
     }
 
     const officialBadge = m.is_official_lineup 
