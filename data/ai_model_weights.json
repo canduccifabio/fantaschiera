@@ -1,37 +1,37 @@
 {
-  "epoch": 7,
-  "last_trained_iso": "2026-10-09T23:40:31.612364",
-  "overall_accuracy_pct": 92.6,
-  "overall_mae": 0.46,
+  "epoch": 20,
+  "last_trained_iso": "2026-10-13T09:04:30.045432",
+  "overall_accuracy_pct": 82.6,
+  "overall_mae": 1.09,
   "role_metrics": {
     "P": {
-      "accuracy": 96.8,
-      "mae": 0.2,
-      "samples": 13,
-      "trend": "🟢 Parametri allineati"
+      "accuracy": 91.7,
+      "mae": 0.52,
+      "samples": 14,
+      "trend": "🟡 Calibrazione prudente"
     },
     "D": {
-      "accuracy": 94.4,
-      "mae": 0.35,
-      "samples": 17,
-      "trend": "🟢 Parametri allineati"
+      "accuracy": 82.9,
+      "mae": 1.07,
+      "samples": 20,
+      "trend": "🟡 Calibrazione prudente"
     },
     "C": {
-      "accuracy": 93.1,
-      "mae": 0.43,
-      "samples": 15,
-      "trend": "🟡 Calibrazione in corso"
+      "accuracy": 89.6,
+      "mae": 0.65,
+      "samples": 17,
+      "trend": "🟡 Calibrazione prudente"
     },
     "A": {
-      "accuracy": 85.3,
-      "mae": 0.92,
-      "samples": 14,
-      "trend": "🟡 Calibrazione in corso"
+      "accuracy": 70.0,
+      "mae": 1.97,
+      "samples": 16,
+      "trend": "🟡 Calibrazione prudente"
     }
   },
   "weights": {
     "titolarita_max_weight": 35.0,
-    "home_bonus_weight": 3.6,
+    "home_bonus_weight": 3.52,
     "matchup_difficulty_slope": 2.55,
     "def_base_multiplier": 11.2,
     "mid_base_multiplier": 10.1,
@@ -42,49 +42,121 @@
   "last_report": {
     "title": "Cosa ha notato realmente l'IA sui referti ufficiali",
     "observations": [
-      "🛡️ **Difesa & Modificatore (MAE 0.35 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
-      "🎯 **Attacco & xG (MAE 0.92 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
-      "⚙️ **Centrocampo & Regolarità (MAE 0.43 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
-      "🧤 **Portieri (MAE 0.20 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
+      "🛡️ **Difesa & Modificatore (MAE 1.07 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
+      "🎯 **Attacco & xG (MAE 1.97 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
+      "⚙️ **Centrocampo & Regolarità (MAE 0.65 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
+      "🧤 **Portieri (MAE 0.52 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
       "⚖️ **Regola di Prudenza Applicata**: Calibrazione eseguita con passo ridotto (alpha 0.02, max ±2% per parametro) per prevenire reazioni eccessive a singoli episodi casuali."
     ],
     "applied_nudges": [
-      "Fattore campo: 3.6 pt (micro-tara prudente)",
+      "Fattore campo: 3.52 pt (micro-tara prudente)",
       "Pendenza difficoltà avversario: 2.55",
-      "Accuratezza complessiva: 92.6% (MAE: 0.46 pt)"
+      "Accuratezza complessiva: 82.6% (MAE: 1.09 pt)"
     ]
   },
   "learning_log": [
     {
-      "epoch": 7,
-      "timestamp": "2026-10-09 23:40",
-      "summary": "Auto-Apprendimento Epoca 7 completato con 11 giocatori valutati.",
+      "epoch": 20,
+      "timestamp": "2026-10-13 09:04",
+      "summary": "Auto-Apprendimento Prudente Epoca 20 (19 referti).",
       "shifts": [
-        "Fattore Campo: 3.6 -> 3.6 (+0.0% influenza)",
-        "Pendenza Matchup: 2.55 -> 2.55",
-        "Accuratezza complessiva modello: 92.6% (MAE: 0.46 pt)"
+        "Fattore Campo: 3.52 pt (approccio prudente)",
+        "Pendenza Matchup: 2.55",
+        "Accuratezza complessiva modello: 82.6% (MAE: 1.09 pt)"
       ],
       "insights": [
-        "Epoca 7: analizzati 11 referti di gara con algoritmo di retropropagazione.",
-        "I difensori titolari hanno confermato la media utile al modificatore difesa con uno scarto medio di soli 0.35 pt.",
-        "Previsioni attacco tarate con successo: le metriche xG hanno minimizzato il margine di errore a 0.92 pt."
+        "🛡️ **Difesa & Modificatore (MAE 1.07 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
+        "🎯 **Attacco & xG (MAE 1.97 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
+        "⚙️ **Centrocampo & Regolarità (MAE 0.65 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
+        "🧤 **Portieri (MAE 0.52 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
+        "⚖️ **Regola di Prudenza Applicata**: Calibrazione eseguita con passo ridotto (alpha 0.02, max ±2% per parametro) per prevenire reazioni eccessive a singoli episodi casuali."
       ]
     },
     {
-      "epoch": 6,
-      "timestamp": "2026-10-09 23:39",
-      "summary": "Calibrazione 6ª Giornata completata con successo.",
+      "epoch": 19,
+      "timestamp": "2026-10-12 22:46",
+      "summary": "Auto-Apprendimento Prudente Epoca 19 (17 referti).",
       "shifts": [
-        "Fattore Campo (Home Bonus): 3.5 -> 3.6 (+2.8% influenza)",
-        "Pendenza difficoltà avversario: 2.50 -> 2.55 (+2.0%)",
-        "Sensibilità difensori d'area: 11.0 -> 11.2 (+1.8%)",
-        "Peso SOS Fanta editoriale: 1.00 -> 1.05 (+5.0%)"
+        "Fattore Campo: 3.54 pt (approccio prudente)",
+        "Pendenza Matchup: 2.55",
+        "Accuratezza complessiva modello: 82.7% (MAE: 1.08 pt)"
       ],
       "insights": [
-        "L'algoritmo ha verificato che il 4-3-3 con modificatore ha sovraperformato del +4.2% rispetto a un modulo a 3 difensori.",
-        "Dybala e Ramos G. hanno convertito l'indice di minaccia offensiva con un'accuratezza previsionale del 96.8%.",
-        "Applicato smorzamento del -3% sui voti base dei centrocampisti di rottura in trasferta."
+        "🛡️ **Difesa & Modificatore (MAE 1.0 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
+        "🎯 **Attacco & xG (MAE 1.97 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
+        "⚙️ **Centrocampo & Regolarità (MAE 0.61 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
+        "🧤 **Portieri (MAE 0.52 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
+        "⚖️ **Regola di Prudenza Applicata**: Calibrazione eseguita con passo ridotto (alpha 0.02, max ±2% per parametro) per prevenire reazioni eccessive a singoli episodi casuali."
+      ]
+    },
+    {
+      "epoch": 18,
+      "timestamp": "2026-10-12 20:45",
+      "summary": "Auto-Apprendimento Prudente Epoca 18 (21 referti).",
+      "shifts": [
+        "Fattore Campo: 3.56 pt (approccio prudente)",
+        "Pendenza Matchup: 2.55",
+        "Accuratezza complessiva modello: 84.3% (MAE: 0.98 pt)"
+      ],
+      "insights": [
+        "🛡️ **Difesa & Modificatore (MAE 1.01 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
+        "🎯 **Attacco & xG (MAE 1.97 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
+        "⚙️ **Centrocampo & Regolarità (MAE 0.52 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
+        "🧤 **Portieri (MAE 0.52 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
+        "⚖️ **Regola di Prudenza Applicata**: Calibrazione eseguita con passo ridotto (alpha 0.02, max ±2% per parametro) per prevenire reazioni eccessive a singoli episodi casuali."
+      ]
+    },
+    {
+      "epoch": 17,
+      "timestamp": "2026-10-12 20:24",
+      "summary": "Auto-Apprendimento Prudente Epoca 17 (17 referti).",
+      "shifts": [
+        "Fattore Campo: 3.58 pt (approccio prudente)",
+        "Pendenza Matchup: 2.55",
+        "Accuratezza complessiva modello: 82.7% (MAE: 1.08 pt)"
+      ],
+      "insights": [
+        "🛡️ **Difesa & Modificatore (MAE 1.0 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
+        "🎯 **Attacco & xG (MAE 1.97 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
+        "⚙️ **Centrocampo & Regolarità (MAE 0.61 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
+        "🧤 **Portieri (MAE 0.52 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
+        "⚖️ **Regola di Prudenza Applicata**: Calibrazione eseguita con passo ridotto (alpha 0.02, max ±2% per parametro) per prevenire reazioni eccessive a singoli episodi casuali."
+      ]
+    },
+    {
+      "epoch": 16,
+      "timestamp": "2026-10-12 18:30",
+      "summary": "Auto-Apprendimento Prudente Epoca 16 (18 referti).",
+      "shifts": [
+        "Fattore Campo: 3.6 pt (approccio prudente)",
+        "Pendenza Matchup: 2.55",
+        "Accuratezza complessiva modello: 83.5% (MAE: 1.03 pt)"
+      ],
+      "insights": [
+        "🛡️ **Difesa & Modificatore (MAE 1.0 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
+        "🎯 **Attacco & xG (MAE 1.97 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
+        "⚙️ **Centrocampo & Regolarità (MAE 0.53 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
+        "🧤 **Portieri (MAE 0.52 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
+        "⚖️ **Regola di Prudenza Applicata**: Calibrazione eseguita con passo ridotto (alpha 0.02, max ±2% per parametro) per prevenire reazioni eccessive a singoli episodi casuali."
+      ]
+    },
+    {
+      "epoch": 15,
+      "timestamp": "2026-10-12 15:36",
+      "summary": "Auto-Apprendimento Prudente Epoca 15 (17 referti).",
+      "shifts": [
+        "Fattore Campo: 3.62 pt (approccio prudente)",
+        "Pendenza Matchup: 2.55",
+        "Accuratezza complessiva modello: 89.8% (MAE: 0.64 pt)"
+      ],
+      "insights": [
+        "🛡️ **Difesa & Modificatore (MAE 0.87 pt)**: I difensori hanno retto con grande solidità. La linea a 4 ha garantito voti stabili, confermando che il modificatore difesa è la strategia più remunerativa.",
+        "🎯 **Attacco & xG (MAE 0.45 pt)**: Negli attaccanti top la conversione delle occasioni create è stata regolare; nei match esterni si è notata una leggera marcatura più serrata.",
+        "⚙️ **Centrocampo & Regolarità (MAE 0.4 pt)**: La mediana ha registrato un andamento solido; lieve scostamento legato unicamente a cartellini ed ammonizioni tattiche.",
+        "🧤 **Portieri (MAE 0.7 pt)**: Massima stabilità previsionale: le parate e i clean sheet hanno confermato in pieno la griglia portieri.",
+        "⚖️ **Regola di Prudenza Applicata**: Calibrazione eseguita con passo ridotto (alpha 0.02, max ±2% per parametro) per prevenire reazioni eccessive a singoli episodi casuali."
       ]
     }
-  ]
+  ],
+  "last_calibrated_hash": "c206a5b77f68be37931bb473cc568e27"
 }

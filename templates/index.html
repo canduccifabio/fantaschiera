@@ -116,6 +116,48 @@
         <!-- Populated dynamically -->
       </div>
 
+      <!-- REAL FIELDED LINEUP SYNC (LEGHE FC SCREENSHOT) -->
+      <div id="actualLineupCard" class="card" style="background:linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(16, 185, 129, 0.12)); border:1px solid rgba(59, 130, 246, 0.35); margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+          <div>
+            <div style="font-weight:800; font-size:1.02rem; color:#60a5fa; display:flex; align-items:center; gap:8px;">
+              <span>📸 Formazione Reale Schierata (da Leghe FC)</span>
+              <span id="actualLineupStatusBadge" class="badge-status badge-secondary" style="font-size:0.7rem;">In attesa di screenshot</span>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+              Carica lo screenshot della formazione schierata sull'app Leghe FC per tracciare i tuoi 11 titolari effettivi nel Live Center.
+            </div>
+          </div>
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <input type="file" id="legheScreenshotInput" accept="image/*" style="display:none;" onchange="handleScreenshotUpload(event)" />
+            <button class="btn btn-primary btn-sm" onclick="document.getElementById('legheScreenshotInput').click()" style="display:flex; align-items:center; gap:6px;">
+              <span>📤 Carica Screenshot</span>
+            </button>
+            <button id="btnViewActualLineup" class="btn btn-secondary btn-sm" style="display:none;" onclick="openActualLineupModal()">
+              <span>👁️ Rivedi Formazione</span>
+            </button>
+            <button id="btnClearActualLineup" class="btn btn-secondary btn-sm" style="display:none; color:#f87171; border-color:rgba(239,68,68,0.3);" onclick="clearActualLineup()">
+              <span>🗑️ Reset</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Lineup Details Preview Banner (when active) -->
+        <div id="actualLineupDetailsBanner" style="display:none; margin-top:10px; background:rgba(0,0,0,0.25); border-radius:8px; padding:8px 12px; font-size:0.8rem; border:1px solid rgba(255,255,255,0.06);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+            <div>
+              <span style="color:#34d399; font-weight:800;">🟢 Formazione Attiva nel Live:</span>
+              <span id="actualLineupModuleText" style="color:#ffffff; font-weight:700; margin-left:4px;">4-3-3</span>
+              <span id="actualLineupSourceText" style="color:var(--text-muted); font-size:0.72rem; margin-left:6px;">(Leghe FC)</span>
+            </div>
+            <span id="actualLineupDateText" style="font-size:0.7rem; color:var(--text-muted);"></span>
+          </div>
+          <div id="actualLineupStartersPills" style="display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;">
+            <!-- Rendered via JS -->
+          </div>
+        </div>
+      </div>
+
       <!-- Starters List (Titolari) -->
       <div class="card">
         <div class="card-header">
@@ -190,12 +232,31 @@
             <button class="segment-btn" data-livefilter="all" onclick="setLiveFilter('all')">Tutta la Rosa (25)</button>
             <button class="segment-btn" data-livefilter="active" onclick="setLiveFilter('active')">🔴 In Corso / Conclusi</button>
           </div>
-          <div style="display:flex; gap:6px; align-items:center;">
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <button class="btn btn-sm" onclick="openAIRecalibrationModal()" style="background:rgba(139, 92, 246, 0.22); border:1px solid rgba(139, 92, 246, 0.5); color:#c4b5fd; font-weight:700; display:flex; align-items:center; gap:5px;">
+              <span>🧠 Revisione AI (-13.5 pt)</span>
+            </button>
             <button id="btnRefreshLive" class="btn btn-primary btn-sm" onclick="refreshLiveVotes(this)" style="display:flex; align-items:center; gap:5px;">
               <span>⚡ Aggiorna Voti Live</span>
             </button>
             <button class="btn btn-secondary btn-sm" onclick="forceHardReload()" title="Ricarica da zero cancellando la cache del telefono" style="display:flex; align-items:center; gap:4px; font-size:0.75rem;">
               <span>🔄 Reset Cache</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Lineup Mode Toggle (Actual vs Recommended) -->
+        <div id="liveLineupToggleBar" style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; padding-top:8px; border-top:1px solid rgba(255,255,255,0.06); font-size:0.78rem; flex-wrap:wrap; gap:6px;">
+          <div id="liveLineupActiveIndicator" style="display:flex; align-items:center; gap:6px; color:#34d399; font-weight:700;">
+            <span class="live-dot" style="background:#10b981;"></span>
+            <span id="liveLineupModeLabel">Titolari: Formazione Consigliata (IA)</span>
+          </div>
+          <div id="liveLineupToggleButtons" style="display:flex; gap:6px;">
+            <button id="btnToggleToActual" class="btn btn-secondary btn-sm" style="display:none; font-size:0.72rem; padding:2px 8px; border-color:#10b981; color:#34d399;" onclick="toggleLiveLineupMode(true)">
+              🟢 Passa a Formazione Reale
+            </button>
+            <button id="btnToggleToRecommended" class="btn btn-secondary btn-sm" style="display:none; font-size:0.72rem; padding:2px 8px;" onclick="toggleLiveLineupMode(false)">
+              🤖 Passa a Consigliata (IA)
             </button>
           </div>
         </div>
@@ -284,9 +345,12 @@
                 </div>
               </div>
             </div>
-            <div style="display:flex; gap:6px; align-items:center;">
+            <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+              <button class="btn btn-sm" onclick="openAIRecalibrationModal()" style="background:linear-gradient(135deg, rgba(139, 92, 246, 0.4), rgba(59, 130, 246, 0.3)); border:1px solid #c4b5fd; color:#ffffff; font-weight:800; font-size:0.75rem; padding:4px 10px;">
+                🧠 Apri Finestra Revisione (-13.5 pt) ↗
+              </button>
               <span id="aiAutoStatusPill" class="badge-status badge-success" style="font-size:0.72rem;">
-                🟢 Calibrazione Autonoma Attiva
+                🟢 Calibrazione Reattiva (Soglia Cauta Rimossa)
               </span>
             </div>
           </div>
@@ -792,12 +856,148 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
     </div>
   </dialog>
 
+  <!-- ================= MODAL: REVISIONE RICALIBRAZIONE AI (SOGLIA CAUTA RIMOSSA) ================= -->
+  <dialog id="aiRecalibrationModal" style="max-width:680px; width:94%; border:1px solid rgba(139, 92, 246, 0.4); background:#0f172a; border-radius:16px; padding:18px 20px; color:#f8fafc; box-shadow:0 20px 40px rgba(0,0,0,0.6); max-height:90vh; overflow-y:auto;">
+    <div class="modal-header" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <h3 style="font-size:1.2rem; font-weight:900; color:#c4b5fd; display:flex; align-items:center; gap:8px;">
+          🧠 Revisione Calibrazione AI • Scostamento -13.5 pt
+        </h3>
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
+          Diagnosi 6ª Giornata e rimozione del vincolo prudente (soglia cauta ±2% disattivata).
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeAIRecalibrationModal()">&times;</button>
+    </div>
+
+    <!-- Loss Diagnosis & Cauta Status Badge -->
+    <div style="background:linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(139, 92, 246, 0.12)); border:1px solid rgba(239, 68, 68, 0.35); border-radius:12px; padding:12px; margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+        <span style="font-size:0.8rem; font-weight:800; color:#f87171; text-transform:uppercase;">
+          📉 Gap Punteggio: -13.5 Punti Effettivi
+        </span>
+        <span class="badge-status badge-success" style="font-size:0.72rem; padding:2px 8px;">
+          🚀 SOGLIA CAUTA RIMOSSA
+        </span>
+      </div>
+      <div style="font-size:0.8rem; color:#e2e8f0; line-height:1.5;">
+        Nella 6ª Giornata il modello ha sovrastimato il potenziale offensivo in trasferta di <strong>Dybala</strong> (Como 0-0 Roma) e <strong>Ramos G.</strong> (Sassuolo 1-1 Milan) per -5.3 pt. In difesa, l'autogol al 73' e il giallo all'84' di <strong>Vasquez</strong> (3.5 pt) hanno fatto crollare la media reparto a 5.88, annullando il bonus del Modificatore Difesa previsto a +3.0 pt (-3.0 pt).
+      </div>
+    </div>
+
+    <!-- Player by Player Gap Breakdown -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.75rem; color:#94a3b8; font-weight:800; text-transform:uppercase; margin-bottom:6px; letter-spacing:0.4px;">
+        🔍 Dettaglio Scostamenti Calciatori Chiave:
+      </div>
+      <div id="recalErrorBreakdownList" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:8px;">
+        <!-- Populated via JS -->
+      </div>
+    </div>
+
+    <!-- Parameter Interactive Review Table -->
+    <div style="margin-bottom:14px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <span style="font-size:0.75rem; color:#c4b5fd; font-weight:800; text-transform:uppercase; letter-spacing:0.4px;">
+          ⚙️ Modifiche Parametri Applicate (Modificabili):
+        </span>
+        <span style="font-size:0.7rem; color:var(--text-muted);">
+          Puoi ritoccare i valori prima di confermare
+        </span>
+      </div>
+      <div id="recalParametersList" style="display:flex; flex-direction:column; gap:8px;">
+        <!-- Populated via JS with inputs -->
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08); flex-wrap:wrap; gap:8px;">
+      <button class="btn btn-secondary btn-sm" onclick="resetAIWeightsToDefault()">
+        🔄 Reset Pesi Standard
+      </button>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-secondary btn-sm" onclick="closeAIRecalibrationModal()">
+          Chiudi
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="saveCustomRecalibrationWeights()" style="background:#10b981; border-color:#059669; font-weight:800;">
+          💾 Salva & Applica Pesi Calibrati
+        </button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- ================= MODAL: CONFERMA FORMAZIONE REALE (DA LEGHE FC) ================= -->
+  <dialog id="actualLineupModal" style="max-width:640px; width:94%; border:1px solid rgba(59, 130, 246, 0.4); background:#0f172a; border-radius:16px; padding:18px 20px; color:#f8fafc; box-shadow:0 20px 40px rgba(0,0,0,0.6); max-height:90vh; overflow-y:auto;">
+    <div class="modal-header" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <h3 style="font-size:1.2rem; font-weight:900; color:#60a5fa; display:flex; align-items:center; gap:8px;">
+          📸 Formazione Reale Schierata • Leghe FC
+        </h3>
+        <div style="font-size:0.78rem; color:var(--text-muted); margin-top:2px;">
+          Verifica e conferma gli 11 titolari effettivamente messi in campo per il calcolo dei voti Live.
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeActualLineupModal()">&times;</button>
+    </div>
+
+    <!-- Recognition Status / Notes -->
+    <div id="actualLineupStatusBox" style="background:rgba(59, 130, 246, 0.1); border:1px solid rgba(59, 130, 246, 0.25); border-radius:10px; padding:10px; margin-bottom:12px; font-size:0.8rem;">
+      <div id="actualLineupStatusSource" style="color:#93c5fd; font-weight:800; margin-bottom:2px;">Analisi Screenshot</div>
+      <div id="actualLineupStatusNotes" style="color:var(--text-secondary);">Controlla che i giocatori corrispondano esattamente a quelli schierati nell'app.</div>
+    </div>
+
+    <!-- Module Selector -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:rgba(255,255,255,0.03); padding:8px 12px; border-radius:8px; border:1px solid rgba(255,255,255,0.06);">
+      <span style="font-size:0.82rem; font-weight:700; color:#e2e8f0;">Modulo di Gioco:</span>
+      <select id="actualLineupModuleSelect" class="search-input" style="width:auto; padding:4px 10px; font-size:0.85rem;" onchange="updateActualLineupModule(this.value)">
+        <option value="4-3-3">4-3-3</option>
+        <option value="3-4-3">3-4-3</option>
+        <option value="3-5-2">3-5-2</option>
+        <option value="4-4-2">4-4-2</option>
+        <option value="4-2-3-1">4-2-3-1</option>
+        <option value="5-3-2">5-3-2</option>
+        <option value="3-4-1-2">3-4-1-2</option>
+      </select>
+    </div>
+
+    <!-- Starters Selector List (11 slots) -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.75rem; color:#34d399; font-weight:800; text-transform:uppercase; margin-bottom:6px;">
+        ⭐ 11 Titolari Schierati in Campo:
+      </div>
+      <div id="actualStartersListEditor" style="display:flex; flex-direction:column; gap:6px;">
+        <!-- Populated via JS with player swap dropdowns -->
+      </div>
+    </div>
+
+    <!-- Bench List (Panchina) -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.75rem; color:#94a3b8; font-weight:800; text-transform:uppercase; margin-bottom:6px;">
+        🔄 Panchinari Disponibili:
+      </div>
+      <div id="actualBenchListEditor" style="display:flex; flex-wrap:wrap; gap:6px;">
+        <!-- Populated via JS -->
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
+      <button class="btn btn-secondary btn-sm" onclick="closeActualLineupModal()">
+        Annulla
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="saveActualLineupFromModal()" style="background:#10b981; border-color:#059669; font-weight:800;">
+        💾 Salva & Applica nel Live
+      </button>
+    </div>
+  </dialog>
+
   <!-- Toast Notification -->
   <div id="appToast" class="toast">Notifica</div>
 
   <!-- Scripts -->
-  <script src="/static/js/notifications.js?v=3.5"></script>
-  <script src="/static/js/pitch.js?v=3.5"></script>
-  <script src="/static/js/app.js?v=3.5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <script src="/static/js/notifications.js?v=3.6"></script>
+  <script src="/static/js/pitch.js?v=3.6"></script>
+  <script src="/static/js/app.js?v=3.6"></script>
 </body>
 </html>

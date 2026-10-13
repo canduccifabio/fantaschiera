@@ -282,17 +282,21 @@ function setLiveFilter(filterType) {
   }
 }
 
-async function loadLiveVotes() {
+let currentLiveUseActual = true;
+
+async function loadLiveVotes(useActual = null) {
+  if (useActual !== null) currentLiveUseActual = useActual;
   const container = document.getElementById('livePlayersListContainer');
   if (container && !currentLiveData) {
     container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Connessione al live match center...</div>`;
   }
   try {
-    const res = await fetch(`/api/live/votes?_t=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(`/api/live/votes?use_actual=${currentLiveUseActual}&_t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore nel recupero dei voti live");
     const data = await res.json();
     currentLiveData = data;
     renderLiveView(data);
+    updateLiveLineupModeIndicator(data);
   } catch (err) {
     console.error("Error loading live votes:", err);
     if (container && !currentLiveData) {
@@ -308,11 +312,12 @@ async function refreshLiveVotes(btn) {
   }
   try {
     showToast("🔄 Sincronizzo voti e formazioni live...");
-    const res = await fetch(`/api/live/refresh?_t=${Date.now()}`, { method: 'POST', cache: 'no-store' });
+    const res = await fetch(`/api/live/refresh?use_actual=${currentLiveUseActual}&_t=${Date.now()}`, { method: 'POST', cache: 'no-store' });
     const json = await res.json();
     if (json.success && json.data) {
       currentLiveData = json.data;
       renderLiveView(json.data);
+      updateLiveLineupModeIndicator(json.data);
       loadLineupRecommendation();
       showToast("⚡ Orari e voti live sincronizzati!");
     } else {
@@ -327,6 +332,32 @@ async function refreshLiveVotes(btn) {
       btn.innerHTML = `<span>⚡ Aggiorna Voti Live</span>`;
     }
   }
+}
+
+function updateLiveLineupModeIndicator(data) {
+  const lbl = document.getElementById('liveLineupModeLabel');
+  const btnActual = document.getElementById('btnToggleToActual');
+  const btnRec = document.getElementById('btnToggleToRecommended');
+  if (!lbl) return;
+
+  if (data.is_actual_lineup) {
+    lbl.innerHTML = `🟢 Titolari: <strong>Formazione Reale Schierata</strong> (${data.actual_formation || '11 Titolari'})`;
+    if (btnActual) btnActual.style.display = 'none';
+    if (btnRec) btnRec.style.display = 'inline-block';
+  } else if (data.has_actual_lineup) {
+    lbl.innerHTML = `🤖 Titolari: <strong>Formazione Consigliata (IA)</strong>`;
+    if (btnActual) btnActual.style.display = 'inline-block';
+    if (btnRec) btnRec.style.display = 'none';
+  } else {
+    lbl.innerHTML = `🤖 Titolari: <strong>Formazione Consigliata (IA)</strong> <span style="font-size:0.7rem; color:var(--text-muted);">(Carica screenshot in Schiera per la tua formazione reale)</span>`;
+    if (btnActual) btnActual.style.display = 'none';
+    if (btnRec) btnRec.style.display = 'none';
+  }
+}
+
+function toggleLiveLineupMode(useActual) {
+  loadLiveVotes(useActual);
+  showToast(useActual ? "🟢 Visualizzo la tua Formazione Reale Schierata!" : "🤖 Visualizzo la Formazione Consigliata dall'IA!");
 }
 
 function renderLiveView(data) {
@@ -1625,8 +1656,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial load
   loadLineupRecommendation();
+  loadActualLineupState();
   loadTunnelInfo();
   loadLiveVotes();
+
+  // Global paste listener for easy screenshot upload (Ctrl+V)
+  window.addEventListener('paste', handleClipboardPaste);
 
   // Automatic background refresh every 30 seconds for live data
   setInterval(() => {
@@ -2009,5 +2044,479 @@ function forceHardReload() {
     const sep = window.location.href.includes('?') ? '&' : '?';
     window.location.href = window.location.href.split('?')[0] + sep + '_bust=' + Date.now();
   }, 350);
+}
+
+// ================= AI RECALIBRATION INTERACTIVE REVIEW =================
+let cachedRecalibrationData = null;
+
+async function openAIRecalibrationModal() {
+  const dialog = document.getElementById('aiRecalibrationModal');
+  if (!dialog) return;
+  dialog.showModal();
+
+  const errList = document.getElementById('recalErrorBreakdownList');
+  const paramsList = document.getElementById('recalParametersList');
+  if (errList) errList.innerHTML = `<div style="text-align:center; padding:15px; color:var(--text-muted); font-size:0.8rem;">Caricamento dettagli scostamenti...</div>`;
+  if (paramsList) paramsList.innerHTML = `<div style="text-align:center; padding:15px; color:var(--text-muted); font-size:0.8rem;">Caricamento parametri modificati...</div>`;
+
+  try {
+    const res = await fetch(`/api/ai/recalibration-preview?_t=${Date.now()}`);
+    if (!res.ok) throw new Error("Errore recupero preview calibrazione");
+    const data = await res.json();
+    cachedRecalibrationData = data;
+    renderAIRecalibrationPreview(data);
+  } catch (e) {
+    console.error("Recalibration preview error:", e);
+    if (paramsList) paramsList.innerHTML = `<div style="color:#f87171; text-align:center; padding:15px;">Errore nel caricamento dei dati di ricalibrazione.</div>`;
+  }
+}
+
+function closeAIRecalibrationModal() {
+  const dialog = document.getElementById('aiRecalibrationModal');
+  if (dialog) dialog.close();
+}
+
+function renderAIRecalibrationPreview(data) {
+  if (!data) return;
+
+  // Render player breakdown
+  const errList = document.getElementById('recalErrorBreakdownList');
+  if (errList && data.error_breakdown) {
+    errList.innerHTML = data.error_breakdown.map(item => `
+      <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:8px 10px; font-size:0.78rem;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div style="font-weight:800; color:#ffffff; display:flex; align-items:center; gap:4px;">
+            <span class="role-badge role-${item.role}" style="font-size:0.65rem; padding:1px 5px;">${item.role}</span>
+            <span>${item.player}</span>
+            <span style="font-size:0.7rem; color:var(--text-muted); font-weight:400;">(${item.team})</span>
+          </div>
+          <span class="badge-status badge-danger" style="font-size:0.72rem; padding:1px 6px;">
+            ${item.delta > 0 ? '+' : ''}${item.delta} pt
+          </span>
+        </div>
+        <div style="color:#94a3b8; font-size:0.73rem; margin-bottom:4px;">
+          🏟️ ${item.match} • Previsto: <strong>${item.expected}</strong> → Reale: <strong>${item.real}</strong>
+        </div>
+        <div style="color:#cbd5e1; font-size:0.72rem; line-height:1.3; background:rgba(0,0,0,0.2); padding:5px 7px; border-radius:6px; margin-bottom:3px;">
+          ⚠️ <em>${item.cause}</em>
+        </div>
+        <div style="color:#34d399; font-size:0.7rem; font-weight:600;">
+          💡 Rimedio AI: ${item.remedy}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // Render parameters with inputs
+  const paramsList = document.getElementById('recalParametersList');
+  if (paramsList && data.parameters) {
+    paramsList.innerHTML = data.parameters.map(p => {
+      const isShifted = p.diff !== 0;
+      const shiftColor = p.diff > 0 ? '#f59e0b' : (p.diff < 0 ? '#38bdf8' : '#94a3b8');
+      const borderClass = isShifted ? 'border:1px solid rgba(139, 92, 246, 0.35);' : 'border:1px solid rgba(255,255,255,0.06);';
+      return `
+        <div style="background:rgba(255,255,255,0.02); ${borderClass} border-radius:10px; padding:10px 12px; font-size:0.8rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; margin-bottom:4px;">
+            <div>
+              <span style="font-weight:800; color:#f8fafc; font-size:0.85rem;">${p.name}</span>
+              <span style="font-size:0.7rem; color:var(--text-muted); margin-left:6px;">[${p.category}]</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="color:${shiftColor}; font-weight:800; font-size:0.78rem;">
+                ${p.diff_str} (${p.pct_str})
+              </span>
+              <div style="display:flex; align-items:center; gap:4px;">
+                <span style="font-size:0.72rem; color:var(--text-muted);">Valore:</span>
+                <input type="number" step="0.05" class="search-input" data-param-key="${p.key}" value="${p.new_value}" style="width:75px; padding:3px 6px; font-size:0.82rem; font-weight:700; text-align:center; color:#34d399;" />
+              </div>
+            </div>
+          </div>
+          <div style="font-size:0.73rem; color:var(--text-secondary); line-height:1.4;">
+            ${p.description}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+}
+
+async function saveCustomRecalibrationWeights() {
+  const inputs = document.querySelectorAll('#recalParametersList input[data-param-key]');
+  const weights = {};
+  inputs.forEach(inp => {
+    const k = inp.getAttribute('data-param-key');
+    const val = parseFloat(inp.value);
+    if (k && !isNaN(val)) {
+      weights[k] = val;
+    }
+  });
+
+  try {
+    showToast("💾 Applico i nuovi parametri calibrati...");
+    const res = await fetch('/api/ai/apply-recalibration', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weights: weights })
+    });
+    const json = await res.json();
+    if (json.success) {
+      showToast(`🧠 Pesi AI Epoca ${json.epoch} applicati con successo!`);
+      closeAIRecalibrationModal();
+      loadAILearningStatus();
+      loadLineupRecommendation();
+      loadLiveVotes();
+    } else {
+      showToast(json.message || "Errore durante il salvataggio.");
+    }
+  } catch (e) {
+    console.error("Save weights error:", e);
+    showToast("Impossibile salvare i nuovi pesi.");
+  }
+}
+
+async function resetAIWeightsToDefault() {
+  if (!confirm("Vuoi ripristinare i parametri del modello ai valori standard?")) return;
+  try {
+    showToast("🔄 Ripristino pesi standard...");
+    const res = await fetch('/api/ai/reset-weights', { method: 'POST' });
+    const json = await res.json();
+    if (json.success) {
+      showToast("✅ Parametri standard ripristinati!");
+      openAIRecalibrationModal();
+      loadAILearningStatus();
+      loadLineupRecommendation();
+      loadLiveVotes();
+    }
+  } catch (e) {
+    showToast("Errore durante il reset dei pesi.");
+  }
+}
+
+// ================= ACTUAL LINEUP & LEGHE FC SCREENSHOT =================
+let cachedActualLineup = null;
+
+async function loadActualLineupState() {
+  try {
+    const res = await fetch(`/api/lineup/actual?_t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    cachedActualLineup = data.lineup;
+    renderActualLineupCard(data.lineup);
+  } catch (e) {
+    console.warn("Could not load actual lineup state", e);
+  }
+}
+
+function renderActualLineupCard(lineup) {
+  const badge = document.getElementById('actualLineupStatusBadge');
+  const detailsBanner = document.getElementById('actualLineupDetailsBanner');
+  const btnView = document.getElementById('btnViewActualLineup');
+  const btnClear = document.getElementById('btnClearActualLineup');
+  const moduleTxt = document.getElementById('actualLineupModuleText');
+  const sourceTxt = document.getElementById('actualLineupSourceText');
+  const pillsContainer = document.getElementById('actualLineupStartersPills');
+
+  if (!badge) return;
+
+  if (lineup && lineup.starters && lineup.starters.length > 0) {
+    badge.className = 'badge-status badge-success';
+    badge.innerText = `🟢 Attiva (${lineup.starters.length} Titolari)`;
+    if (detailsBanner) detailsBanner.style.display = 'block';
+    if (btnView) btnView.style.display = 'inline-flex';
+    if (btnClear) btnClear.style.display = 'inline-flex';
+    if (moduleTxt) moduleTxt.innerText = lineup.formation || '4-3-3';
+    if (sourceTxt) sourceTxt.innerText = `(${lineup.source || 'Leghe FC'})`;
+
+    if (pillsContainer) {
+      pillsContainer.innerHTML = lineup.starters.map(p => `
+        <span style="background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); color:#34d399; font-weight:700; font-size:0.7rem; padding:2px 7px; border-radius:6px; display:inline-flex; align-items:center; gap:3px;">
+          <span class="role-badge role-${p.role}" style="font-size:0.6rem; padding:1px 3px;">${p.role}</span>
+          ${p.name}
+        </span>
+      `).join('');
+    }
+  } else {
+    badge.className = 'badge-status badge-secondary';
+    badge.innerText = 'Nessuno screenshot attivo';
+    if (detailsBanner) detailsBanner.style.display = 'none';
+    if (btnView) btnView.style.display = 'none';
+    if (btnClear) btnClear.style.display = 'none';
+  }
+}
+
+async function handleScreenshotUpload(event) {
+  const file = event.target.files ? event.target.files[0] : null;
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64Data = e.target.result;
+    await processScreenshotData(base64Data, file);
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+async function handleClipboardPaste(event) {
+  const items = (event.clipboardData || event.originalEvent?.clipboardData)?.items;
+  if (!items) return;
+
+  for (let i = 0; i < items.length; i++) {
+    if (items[i].type && items[i].type.indexOf('image') !== -1) {
+      const file = items[i].getAsFile();
+      if (file) {
+        showToast("📸 Screenshot rilevato dagli appunti! Inizio analisi...");
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          await processScreenshotData(e.target.result, file);
+        };
+        reader.readAsDataURL(file);
+        break;
+      }
+    }
+  }
+}
+
+async function processScreenshotData(base64Data, file) {
+  showToast("🧠 Analisi screenshot in corso (AI Vision & OCR)...");
+  
+  let extracted = null;
+  try {
+    const res = await fetch('/api/lineup/extract-screenshot', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image_base64: base64Data })
+    });
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && json.result && json.result.starters && json.result.starters.length >= 8) {
+        extracted = json.result;
+      }
+    }
+  } catch (e) {
+    console.warn("Backend vision failed, trying client OCR fallback", e);
+  }
+
+  // Client-side OCR Fallback with Tesseract.js if needed
+  if (!extracted || !extracted.starters || extracted.starters.length < 8) {
+    if (window.Tesseract) {
+      try {
+        showToast("🔍 Riconoscimento testo con OCR locale...");
+        const ocrRes = await Tesseract.recognize(base64Data, 'ita', {
+          logger: m => {}
+        });
+        const ocrText = ocrRes.data.text || '';
+        if (ocrText) {
+          const res2 = await fetch('/api/lineup/extract-screenshot', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ocr_text: ocrText })
+          });
+          if (res2.ok) {
+            const json2 = await res2.json();
+            if (json2.success && json2.result) {
+              extracted = json2.result;
+            }
+          }
+        }
+      } catch (ocrErr) {
+        console.warn("Tesseract OCR fallback error:", ocrErr);
+      }
+    }
+  }
+
+  await openActualLineupModal(extracted);
+}
+
+async function getUserSquadList() {
+  if (currentSquadData && currentSquadData.length > 0) return currentSquadData;
+  try {
+    const res = await fetch('/api/squad');
+    if (res.ok) {
+      const data = await res.json();
+      currentSquadData = data.players || [];
+      return currentSquadData;
+    }
+  } catch (e) {}
+  return [];
+}
+
+async function openActualLineupModal(extractedData = null) {
+  const dialog = document.getElementById('actualLineupModal');
+  if (!dialog) return;
+
+  const squad = await getUserSquadList();
+  if (!squad || squad.length === 0) {
+    showToast("Attenzione: Rosa non caricata. Verifica la tab La Tua Rosa.");
+    return;
+  }
+
+  let data = extractedData;
+  if (!data) {
+    data = cachedActualLineup || {
+      formation: currentFormation !== 'auto' ? currentFormation : '4-3-3',
+      starters: (currentLineupData && currentLineupData.starters) ? currentLineupData.starters : squad.slice(0, 11),
+      bench: (currentLineupData && currentLineupData.bench) ? currentLineupData.bench : squad.slice(11),
+      source: "Formazione Attuale",
+      notes: "Verifica e conferma gli 11 titolari."
+    };
+  }
+
+  renderActualLineupEditor(data, squad);
+  dialog.showModal();
+}
+
+function closeActualLineupModal() {
+  const dialog = document.getElementById('actualLineupModal');
+  if (dialog) dialog.close();
+}
+
+function renderActualLineupEditor(data, squad) {
+  const modSelect = document.getElementById('actualLineupModuleSelect');
+  if (modSelect) modSelect.value = data.formation || '4-3-3';
+
+  const statusSource = document.getElementById('actualLineupStatusSource');
+  const statusNotes = document.getElementById('actualLineupStatusNotes');
+  if (statusSource) statusSource.innerText = `Fonte: ${data.source || 'Screenshot Leghe FC'}`;
+  if (statusNotes) statusNotes.innerText = data.notes || "Seleziona gli 11 titolari effettivi schierati in campo.";
+
+  let starters = data.starters ? [...data.starters] : [];
+  if (starters.length < 11) {
+    const existingNames = new Set(starters.map(p => p.name));
+    for (const p of squad) {
+      if (!existingNames.has(p.name)) {
+        starters.push(p);
+        existingNames.add(p.name);
+        if (starters.length === 11) break;
+      }
+    }
+  }
+
+  const startersListEl = document.getElementById('actualStartersListEditor');
+  if (startersListEl) {
+    startersListEl.innerHTML = starters.slice(0, 11).map((s, idx) => {
+      const optionsHtml = squad.map(p => `
+        <option value="${p.name}" ${p.name.toLowerCase() === s.name.toLowerCase() ? 'selected' : ''}>
+          [${p.role}] ${p.name} (${p.team})
+        </option>
+      `).join('');
+
+      return `
+        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:6px 10px;">
+          <span style="font-weight:800; font-size:0.75rem; color:var(--text-muted); width:20px;">#${idx + 1}</span>
+          <span class="role-badge role-${s.role || 'C'}" style="font-size:0.7rem; padding:2px 6px;">${s.role || 'C'}</span>
+          <select class="search-input" data-starter-slot="${idx}" style="flex:1; padding:4px 8px; font-size:0.85rem;" onchange="handleStarterSlotChange(${idx}, this.value)">
+            ${optionsHtml}
+          </select>
+        </div>
+      `;
+    }).join('');
+  }
+
+  const benchListEl = document.getElementById('actualBenchListEditor');
+  if (benchListEl) {
+    const starterNames = new Set(starters.map(p => p.name));
+    const bench = squad.filter(p => !starterNames.has(p.name));
+    benchListEl.innerHTML = bench.map(p => `
+      <span style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text-secondary); font-size:0.75rem; padding:3px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
+        <span class="role-badge role-${p.role}" style="font-size:0.6rem; padding:1px 4px;">${p.role}</span>
+        ${p.name}
+      </span>
+    `).join(' ');
+  }
+}
+
+async function handleStarterSlotChange(changedSlotIdx, newPlayerName) {
+  const squad = await getUserSquadList();
+  const selectElements = document.querySelectorAll('#actualStartersListEditor select[data-starter-slot]');
+  
+  const newPlayer = squad.find(p => p.name === newPlayerName);
+  if (!newPlayer) return;
+
+  selectElements.forEach((sel, idx) => {
+    if (idx !== changedSlotIdx && sel.value === newPlayerName) {
+      const currentStarters = Array.from(selectElements).map(s => s.value);
+      const unused = squad.find(p => !currentStarters.includes(p.name));
+      if (unused) sel.value = unused.name;
+    }
+  });
+
+  const currentStarters = new Set(Array.from(selectElements).map(s => s.value));
+  const benchListEl = document.getElementById('actualBenchListEditor');
+  if (benchListEl) {
+    const bench = squad.filter(p => !currentStarters.has(p.name));
+    benchListEl.innerHTML = bench.map(p => `
+      <span style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text-secondary); font-size:0.75rem; padding:3px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
+        <span class="role-badge role-${p.role}" style="font-size:0.6rem; padding:1px 4px;">${p.role}</span>
+        ${p.name}
+      </span>
+    `).join(' ');
+  }
+}
+
+function updateActualLineupModule(newModule) {
+  showToast(`Modulo impostato su ${newModule}`);
+}
+
+async function saveActualLineupFromModal() {
+  const squad = await getUserSquadList();
+  const modSelect = document.getElementById('actualLineupModuleSelect');
+  const formation = modSelect ? modSelect.value : '4-3-3';
+
+  const selectElements = document.querySelectorAll('#actualStartersListEditor select[data-starter-slot]');
+  const starterNames = Array.from(selectElements).map(s => s.value);
+
+  const starters = starterNames.map(name => {
+    return squad.find(p => p.name === name) || { name: name, role: 'C', team: '' };
+  });
+
+  const starterNameSet = new Set(starterNames);
+  const bench = squad.filter(p => !starterNameSet.has(p.name));
+
+  const payload = {
+    formation: formation,
+    starters: starters,
+    bench: bench,
+    notes: `Formazione reale confermata (${formation})`
+  };
+
+  try {
+    showToast("💾 Salvataggio formazione reale in corso...");
+    const res = await fetch('/api/lineup/actual', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const json = await res.json();
+    if (json.success) {
+      cachedActualLineup = json.lineup;
+      renderActualLineupCard(json.lineup);
+      closeActualLineupModal();
+      showToast("✅ Formazione reale sincronizzata con il Live Match Center!");
+      loadLiveVotes(true);
+    } else {
+      showToast("Errore durante il salvataggio.");
+    }
+  } catch (e) {
+    console.error("Save actual lineup error:", e);
+    showToast("Impossibile salvare la formazione reale.");
+  }
+}
+
+async function clearActualLineup() {
+  if (!confirm("Vuoi cancellare la formazione reale schierata e tornare a quella consigliata dall'algoritmo?")) return;
+  try {
+    showToast("🗑️ Reset formazione reale...");
+    const res = await fetch('/api/lineup/actual', { method: 'DELETE' });
+    const json = await res.json();
+    if (json.success) {
+      cachedActualLineup = null;
+      renderActualLineupCard(null);
+      showToast("🔄 Ripristinata formazione consigliata dell'IA.");
+      loadLiveVotes(false);
+    }
+  } catch (e) {
+    showToast("Errore durante il reset della formazione reale.");
+  }
 }
 

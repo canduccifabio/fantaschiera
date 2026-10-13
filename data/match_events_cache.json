@@ -1480,6 +1480,336 @@
       "desc": "Espulsione (90')"
     }
   ],
-  "ATA_VEN": [],
-  "TOR_UDI": []
+  "ATA_VEN": [
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "4'",
+      "player_name": "Kessiè",
+      "team": "ATA",
+      "desc": "Gol (4') • Assist: Krstovic",
+      "assist_player": "Krstovic"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "4'",
+      "player_name": "Krstovic",
+      "team": "ATA",
+      "desc": "Assist per Kessiè (4')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "4'",
+      "player_name": "Stankovic F.",
+      "team": "VEN",
+      "desc": "Gol subito (4')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "7'",
+      "player_name": "Krstovic",
+      "team": "ATA",
+      "desc": "Gol (7') • Assist: Elmas",
+      "assist_player": "Elmas"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "7'",
+      "player_name": "Elmas",
+      "team": "ATA",
+      "desc": "Assist per Krstovic (7')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "7'",
+      "player_name": "Stankovic F.",
+      "team": "VEN",
+      "desc": "Gol subito (7')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "8'",
+      "player_name": "Sagrado",
+      "team": "VEN",
+      "player_out": "Correia T.",
+      "desc": "Entra al posto di Correia T. (8')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "18'",
+      "player_name": "Moreno M.",
+      "team": "VEN",
+      "desc": "Ammonizione (18')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "31'",
+      "player_name": "Krstovic",
+      "team": "ATA",
+      "desc": "Gol (31')",
+      "assist_player": ""
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "31'",
+      "player_name": "Stankovic F.",
+      "team": "VEN",
+      "desc": "Gol subito (31')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "37'",
+      "player_name": "Carnesecchi",
+      "team": "ATA",
+      "desc": "Gol subito (37')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "37'",
+      "player_name": "Hainaut",
+      "team": "VEN",
+      "desc": "Gol (37') • Assist: Sagrado",
+      "assist_player": "Sagrado"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "37'",
+      "player_name": "Sagrado",
+      "team": "VEN",
+      "desc": "Assist per Hainaut (37')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "43'",
+      "player_name": "Juan Jesus",
+      "team": "VEN",
+      "desc": "Ammonizione (43')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "60'",
+      "player_name": "Samardzic",
+      "team": "ATA",
+      "player_out": "De Ketelaere",
+      "desc": "Entra al posto di De Ketelaere (60')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "67'",
+      "player_name": "Bernasconi",
+      "team": "ATA",
+      "player_out": "Bellanova",
+      "desc": "Entra al posto di Bellanova (67')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "67'",
+      "player_name": "Kolasinac",
+      "team": "ATA",
+      "player_out": "Scalvini",
+      "desc": "Entra al posto di Scalvini (67')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "76'",
+      "player_name": "Gaetano",
+      "team": "ATA",
+      "player_out": "Kessiè",
+      "desc": "Entra al posto di Kessiè (76')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "76'",
+      "player_name": "Zalewski",
+      "team": "ATA",
+      "player_out": "Rowe",
+      "desc": "Entra al posto di Rowe (76')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "83'",
+      "player_name": "Schingtienne",
+      "team": "VEN",
+      "player_out": "Moreno M.",
+      "desc": "Entra al posto di Moreno M. (83')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "83'",
+      "player_name": "Helgason",
+      "team": "VEN",
+      "player_out": "Basic",
+      "desc": "Entra al posto di Basic (83')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "83'",
+      "player_name": "Lauberbach",
+      "team": "VEN",
+      "player_out": "Adams A.",
+      "desc": "Entra al posto di Adams A. (83')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "87'",
+      "player_name": "Rrahmani Al.",
+      "team": "VEN",
+      "player_out": "Sohm",
+      "desc": "Entra al posto di Sohm (87')"
+    },
+    {
+      "type": "card",
+      "icon": "🟥",
+      "minute": "89'",
+      "player_name": "Elmas",
+      "team": "ATA",
+      "desc": "Espulsione (89')"
+    }
+  ],
+  "TOR_UDI": [
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "37'",
+      "player_name": "Braganca",
+      "team": "TOR",
+      "desc": "Gol 1-0 (37')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "43'",
+      "player_name": "Ekkelenkamp",
+      "team": "UDI",
+      "desc": "Gol 1-1 (43')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "46'",
+      "player_name": "Ismajli",
+      "team": "TOR",
+      "player_out": "Rodriguez R.",
+      "desc": "Entra per Rodriguez R. (46')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "54'",
+      "player_name": "Ilkhan",
+      "team": "TOR",
+      "player_out": "Braganca",
+      "desc": "Entra per Braganca (54')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "54'",
+      "player_name": "Vlasic",
+      "team": "TOR",
+      "player_out": "Oristanio",
+      "desc": "Entra per Oristanio (54')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "60'",
+      "player_name": "Bertola",
+      "team": "UDI",
+      "player_out": "Abankwah",
+      "desc": "Entra per Abankwah (60')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "64'",
+      "player_name": "Kulenovic",
+      "team": "TOR",
+      "player_out": "Adams C.",
+      "desc": "Entra per Adams C. (64')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "67'",
+      "player_name": "Kulenovic",
+      "team": "TOR",
+      "desc": "Gol 2-1 (67')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "72'",
+      "player_name": "Alaba",
+      "team": "UDI",
+      "player_out": "Vojvoda",
+      "desc": "Entra per Vojvoda (72')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "72'",
+      "player_name": "Jovanovic",
+      "team": "UDI",
+      "player_out": "Zarraga",
+      "desc": "Entra per Zarraga (72')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "72'",
+      "player_name": "Davis K.",
+      "team": "UDI",
+      "player_out": "Unai Gomez",
+      "desc": "Entra per Unai Gomez (72')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "77'",
+      "player_name": "Gineitis",
+      "team": "TOR",
+      "player_out": "Ilkhan",
+      "desc": "Entra per Ilkhan (77')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "81'",
+      "player_name": "Arizala",
+      "team": "UDI",
+      "player_out": "Kamara H.",
+      "desc": "Entra per Kamara H. (81')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "90'",
+      "player_name": "Bertola",
+      "team": "UDI",
+      "desc": "Ammonizione (90')"
+    }
+  ]
 }

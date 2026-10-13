@@ -108,7 +108,56 @@ MATCH_KNOWN_EVENTS = _CACHED_EVENTS if _CACHED_EVENTS else {
         {'type': 'goal', 'icon': '⚽', 'minute': "17'", 'player_name': 'Orsolini', 'team': 'BOL', 'desc': 'Gol 0-1 (17\') • Assist: Cambiaghi', 'assist_player': 'Cambiaghi'},
         {'type': 'goal', 'icon': '⚽', 'minute': "65'", 'player_name': 'Castro', 'team': 'BOL', 'desc': 'Gol 0-2 (65\') • Assist: Veiga D.', 'assist_player': 'Veiga D.'},
         {'type': 'goal', 'icon': '⚽', 'minute': "76'", 'player_name': 'Ferguson', 'team': 'BOL', 'desc': 'Gol 0-3 (76\') • Assist: Cambiaghi', 'assist_player': 'Cambiaghi'},
+    ],
+    'ATA_VEN': [
+        {'type': 'goal', 'icon': '⚽', 'minute': "4'", 'player_name': 'Kessiè', 'team': 'ATA', 'desc': 'Gol 1-0 (4\') • Assist: Krstovic', 'assist_player': 'Krstovic'},
+        {'type': 'assist', 'icon': '👟', 'minute': "4'", 'player_name': 'Krstovic', 'team': 'ATA', 'desc': 'Assist per Kessiè (4\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "4'", 'player_name': 'Stankovic F.', 'team': 'VEN', 'desc': 'Gol subito (4\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "7'", 'player_name': 'Krstovic', 'team': 'ATA', 'desc': 'Gol 2-0 (7\') • Assist: Elmas', 'assist_player': 'Elmas'},
+        {'type': 'assist', 'icon': '👟', 'minute': "7'", 'player_name': 'Elmas', 'team': 'ATA', 'desc': 'Assist per Krstovic (7\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "7'", 'player_name': 'Stankovic F.', 'team': 'VEN', 'desc': 'Gol subito (7\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "8'", 'player_name': 'Sagrado', 'team': 'VEN', 'player_out': 'Correia T.', 'desc': 'Entra per Correia T. (8\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "18'", 'player_name': 'Moreno M.', 'team': 'VEN', 'desc': 'Ammonizione (18\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "31'", 'player_name': 'Krstovic', 'team': 'ATA', 'desc': 'Gol 3-0 (31\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "31'", 'player_name': 'Stankovic F.', 'team': 'VEN', 'desc': 'Gol subito (31\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "37'", 'player_name': 'Hainaut', 'team': 'VEN', 'desc': 'Gol 3-1 (37\') • Assist: Sagrado', 'assist_player': 'Sagrado'},
+        {'type': 'assist', 'icon': '👟', 'minute': "37'", 'player_name': 'Sagrado', 'team': 'VEN', 'desc': 'Assist per Hainaut (37\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "37'", 'player_name': 'Carnesecchi', 'team': 'ATA', 'desc': 'Gol subito (37\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "43'", 'player_name': 'Juan Jesus', 'team': 'VEN', 'desc': 'Ammonizione (43\')'},
+        {'type': 'card', 'icon': '🟥', 'minute': "89'", 'player_name': 'Elmas', 'team': 'ATA', 'desc': 'Espulsione (89\')'}
+    ],
+    'TOR_UDI': [
+        {'type': 'goal', 'icon': '⚽', 'minute': "37'", 'player_name': 'Braganca', 'team': 'TOR', 'desc': 'Gol 1-0 (37\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "37'", 'player_name': 'Okoye', 'team': 'UDI', 'desc': 'Gol subito (37\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "43'", 'player_name': 'Ekkelenkamp', 'team': 'UDI', 'desc': 'Gol 1-1 (43\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "43'", 'player_name': 'Perri', 'team': 'TOR', 'desc': 'Gol subito (43\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "46'", 'player_name': 'Ismajli', 'team': 'TOR', 'player_out': 'Rodriguez R.', 'desc': 'Entra per Rodriguez R. (46\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "54'", 'player_name': 'Ilkhan', 'team': 'TOR', 'player_out': 'Braganca', 'desc': 'Entra per Braganca (54\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "54'", 'player_name': 'Vlasic', 'team': 'TOR', 'player_out': 'Oristanio', 'desc': 'Entra per Oristanio (54\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "60'", 'player_name': 'Bertola', 'team': 'UDI', 'player_out': 'Abankwah', 'desc': 'Entra per Abankwah (60\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "64'", 'player_name': 'Kulenovic', 'team': 'TOR', 'player_out': 'Adams C.', 'desc': 'Entra per Adams C. (64\')'},
+        {'type': 'goal', 'icon': '⚽', 'minute': "67'", 'player_name': 'Kulenovic', 'team': 'TOR', 'desc': 'Gol 2-1 (67\')'},
+        {'type': 'conceded', 'icon': '🧤', 'minute': "67'", 'player_name': 'Okoye', 'team': 'UDI', 'desc': 'Gol subito (67\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "72'", 'player_name': 'Alaba', 'team': 'UDI', 'player_out': 'Vojvoda', 'desc': 'Entra per Vojvoda (72\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "72'", 'player_name': 'Jovanovic', 'team': 'UDI', 'player_out': 'Zarraga', 'desc': 'Entra per Zarraga (72\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "72'", 'player_name': 'Davis K.', 'team': 'UDI', 'player_out': 'Unai Gomez', 'desc': 'Entra per Unai Gomez (72\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "77'", 'player_name': 'Gineitis', 'team': 'TOR', 'player_out': 'Ilkhan', 'desc': 'Entra per Ilkhan (77\')'},
+        {'type': 'sub', 'icon': '⇄', 'minute': "81'", 'player_name': 'Arizala', 'team': 'UDI', 'player_out': 'Kamara H.', 'desc': 'Entra per Kamara H. (81\')'},
+        {'type': 'card', 'icon': '🟨', 'minute': "90'", 'player_name': 'Bertola', 'team': 'UDI', 'desc': 'Ammonizione (90\')'}
     ]
+}
+
+KNOWN_MATCH_SCORES = {
+    'GEN_FIO': (2, 1),
+    'INT_PAR': (3, 0),
+    'NAP_FRO': (3, 0),
+    'COM_ROM': (0, 0),
+    'LAZ_MON': (3, 1),
+    'LEC_BOL': (1, 2),
+    'SAS_MIL': (1, 1),
+    'CAG_JUV': (1, 1),
+    'ATA_VEN': (3, 1),
+    'TOR_UDI': (2, 1)
 }
 
 TEAM_CODE_MAP = {
@@ -348,6 +397,27 @@ class LiveMatchTracker:
             print(f"[LiveTracker] Note: timeline scrape error for {match_url}: {e}")
         return events
 
+    def _get_fallback_score(self, h_code: str, a_code: str) -> tuple:
+        m_key = f"{h_code}_{a_code}"
+        if m_key in KNOWN_MATCH_SCORES:
+            return KNOWN_MATCH_SCORES[m_key]
+        events = self.load_match_events().get(m_key, [])
+        h_s, a_s = 0, 0
+        for ev in events:
+            ev_type = ev.get('type')
+            ev_team = ev.get('team')
+            if ev_type == 'goal':
+                if ev_team == h_code:
+                    h_s += 1
+                elif ev_team == a_code:
+                    a_s += 1
+            elif ev_type == 'own_goal':
+                if ev_team == h_code:
+                    a_s += 1
+                elif ev_team == a_code:
+                    h_s += 1
+        return (h_s, a_s)
+
     def get_fixture_state(self, fixture: Optional[Dict], now: datetime, live_scores: Optional[Dict] = None) -> Dict[str, Any]:
         """
         Determines the real-time match state based on real-time Fantacalcio.it live scores
@@ -394,6 +464,11 @@ class LiveMatchTracker:
         if live_info:
             h_score = live_info['home_score']
             a_score = live_info['away_score']
+            # If match is finished or st_code == 4 and score is 0-0, verify with fallback
+            if (st_code == 4 or (kickoff_dt and now >= kickoff_dt + timedelta(minutes=115))) and h_score == 0 and a_score == 0:
+                fb_h, fb_a = self._get_fallback_score(h_code, a_code)
+                if fb_h > 0 or fb_a > 0:
+                    h_score, a_score = fb_h, fb_a
             score_with_goals = f"{h_name} {h_score} - {a_score} {a_name}"
 
             # Fantacalcio.it codes: 0=pre-match, 1=1st half, 2=HT/intervallo, 3=2nd half, 4=finished
@@ -449,7 +524,7 @@ class LiveMatchTracker:
                     'short_time': short_time
                 }
 
-        # Fallback to local clock calculation if live scraping has not populated yet
+        # Fallback to local clock calculation if live scraping has transitioned to next round or not populated
         if not kickoff_dt or now < kickoff_dt:
             return {
                 'status': 'DA GIOCARE',
@@ -477,14 +552,17 @@ class LiveMatchTracker:
             else:
                 min_str = "90+4'"
 
+            h_score, a_score = self._get_fallback_score(h_code, a_code)
+            score_with_goals = f"{h_name} {h_score} - {a_score} {a_name}"
+
             return {
                 'status': 'IN CORSO',
                 'min': min_str,
                 'status_badge': f"LIVE {min_str} 🔴",
                 'status_class': 'badge-danger',
-                'score': match_title,
-                'home_score': 0,
-                'away_score': 0,
+                'score': score_with_goals,
+                'home_score': h_score,
+                'away_score': a_score,
                 'is_live': True,
                 'is_finished': False,
                 'is_upcoming': False,
@@ -492,14 +570,16 @@ class LiveMatchTracker:
                 'short_time': short_time
             }
         else:
+            h_score, a_score = self._get_fallback_score(h_code, a_code)
+            score_with_goals = f"{h_name} {h_score} - {a_score} {a_name}"
             return {
                 'status': 'TERMINATA',
                 'min': 'Finale',
                 'status_badge': 'FINALE 🏁',
                 'status_class': 'badge-secondary',
-                'score': match_title,
-                'home_score': 0,
-                'away_score': 0,
+                'score': score_with_goals,
+                'home_score': h_score,
+                'away_score': a_score,
                 'is_live': False,
                 'is_finished': True,
                 'is_upcoming': False,
@@ -722,10 +802,12 @@ class LiveMatchTracker:
                 'mod_impact': "In attesa di referti ufficiali e voti del reparto difensivo."
             }
 
-    def get_live_data(self, user_players: List[Dict], starters: List[Dict]) -> Dict[str, Any]:
+    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None) -> Dict[str, Any]:
         """
         Builds the live match center comparing real/live performance vs predicted metrics.
         Follows strictly the real Serie A timetable and scrapes live scores from Fantacalcio.it.
+        If an actual fielded lineup is supplied (from Leghe FC screenshot or saved json),
+        it uses those starters instead of theoretical recommendations.
         """
         try:
             from zoneinfo import ZoneInfo
@@ -734,7 +816,29 @@ class LiveMatchTracker:
             now = datetime.now()
         live_scores = self.fetch_live_serie_a_matches()
         official_votes = self.fetch_official_votes_table()
-        starter_ids = {p.get('id', p.get('name', '')).lower() for p in (starters or [])}
+
+        effective_starters = starters or []
+        is_actual_lineup_active = False
+        saved_actual_formation = None
+
+        if actual_lineup and actual_lineup.get('starters'):
+            effective_starters = actual_lineup.get('starters', [])
+            is_actual_lineup_active = True
+            saved_actual_formation = actual_lineup.get('formation', '4-3-3')
+        else:
+            try:
+                from backend.lineup_extractor import lineup_extractor
+                saved_actual = lineup_extractor.get_actual_lineup()
+                if saved_actual and saved_actual.get('starters'):
+                    effective_starters = saved_actual.get('starters', [])
+                    is_actual_lineup_active = True
+                    saved_actual_formation = saved_actual.get('formation', '4-3-3')
+            except Exception:
+                pass
+
+        starter_ids = {p.get('id', '').lower() for p in effective_starters if p.get('id')}
+        starter_names = {p.get('name', '').lower().strip() for p in effective_starters if p.get('name')}
+        starter_norms = {re.sub(r'[^a-z0-9]', '', p.get('name', '').lower()) for p in effective_starters if p.get('name')}
         
         # Build mapping of expected fantavoto from evaluated starters/bench
         exp_map = {p.get('name', '').lower(): p.get('expected_fantavoto') for p in (starters or []) if p.get('expected_fantavoto')}
@@ -757,11 +861,16 @@ class LiveMatchTracker:
 
         for p in user_players:
             p_name = p.get('name', '')
-            p_norm = p_name.lower()
+            p_norm = re.sub(r'[^a-z0-9]', '', p_name.lower())
+            p_id = p.get('id', '').lower()
             role = p.get('role', 'C')
             team = p.get('team', '').upper()
-            is_starter = p.get('id', p_name).lower() in starter_ids or p_name.lower() in starter_ids
-            exp_fv = exp_map.get(p_norm) or p.get('expected_fantavoto', 6.2)
+
+            is_starter = (p_id and p_id in starter_ids) or (p_name.lower() in starter_names) or (p_norm in starter_norms)
+            if not is_starter and len(p_norm) >= 4:
+                is_starter = any((p_norm in sn or sn in p_norm) for sn in starter_norms if len(sn) >= 4)
+
+            exp_fv = exp_map.get(p_name.lower()) or exp_map.get(p_norm) or p.get('expected_fantavoto', 6.2)
 
             # Fixture & Match status using real-time scraped scores
             fixture = self._find_player_match(team)
@@ -1109,9 +1218,13 @@ class LiveMatchTracker:
 
         return {
             'last_update': now.strftime('%H:%M:%S'),
+            'is_actual_lineup': is_actual_lineup_active,
+            'actual_formation': saved_actual_formation,
             'summary': {
                 'is_simulated': False,
                 'is_pre_match': is_pre_match,
+                'is_actual_lineup': is_actual_lineup_active,
+                'actual_formation': saved_actual_formation,
                 'total_live_score': total_live_team_score,
                 'total_expected_score': total_expected_team_score,
                 'projected_final_score': projected_team_score,

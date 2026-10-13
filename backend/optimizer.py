@@ -319,18 +319,22 @@ class LineupOptimizer:
         total_score = round(max(10.0, min(99.0, titolarita_pts + matchup_pts + threat_pts + special_pts + editorial_pts)), 1)
 
         # --- COMPUTE REALISTIC EXPECTED FANTAVOTO (5.0 - 8.5) ---
+        att_away_damp = learned_w.get('att_away_damp', 0.85) if not is_home else 1.0
+        def_risk_p = learned_w.get('def_risk_penalty', 1.0)
+
         if role == 'P':
             xgc = gk_data['expected_goals_conceded'] if gk_data else 1.2
             cs_p = (gk_data['clean_sheet_prob'] if gk_data else 30) / 100.0
             expected_fv = round(6.0 - (xgc * 0.9) + (cs_p * 0.8) + (0.3 if is_home else 0.0), 2)
         elif role == 'D':
-            expected_fv = round(pure_base + (metrics_data['xa'] * 1.0) + (metrics_data['xg'] * 3.0) + (0.15 if is_home else 0.0), 2)
+            foul_discount = 0.25 * max(0.0, def_risk_p - 1.0)
+            expected_fv = round(max(4.5, pure_base + (metrics_data['xa'] * 1.0) + (metrics_data['xg'] * 2.5) + (0.15 if is_home else 0.0) - foul_discount), 2)
         elif role == 'C':
             pen_bonus = 0.6 if is_penalty else 0.0
-            expected_fv = round(pure_base + (metrics_data['xg'] * 3.0) + (metrics_data['xa'] * 1.0) + pen_bonus, 2)
+            expected_fv = round(pure_base + (metrics_data['xg'] * 2.8) + (metrics_data['xa'] * 1.0) + pen_bonus, 2)
         else: # A
             pen_bonus = 0.8 if is_penalty else 0.0
-            expected_fv = round(pure_base + (metrics_data['xg'] * 3.0) + (metrics_data['xa'] * 1.0) + pen_bonus, 2)
+            expected_fv = round(pure_base + ((metrics_data['xg'] * 2.8 + metrics_data['xa'] * 1.0) * att_away_damp) + pen_bonus, 2)
 
         # Status & Stars
         if total_score >= 80:

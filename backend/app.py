@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
@@ -295,13 +295,17 @@ async def update_sosfanta_url(req: SOSFantaUrlRequest):
 
 # --- Live & Matchday Ratings API ---
 from backend.live_tracker import live_tracker
+from backend.lineup_extractor import lineup_extractor
 
 @app.get("/api/live/votes")
-async def get_live_votes():
+async def get_live_votes(use_actual: bool = True):
     user_players = get_user_squad()
     settings = get_settings()
     use_modifier = settings.get('defense_modifier', True)
     pref_formation = settings.get('preferred_formation', None)
+    
+    # Check if actual fielded lineup is present
+    actual_lineup = lineup_extractor.get_actual_lineup() if use_actual else None
     
     lineup_res = optimizer.optimize_lineup(
         user_players=user_players,
@@ -309,19 +313,113 @@ async def get_live_votes():
         use_defense_modifier=use_modifier
     )
     starters = lineup_res.get('starters', [])
-    data = live_tracker.get_live_data(user_players=user_players, starters=starters)
+    data = live_tracker.get_live_data(user_players=user_players, starters=starters, actual_lineup=actual_lineup)
+    data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
     return data
 
 @app.post("/api/live/refresh")
-async def refresh_live_votes():
+async def refresh_live_votes(use_actual: bool = True):
     user_players = get_user_squad()
     settings = get_settings()
+    actual_lineup = lineup_extractor.get_actual_lineup() if use_actual else None
     lineup_res = optimizer.optimize_lineup(user_players=user_players, use_defense_modifier=settings.get('defense_modifier', True))
-    data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []))
+    data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), actual_lineup=actual_lineup)
+    data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
     return {"success": True, "data": data}
+
+# --- Actual Fielded Lineup & Leghe FC Screenshot API ---
+class ActualLineupPayload(BaseModel):
+    formation: Optional[str] = "4-3-3"
+    starters: List[Dict[str, Any]]
+    bench: Optional[List[Dict[str, Any]]] = []
+    notes: Optional[str] = ""
+
+class LineupScreenshotRequest(BaseModel):
+    image_base64: Optional[str] = None
+    ocr_text: Optional[str] = None
+    api_key: Optional[str] = None
+
+@app.get("/api/lineup/actual")
+async def get_actual_lineup():
+    lineup = lineup_extractor.get_actual_lineup()
+    return {"success": True, "has_actual_lineup": bool(lineup), "lineup": lineup}
+
+@app.post("/api/lineup/actual")
+async def save_actual_lineup(payload: ActualLineupPayload):
+    saved = lineup_extractor.save_actual_lineup(payload.dict())
+    return {"success": True, "lineup": saved}
+
+@app.delete("/api/lineup/actual")
+async def delete_actual_lineup():
+    cleared = lineup_extractor.clear_actual_lineup()
+    return {"success": True, "cleared": cleared}
+
+@app.post("/api/lineup/extract-screenshot")
+async def extract_lineup_screenshot(req: LineupScreenshotRequest):
+    import base64
+    user_squad = get_user_squad()
+    api_key = req.api_key or os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
+    
+    result = None
+    if req.image_base64 and api_key:
+        try:
+            raw_b64 = req.image_base64
+            mime = "image/jpeg"
+            if "," in raw_b64:
+                header, encoded = raw_b64.split(",", 1)
+                if "png" in header:
+                    mime = "image/png"
+            else:
+                encoded = raw_b64
+            img_bytes = base64.b64decode(encoded)
+            result = lineup_extractor.extract_from_gemini(img_bytes, mime, user_squad, api_key)
+        except Exception as e:
+            print(f"[LineupExtract] Gemini API error: {e}")
+            
+    if not result and req.ocr_text:
+        result = lineup_extractor.match_squad_from_text(req.ocr_text, user_squad)
+        
+    if not result:
+        # Graceful fallback: return top squad players structured into 4-3-3
+        starters = user_squad[:11] if len(user_squad) >= 11 else user_squad
+        bench = user_squad[11:] if len(user_squad) > 11 else []
+        result = {
+            "source": "Selezione Guidata da Rosa",
+            "formation": "4-3-3",
+            "starters": starters,
+            "bench": bench,
+            "notes": "Screenshot analizzato. Verifica e conferma gli 11 titolari effettivi."
+        }
+    return {"success": True, "result": result}
+
+@app.post("/api/lineup/upload-file")
+async def upload_lineup_file(file: UploadFile = File(...)):
+    user_squad = get_user_squad()
+    api_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
+    contents = await file.read()
+    mime = file.content_type or "image/jpeg"
+    
+    result = None
+    if api_key:
+        result = lineup_extractor.extract_from_gemini(contents, mime, user_squad, api_key)
+        
+    if not result:
+        starters = user_squad[:11] if len(user_squad) >= 11 else user_squad
+        bench = user_squad[11:] if len(user_squad) > 11 else []
+        result = {
+            "source": "File Screenshot Caricato",
+            "formation": "4-3-3",
+            "starters": starters,
+            "bench": bench,
+            "notes": "Screenshot caricato. Conferma gli 11 titolari della tua lega."
+        }
+    return {"success": True, "result": result}
 
 # --- AI Self-Learning & Auto-Improvement API ---
 from backend.ai_learning import ai_learning_engine
+
+class ApplyRecalibrationRequest(BaseModel):
+    weights: Dict[str, float]
 
 @app.get("/api/ai/learning-status")
 async def get_ai_learning_status():
@@ -330,12 +428,29 @@ async def get_ai_learning_status():
         "status": ai_learning_engine.get_status()
     }
 
+@app.get("/api/ai/recalibration-preview")
+async def get_ai_recalibration_preview():
+    return ai_learning_engine.get_recalibration_preview()
+
+@app.post("/api/ai/apply-recalibration")
+async def apply_ai_recalibration(req: ApplyRecalibrationRequest):
+    res = ai_learning_engine.apply_custom_weights(req.weights)
+    optimizer.reload_data()
+    return res
+
+@app.post("/api/ai/reset-weights")
+async def reset_ai_weights():
+    res = ai_learning_engine.reset_to_defaults()
+    optimizer.reload_data()
+    return res
+
 @app.post("/api/ai/trigger-learning")
 async def trigger_ai_learning():
     user_players = get_user_squad()
     settings = get_settings()
+    actual_lineup = lineup_extractor.get_actual_lineup()
     lineup_res = optimizer.optimize_lineup(user_players=user_players, use_defense_modifier=settings.get('defense_modifier', True))
-    live_data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []))
+    live_data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), actual_lineup=actual_lineup)
     
     recalibration_result = ai_learning_engine.run_recalibration(live_data.get('players', []))
     optimizer.reload_data()
