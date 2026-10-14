@@ -104,7 +104,7 @@ class LineupOptimizer:
                 return match, False
         return {}, False
 
-    def evaluate_player(self, player: Dict, fixtures_list: Optional[List[Dict]] = None) -> Dict:
+    def evaluate_player(self, player: Dict, fixtures_list: Optional[List[Dict]] = None, matchday: Optional[int] = None) -> Dict:
         """
         Comprehensive Super-Intelligence evaluation:
         - Fanta-Score Index (0-100)
@@ -113,6 +113,7 @@ class LineupOptimizer:
         - Advanced SofaScore/Understat Metrics
         - Goalkeeper Clean Sheet Probability
         - Transparent motivation & score factors
+        - Matchday-isolated SOS Fanta analysis
         """
         norm_name = self._normalize_name(player['name'])
         role = player.get('role', 'C').upper()
@@ -273,8 +274,10 @@ class LineupOptimizer:
             gk_data = super_intelligence.evaluate_goalkeeper_matchup(player['name'], team, opponent_code, is_home)
 
         # 6. Editorial boost from SOS Fanta
-        sf_analysis = sosfanta_analyzer.analyze_player(player['name'], team)
+        target_md = matchday or self.fixtures_data.get('matchday', 7)
+        sf_analysis = sosfanta_analyzer.analyze_player(player['name'], team, matchday=target_md)
         sf_cat = sf_analysis.get('category', 'NEUTRO')
+        sf_is_published = sf_analysis.get('is_published', True)
         
         editorial_bonus_map = {
             'SCHIERARE ASSOLUTO': 12.0,
@@ -298,7 +301,7 @@ class LineupOptimizer:
         gk_base_m = learned_w.get('gk_base_multiplier', 18.0)
         ed_mult = learned_w.get('editorial_bonus_multiplier', 1.05)
 
-        editorial_pts = (editorial_bonus_map.get(sf_cat, 0.0)) * ed_mult
+        editorial_pts = (editorial_bonus_map.get(sf_cat, 0.0)) * ed_mult if sf_is_published else 0.0
 
         # --- COMPUTE COMPOSITE FANTA-SCORE INDEX (0 - 100) ---
         # A) Titolarità Consensus Factor (0 - 35 pt)
@@ -407,7 +410,7 @@ class LineupOptimizer:
         if role == 'P' and gk_data:
             reasons_list.append(f"🧤 Clean sheet probabile al {gk_data['clean_sheet_prob']}% (xGC: {gk_data['expected_goals_conceded']})")
 
-        if sf_analysis.get('mentioned'):
+        if sf_is_published and sf_analysis.get('mentioned'):
             reasons_list.append(f"🔥 SOS Fanta: \"{sf_analysis['quote']}\"")
 
         # Paragraph explaining why he is recommended as starter or bench
@@ -416,14 +419,17 @@ class LineupOptimizer:
             why_text += f"Presenza da titolare garantita all'unanimità (Fantacalcio.it, Sky Sport e Gazzetta). "
         if metrics_data['threat_score'] >= 5.0:
             why_text += f"Le metriche avanzate SofaScore evidenziano grande pericolosità offensiva (xG/xA: {metrics_data['xg']}/{metrics_data['xa']}). "
-        if sf_analysis.get('mentioned'):
+        if sf_is_published and sf_analysis.get('mentioned'):
             why_text += f"Verdetto SOS Fanta: {sf_analysis['category']} ({sf_analysis['summary']})."
+
+        sf_val = sf_analysis.get('category', 'NEUTRO') if sf_is_published else 'IN ARRIVO ⏳'
+        sf_desc = sf_analysis.get('quote', 'Valutazione partita standard.') if sf_is_published else f"Preview SOS Fanta {target_md}ª Giornata in arrivo (pubblicazione 24-48h prima del calcio d'inizio)."
 
         factors_detail = [
             {'label': 'Triplo Consenso Fonti', 'val': f"{calibrated_titolarita}% • {consensus_data['consensus_level']}", 'desc': consensus_data['summary']},
             {'label': 'Metriche SofaScore / Understat', 'val': f"xG: {metrics_data['xg']} | xA: {metrics_data['xa']}", 'desc': f"Trend: {metrics_data['trend']} • Tiri/p: {metrics_data['shots_per_game']}"},
             {'label': 'Fattore Partita & Difesa Avversaria', 'val': f"{'In Casa 🏠' if is_home else 'Trasferta ✈️'} vs {opponent_code}", 'desc': f"Difficoltà avversario: {opp_diff}/5.0"},
-            {'label': 'Consiglio SOS Fanta', 'val': sf_analysis.get('category', 'NEUTRO'), 'desc': sf_analysis.get('quote', 'Valutazione partita standard.')}
+            {'label': f"Consiglio SOS Fanta ({target_md}ª G.)", 'val': sf_val, 'desc': sf_desc}
         ]
 
         if role in ['D', 'P']:
@@ -481,7 +487,8 @@ class LineupOptimizer:
         """
         fixtures_data = self.get_fixtures_for_matchday(matchday)
         fixtures_list = fixtures_data.get('fixtures', [])
-        evaluated_players = [self.evaluate_player(p, fixtures_list=fixtures_list) for p in user_players]
+        target_md = fixtures_data.get('matchday', matchday or 7)
+        evaluated_players = [self.evaluate_player(p, fixtures_list=fixtures_list, matchday=target_md) for p in user_players]
         
         # Filter available vs injured/suspended
         available_players = [p for p in evaluated_players if not p.get('is_out', False)]

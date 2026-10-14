@@ -77,12 +77,73 @@ class SOSFantaAnalyzer:
             print(f"[SOSFanta] Auto-discovery error: {e}")
         return None
 
-    def get_matchday_label(self) -> str:
-        """Returns human readable matchday label (e.g. '6ª Giornata')."""
-        m = re.search(r'preview-(\d+)a-giornata', self.preview_url, re.I)
+    def get_matchday_number(self, url: Optional[str] = None) -> int:
+        target = url or self.preview_url or ''
+        m = re.search(r'preview-(\d+)a-giornata', target, re.I)
         if m:
-            return f"{m.group(1)}ª Giornata"
-        return "Giornata Attuale"
+            return int(m.group(1))
+        return 6
+
+    def get_matchday_label(self, matchday: Optional[int] = None) -> str:
+        """Returns human readable matchday label (e.g. '6ª Giornata')."""
+        num = matchday if matchday is not None else self.get_matchday_number()
+        return f"{num}ª Giornata"
+
+    def get_data_for_matchday(self, matchday: int = 7) -> Dict[str, Any]:
+        """Returns scraped preview data for a specific matchday, isolating rounds cleanly."""
+        matchday = int(matchday) if matchday else 7
+
+        # 1. Check matchday-specific archive file
+        md_file = os.path.join(DATA_DIR, f'sosfanta_preview_giornata_{matchday}.json')
+        if os.path.exists(md_file):
+            try:
+                with open(md_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    if data.get('slides') and len(data.get('slides', [])) > 0:
+                        data['is_published'] = True
+                        data['matchday_number'] = matchday
+                        return data
+            except Exception:
+                pass
+
+        # 2. Check if currently loaded scraped_data matches the requested matchday
+        if self.scraped_data and self.get_matchday_number() == matchday and self.scraped_data.get('slides'):
+            self.scraped_data['is_published'] = True
+            self.scraped_data['matchday_number'] = matchday
+            return self.scraped_data
+
+        # 3. Check if base cache file matches matchday 6
+        if matchday == 6 and os.path.exists(CACHE_FILE):
+            try:
+                with open(CACHE_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    if self.get_matchday_number(data.get('preview_url', '')) == 6 and data.get('slides'):
+                        data['is_published'] = True
+                        data['matchday_number'] = 6
+                        return data
+            except Exception:
+                pass
+
+        # 4. If matchday is current/upcoming, check if published online right now
+        if matchday >= 7:
+            discovered = self.auto_discover_latest_preview_url()
+            if discovered and self.get_matchday_number(discovered) == matchday:
+                self.preview_url = discovered
+                res = self.scrape_all_slides()
+                res['is_published'] = True
+                res['matchday_number'] = matchday
+                return res
+
+        # 5. Not yet published on SOS Fanta (published usually 24-48h before kickoff)
+        return {
+            'preview_url': None,
+            'matchday': f'{matchday}ª Giornata',
+            'matchday_number': matchday,
+            'is_published': False,
+            'status_notice': f'Preview {matchday}ª Giornata in attesa di pubblicazione su SOS Fanta (uscita prevista giovedì/venerdì prima del kickoff).',
+            'combined_text': '',
+            'slides': []
+        }
 
     def check_and_update_latest_preview(self, force: bool = False) -> Dict[str, Any]:
         """Checks if a new matchday preview exists and automatically scrapes it."""
@@ -142,9 +203,13 @@ class SOSFantaAnalyzer:
                 print(f"[SOSFanta] Errore pagina {page}: {e}")
 
         combined_text = "\n\n".join(all_text)
+        md_label = self.get_matchday_label()
+        md_num = self.get_matchday_number()
         result = {
             'preview_url': self.preview_url,
-            'matchday': self.get_matchday_label(),
+            'matchday': md_label,
+            'matchday_number': md_num,
+            'is_published': True,
             'combined_text': combined_text,
             'slides': slides_content
         }
@@ -153,8 +218,16 @@ class SOSFantaAnalyzer:
         with open(CACHE_FILE, 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
 
+        # Save matchday specific archive
+        md_cache_file = os.path.join(DATA_DIR, f'sosfanta_preview_giornata_{md_num}.json')
+        try:
+            with open(md_cache_file, 'w', encoding='utf-8') as af:
+                json.dump(result, af, ensure_ascii=False, indent=2)
+        except Exception:
+            pass
+
         self.scraped_data = result
-        print(f"[SOSFanta] Download completato! Testo totale: {len(combined_text)} caratteri.")
+        print(f"[SOSFanta] Download completato per {md_label}! Testo totale: {len(combined_text)} caratteri.")
         return result
 
     def get_full_text(self) -> str:
@@ -162,9 +235,24 @@ class SOSFantaAnalyzer:
             self.scrape_all_slides()
         return self.scraped_data.get('combined_text', '')
 
-    def analyze_player(self, player_name: str, team: str) -> Dict[str, Any]:
-        """Analyzes a specific player against the SOSFanta preview article."""
-        full_text = self.get_full_text()
+    def analyze_player(self, player_name: str, team: str, matchday: int = 7) -> Dict[str, Any]:
+        """Analyzes a specific player against the SOSFanta preview article for the requested matchday."""
+        data = self.get_data_for_matchday(matchday)
+        if not data.get('is_published', True) or not data.get('combined_text'):
+            return {
+                'mentioned': False,
+                'is_published': False,
+                'matchday': matchday,
+                'matchday_label': f"{matchday}ª Giornata",
+                'category': 'IN ARRIVO',
+                'badge': 'secondary',
+                'icon': '⏳',
+                'quote': f"Preview {matchday}ª Giornata in attesa di pubblicazione su SOS Fanta (uscita prevista giovedì/venerdì).",
+                'summary': f"La redazione di SOS Fanta pubblicherà i consigli per la {matchday}ª giornata a ridosso del turno. La valutazione attuale si basa su probabili formazioni e metriche IA.",
+                'bonus_score': 0.0
+            }
+
+        full_text = data.get('combined_text', '')
         norm_name = player_name.lower().strip()
         
         aliases = PLAYER_ALIASES_MAP.get(norm_name, [norm_name])
@@ -184,10 +272,13 @@ class SOSFantaAnalyzer:
         if not found_sentence:
             return {
                 'mentioned': False,
+                'is_published': True,
+                'matchday': matchday,
+                'matchday_label': f"{matchday}ª Giornata",
                 'category': 'NEUTRO',
                 'badge': 'info',
                 'icon': '👉',
-                'quote': f"Non citato nei ballottaggi chiave di SOS Fanta.",
+                'quote': f"Non citato nei ballottaggi chiave di SOS Fanta ({matchday}ª Giornata).",
                 'summary': f"Nessun alert negativo: segue la valutazione standard della partita.",
                 'bonus_score': 0.0
             }
@@ -199,47 +290,50 @@ class SOSFantaAnalyzer:
             category = 'SCHIERARE ASSOLUTO'
             badge = 'success'
             icon = '🌟'
-            summary = "Consigliatissimo dalla redazione di SOS Fanta! Da mettere titolare senza dubbi."
+            summary = f"Consigliatissimo dalla redazione di SOS Fanta per la {matchday}ª giornata! Da mettere titolare senza dubbi."
             bonus_score = 8.0
         elif any(w in s_lower for w in ['promosso', 'molto bene', 'in forma', 'ottima soluzione', 'approvato', 'da confermare', 'torna da schierare']):
             category = 'PROMOSSO'
             badge = 'success'
             icon = '✅'
-            summary = "Promosso a pieni voti da SOS Fanta, momento di forma positivo."
+            summary = f"Promosso a pieni voti da SOS Fanta per la {matchday}ª giornata, momento di forma positivo."
             bonus_score = 5.0
         elif any(w in s_lower for w in ['incontenibile', 'potete pensarci', 'non sottovalutare', 'sorpresa']):
             category = 'IDEA A SORPRESA'
             badge = 'warning'
             icon = '🚀'
-            summary = "Possibile sorpresa di giornata secondo SOS Fanta. Buona scommessa."
+            summary = f"Possibile sorpresa della {matchday}ª giornata secondo SOS Fanta. Buona scommessa."
             bonus_score = 4.0
         elif any(w in s_lower for w in ['schierabile', 'ci può stare', 'buon voto', 'ok', 'sufficienza', 'da 6']):
             category = 'SCHIERABILE'
             badge = 'primary'
             icon = '👍'
-            summary = "Schierabile per un buon voto/sufficienza tranquilla."
+            summary = f"Schierabile per la {matchday}ª giornata per un buon voto/sufficienza tranquilla."
             bonus_score = 2.0
         elif any(w in s_lower for w in ['copertura', 'riserva']):
             category = 'COPERTURA'
             badge = 'secondary'
             icon = '🛡️'
-            summary = "Indicato soprattutto come copertura sicura a voto."
+            summary = f"Indicato soprattutto come copertura sicura a voto per la {matchday}ª giornata."
             bonus_score = 0.0
         elif any(w in s_lower for w in ['meno', 'non ispirano', 'pericolo', 'difficile', 'evitare']):
             category = 'ATTENZIONE / RISCHIOSO'
             badge = 'danger'
             icon = '⚠️'
-            summary = "SOS Fanta invita alla cautela: sconsigliato o a rischio malus."
+            summary = f"SOS Fanta invita alla cautela per la {matchday}ª giornata: a rischio malus."
             bonus_score = -5.0
         else:
             category = 'CITATO'
             badge = 'info'
             icon = '💬'
-            summary = "Citato nell'analisi partita."
+            summary = f"Citato nell'analisi partita della {matchday}ª giornata."
             bonus_score = 1.0
 
         return {
             'mentioned': True,
+            'is_published': True,
+            'matchday': matchday,
+            'matchday_label': f"{matchday}ª Giornata",
             'category': category,
             'badge': badge,
             'icon': icon,
@@ -248,11 +342,11 @@ class SOSFantaAnalyzer:
             'bonus_score': bonus_score
         }
 
-    def analyze_entire_squad(self, user_players: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        """Returns targeted SOSFanta advice for each player in user's squad."""
+    def analyze_entire_squad(self, user_players: List[Dict[str, Any]], matchday: int = 7) -> List[Dict[str, Any]]:
+        """Returns targeted SOSFanta advice for each player in user's squad for the specified matchday."""
         results = []
         for p in user_players:
-            analysis = self.analyze_player(p['name'], p.get('team', ''))
+            analysis = self.analyze_player(p['name'], p.get('team', ''), matchday=matchday)
             results.append({
                 'name': p['name'],
                 'role': p.get('role', 'C'),
@@ -270,28 +364,33 @@ class SOSFantaAnalyzer:
             'CITATO': 5,
             'COPERTURA': 6,
             'NEUTRO': 7,
-            'ATTENZIONE / RISCHIOSO': 8
+            'IN ARRIVO': 8,
+            'ATTENZIONE / RISCHIOSO': 9
         }
         results.sort(key=lambda x: priority_map.get(x['sosfanta']['category'], 10))
         return results
 
-    def get_full_article_data(self, user_players: Optional[List[Dict[str, Any]]] = None) -> Dict[str, Any]:
-        """Returns full article text and slides with user player highlights (ultra-fast cached)."""
-        if not self.scraped_data or not self.scraped_data.get('slides'):
-            self.scrape_all_slides()
+    def get_full_article_data(self, user_players: Optional[List[Dict[str, Any]]] = None, matchday: int = 7) -> Dict[str, Any]:
+        """Returns full article text and slides with user player highlights for requested matchday."""
+        data = self.get_data_for_matchday(matchday)
+        if not data.get('is_published', True) or not data.get('slides'):
+            return {
+                'preview_url': None,
+                'matchday': f'{matchday}ª Giornata',
+                'is_published': False,
+                'status_notice': f'Preview {matchday}ª Giornata in attesa di pubblicazione su SOS Fanta (uscita prevista giovedì/venerdì).',
+                'slides_count': 0,
+                'slides': []
+            }
 
-        cache_key = tuple(p['name'] for p in (user_players or []))
-        if hasattr(self, '_full_article_cache') and self._full_article_cache and self._full_article_cache.get('key') == cache_key:
-            return self._full_article_cache['data']
-
-        slides = self.scraped_data.get('slides', [])
+        slides = data.get('slides', [])
         enriched_slides = []
 
         # Precompute analyses ONCE per player (25 calls instead of 250 calls)
         player_analyses = {}
         if user_players:
             for p in user_players:
-                analysis = self.analyze_player(p['name'], p.get('team', ''))
+                analysis = self.analyze_player(p['name'], p.get('team', ''), matchday=matchday)
                 if analysis.get('mentioned'):
                     player_analyses[p['name']] = {
                         'player': p,
@@ -318,13 +417,12 @@ class SOSFantaAnalyzer:
             slide_copy['my_players'] = matched_players
             enriched_slides.append(slide_copy)
 
-        res = {
-            "preview_url": self.preview_url,
-            "matchday": self.get_matchday_label(),
+        return {
+            "preview_url": data.get('preview_url'),
+            "matchday": f"{matchday}ª Giornata",
+            "is_published": True,
             "slides_count": len(enriched_slides),
             "slides": enriched_slides
         }
-        self._full_article_cache = {'key': cache_key, 'data': res}
-        return res
 
 sosfanta_analyzer = SOSFantaAnalyzer()

@@ -262,20 +262,25 @@ class SOSFantaUrlRequest(BaseModel):
     url: str
 
 @app.get("/api/sosfanta/analysis")
-async def get_sosfanta_analysis():
+async def get_sosfanta_analysis(matchday: Optional[int] = 7):
     user_players = get_user_squad()
-    analysis = sosfanta_analyzer.analyze_entire_squad(user_players)
+    target_md = matchday or 7
+    analysis = sosfanta_analyzer.analyze_entire_squad(user_players, matchday=target_md)
+    sf_data = sosfanta_analyzer.get_data_for_matchday(target_md)
     return {
         "success": True,
-        "preview_url": sosfanta_analyzer.preview_url,
-        "matchday": sosfanta_analyzer.get_matchday_label(),
+        "preview_url": sf_data.get('preview_url') or sosfanta_analyzer.preview_url,
+        "matchday": sosfanta_analyzer.get_matchday_label(target_md),
+        "matchday_num": target_md,
+        "is_published": sf_data.get('is_published', False),
         "results": analysis
     }
 
 @app.get("/api/sosfanta/full-article")
-def get_sosfanta_full_article():
+def get_sosfanta_full_article(matchday: Optional[int] = 7):
     user_players = get_user_squad()
-    data = sosfanta_analyzer.get_full_article_data(user_players)
+    target_md = matchday or 7
+    data = sosfanta_analyzer.get_full_article_data(user_players, matchday=target_md)
     return {
         "success": True,
         **data

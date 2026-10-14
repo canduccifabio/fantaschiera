@@ -431,8 +431,10 @@
             🔥 Consigli SOS Fanta Mirati sulla Tua Rosa
           </span>
           <div style="display:flex; gap:6px; align-items:center;">
-            <span id="sosfantaMatchdayBadge" class="badge-status badge-primary">6ª Giornata</span>
-            <span class="badge-status badge-success">🤖 Analisi IA Attiva</span>
+            <div class="segmented-control" style="margin:0;">
+              <button id="btnMd6SOS" class="segment-btn" onclick="switchSOSFantaMatchday(6)">6ª Giornata (Archivio)</button>
+              <button id="btnMd7SOS" class="segment-btn active" onclick="switchSOSFantaMatchday(7)">7ª Giornata (In Arrivo) 🟢</button>
+            </div>
           </div>
         </div>
         <div style="font-size:0.85rem; color:var(--text-secondary); line-height:1.5; margin-bottom:12px;">
@@ -440,7 +442,7 @@
         </div>
 
         <!-- Prominent Button to open the full article reader -->
-        <button class="btn btn-primary" style="width:100%; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, #ef4444, #f97316); border:none; padding:11px 16px; border-radius:12px; box-shadow:0 4px 15px rgba(239, 68, 68, 0.35); font-size:0.92rem; cursor:pointer;" onclick="openSOSFantaFullArticleModal()">
+        <button id="btnOpenSOSArticle" class="btn btn-primary" style="width:100%; font-weight:800; display:flex; align-items:center; justify-content:center; gap:8px; background:linear-gradient(135deg, #ef4444, #f97316); border:none; padding:11px 16px; border-radius:12px; box-shadow:0 4px 15px rgba(239, 68, 68, 0.35); font-size:0.92rem; cursor:pointer;" onclick="openSOSFantaFullArticleModal()">
           📖 Leggi l'Estratto Completo delle 10 Partite
         </button>
       </div>
@@ -799,7 +801,7 @@
     <!-- SOS Fanta Quote Box -->
     <div id="modalSOSFantaBox" style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.25); border-radius:12px; padding:12px; margin-bottom:12px; display:none;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-        <span style="font-size:0.75rem; font-weight:800; color:#f87171; text-transform:uppercase;">🔥 SOS FANTA PREVIEW:</span>
+        <span id="modalSOSFantaHeaderTitle" style="font-size:0.75rem; font-weight:800; color:#f87171; text-transform:uppercase;">🔥 SOS FANTA PREVIEW:</span>
         <span id="modalSOSFantaBadge" class="badge-status badge-success">TOP</span>
       </div>
       <div id="modalSOSFantaQuote" style="font-size:0.83rem; font-style:italic; color:#ffffff; margin-bottom:3px;"></div>
@@ -1036,6 +1038,6 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="/static/js/notifications.js?v=3.6"></script>
   <script src="/static/js/pitch.js?v=3.6"></script>
-  <script src="/static/js/app.js?v=3.8"></script>
+  <script src="/static/js/app.js?v=3.9"></script>
 </body>
 </html>

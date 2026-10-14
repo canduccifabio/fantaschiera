@@ -1549,7 +1549,21 @@ function openPlayerModal(player) {
 
   // SOS Fanta Quote
   const sfBox = document.getElementById('modalSOSFantaBox');
-  if (player.sosfanta && player.sosfanta.mentioned) {
+  const sfTitle = document.getElementById('modalSOSFantaHeaderTitle');
+  const targetMd = currentSchieraMatchday || 7;
+  if (sfTitle) {
+    sfTitle.innerText = `🔥 SOS FANTA PREVIEW (${targetMd}ª GIORNATA):`;
+  }
+
+  if (player.sosfanta && (player.sosfanta.is_published === false || player.sosfanta.category === 'IN ARRIVO')) {
+    if (sfBox) {
+      sfBox.style.display = 'block';
+      document.getElementById('modalSOSFantaBadge').innerText = 'IN ARRIVO ⏳';
+      document.getElementById('modalSOSFantaBadge').className = 'badge-status badge-secondary';
+      document.getElementById('modalSOSFantaQuote').innerText = `"La preview ufficiale SOS Fanta per la ${targetMd}ª Giornata verrà pubblicata dalla redazione 24-48h prima dell'anticipo (giovedì/venerdì)."`;
+      document.getElementById('modalSOSFantaSummary').innerText = 'Auto-sincronizzazione attiva: le citazioni verranno collegate appena pubblicate da SOS Fanta.';
+    }
+  } else if (player.sosfanta && player.sosfanta.mentioned) {
     if (sfBox) {
       sfBox.style.display = 'block';
       document.getElementById('modalSOSFantaBadge').innerText = player.sosfanta.category;
@@ -1768,34 +1782,88 @@ async function loadTunnelInfo() {
 }
 
 // --- SOS FANTA INTELLIGENCE TAB ---
-let fullArticleDataCache = null;
+let fullArticleDataCache = {};
 let activeMatchFilter = 'all';
+let currentSOSFantaMatchday = 7;
+
+function switchSOSFantaMatchday(md) {
+  currentSOSFantaMatchday = md;
+  const btn6 = document.getElementById('btnMd6SOS');
+  const btn7 = document.getElementById('btnMd7SOS');
+  if (btn6 && btn7) {
+    btn6.classList.toggle('active', md === 6);
+    btn7.classList.toggle('active', md === 7);
+  }
+  loadSOSFantaAnalysis();
+}
 
 async function loadSOSFantaAnalysis() {
   const container = document.getElementById('sosfantaCardsContainer');
   const statsContainer = document.getElementById('sosfantaStatsContainer');
-  if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Analisi preview SOS Fanta in corso...</div>`;
+  const btnFullArticle = document.getElementById('btnOpenSOSArticle');
+  if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Analisi preview SOS Fanta ${currentSOSFantaMatchday}ª Giornata in corso...</div>`;
 
   try {
-    const res = await fetch('/api/sosfanta/analysis');
+    const res = await fetch(`/api/sosfanta/analysis?matchday=${currentSOSFantaMatchday}`);
     if (!res.ok) throw new Error("Errore recupero SOS Fanta");
     const data = await res.json();
     const results = data.results || [];
+    const isPublished = data.is_published !== false;
 
     // Update matchday badge and url input
-    if (data.matchday) {
-      const badge = document.getElementById('sosfantaMatchdayBadge');
-      if (badge) badge.innerText = data.matchday;
+    const badge = document.getElementById('sosfantaMatchdayBadge');
+    if (badge) {
+      badge.innerText = isPublished ? `${data.matchday || currentSOSFantaMatchday + 'ª Giornata'}` : `${currentSOSFantaMatchday}ª Giornata (In Arrivo ⏳)`;
+      badge.className = `badge-status ${isPublished ? 'badge-primary' : 'badge-secondary'}`;
     }
     if (data.preview_url) {
       const input = document.getElementById('sosfantaUrlInput');
       if (input) input.value = data.preview_url;
     }
 
+    if (!isPublished) {
+      if (statsContainer) {
+        statsContainer.innerHTML = `
+          <div class="counter-box" style="grid-column: 1 / -1; padding:14px; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25); border-radius:12px;">
+            <div style="font-weight:800; color:#fbbf24; font-size:0.95rem; margin-bottom:4px;">⏳ Preview 7ª Giornata non ancora pubblicata da SOS Fanta</div>
+            <div style="font-size:0.8rem; color:#fde68a; line-height:1.5;">
+              La redazione di SOS Fanta pubblica l'articolo integrale delle 10 partite <strong>24-48 ore prima del primo anticipo</strong> (previsto per giovedì 15 o venerdì 16 ottobre).
+              Il sistema scansiona la fonte ogni 15 minuti e collegherà automaticamente tutti i consigli non appena disponibili online.
+            </div>
+          </div>
+        `;
+      }
+      if (btnFullArticle) {
+        btnFullArticle.style.opacity = '0.7';
+        btnFullArticle.innerText = `⏳ Estratto Completo 7ª Giornata (In Arrivo)`;
+      }
+      if (container) {
+        container.innerHTML = `
+          <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:20px; text-align:center;">
+            <div style="font-size:2rem; margin-bottom:8px;">⏳</div>
+            <div style="font-weight:800; font-size:1rem; color:#ffffff; margin-bottom:6px;">Preview 7ª Giornata in Arrivo</div>
+            <div style="font-size:0.84rem; color:var(--text-secondary); max-width:480px; margin:0 auto 16px; line-height:1.6;">
+              Nessun consiglio obsoleto della 6ª Giornata viene mostrato per la 7ª Giornata per garantire la massima correttezza della formazione. Puoi consultare l'archivio ufficiale della 6ª Giornata premendo il pulsante in alto.
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="switchSOSFantaMatchday(6)">
+              📂 Visualizza Archivio Consigli 6ª Giornata
+            </button>
+          </div>
+        `;
+      }
+      return;
+    }
+
+    // Published branch
+    if (btnFullArticle) {
+      btnFullArticle.style.opacity = '1';
+      btnFullArticle.innerText = `📖 Leggi l'Estratto Completo delle 10 Partite (${data.matchday || currentSOSFantaMatchday + 'ª Giornata'})`;
+    }
+
     // Stats count
-    const mentionedCount = results.filter(r => r.sosfanta.mentioned).length;
-    const topCount = results.filter(r => r.sosfanta.category === 'SCHIERARE ASSOLUTO').length;
-    const promossiCount = results.filter(r => r.sosfanta.category === 'PROMOSSO').length;
+    const mentionedCount = results.filter(r => r.sosfanta && r.sosfanta.mentioned).length;
+    const topCount = results.filter(r => r.sosfanta && r.sosfanta.category === 'SCHIERARE ASSOLUTO').length;
+    const promossiCount = results.filter(r => r.sosfanta && r.sosfanta.category === 'PROMOSSO').length;
 
     if (statsContainer) {
       statsContainer.innerHTML = `
@@ -1816,7 +1884,7 @@ async function loadSOSFantaAnalysis() {
 
     if (container) {
       container.innerHTML = results.map(r => {
-        const sf = r.sosfanta;
+        const sf = r.sosfanta || {};
         const isMentioned = sf.mentioned;
         return `
           <div class="player-row" style="margin-bottom:10px; flex-direction:column; align-items:stretch; gap:8px;" onclick='openPlayerModal(${JSON.stringify(r).replace(/'/g, "&#39;")})'>
@@ -1830,7 +1898,7 @@ async function loadSOSFantaAnalysis() {
                 </div>
               </div>
               <div>
-                <span class="badge-status badge-${sf.badge}">${sf.icon} ${sf.category}</span>
+                <span class="badge-status badge-${sf.badge || 'secondary'}">${sf.icon || '👉'} ${sf.category || 'NEUTRO'}</span>
               </div>
             </div>
             
@@ -1841,7 +1909,7 @@ async function loadSOSFantaAnalysis() {
               </div>
             ` : `
               <div style="font-size:0.75rem; color:var(--text-muted); padding:4px 8px;">
-                ${sf.summary}
+                ${sf.summary || 'Valutazione partita standard.'}
               </div>
             `}
           </div>
@@ -1849,10 +1917,10 @@ async function loadSOSFantaAnalysis() {
       }).join('');
     }
 
-    // Silently pre-fetch full article in background so modal opens instantly on click
-    fetch('/api/sosfanta/full-article')
+    // Silently pre-fetch full article in background for this matchday
+    fetch(`/api/sosfanta/full-article?matchday=${currentSOSFantaMatchday}`)
       .then(res => res.json())
-      .then(data => { if (data.success) fullArticleDataCache = data; })
+      .then(data => { if (data.success) fullArticleDataCache[currentSOSFantaMatchday] = data; })
       .catch(() => {});
   } catch (e) {
     if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:#ef4444;">Errore nel caricamento dei dati SOS Fanta.</div>`;
@@ -1947,22 +2015,41 @@ async function openSOSFantaFullArticleModal() {
   if (!dialog) return;
   dialog.showModal();
 
+  const md = currentSOSFantaMatchday || 7;
   // If already loaded in memory, display immediately with 0 delay!
-  if (fullArticleDataCache && fullArticleDataCache.slides) {
-    populateFullArticleUI(fullArticleDataCache);
+  if (fullArticleDataCache && fullArticleDataCache[md] && fullArticleDataCache[md].slides) {
+    populateFullArticleUI(fullArticleDataCache[md]);
     return;
   }
 
   const container = document.getElementById('fullArticleMatchesContainer');
   if (container) {
-    container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">Caricamento delle 10 partite...</div>`;
+    container.innerHTML = `<div style="text-align:center; padding:30px; color:var(--text-muted);">Caricamento delle 10 partite (${md}ª Giornata)...</div>`;
   }
 
   try {
-    const res = await fetch('/api/sosfanta/full-article');
+    const res = await fetch(`/api/sosfanta/full-article?matchday=${md}`);
     if (!res.ok) throw new Error("Errore caricamento articolo");
     const data = await res.json();
-    fullArticleDataCache = data;
+    if (!data.is_published && (!data.slides || data.slides.length === 0)) {
+      if (container) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:40px 20px;">
+            <div style="font-size:2.5rem; margin-bottom:12px;">⏳</div>
+            <h4 style="font-size:1.1rem; color:#ffffff; margin-bottom:8px;">Preview ${md}ª Giornata In Arrivo</h4>
+            <p style="font-size:0.85rem; color:var(--text-secondary); max-width:440px; margin:0 auto 16px; line-height:1.6;">
+              L'articolo completo di SOS Fanta con tutti i dettagli delle 10 partite verrà pubblicato tra giovedì e venerdì (24-48h prima del primo anticipo).
+            </p>
+            <button class="btn btn-primary btn-sm" onclick="closeSOSFantaFullArticleModal(); switchSOSFantaMatchday(6); openSOSFantaFullArticleModal();">
+              📂 Leggi l'Articolo della 6ª Giornata
+            </button>
+          </div>
+        `;
+      }
+      return;
+    }
+    if (!fullArticleDataCache) fullArticleDataCache = {};
+    fullArticleDataCache[md] = data;
     populateFullArticleUI(data);
   } catch (e) {
     if (container) {
@@ -2006,11 +2093,13 @@ function filterMatchSlide(page, btnEl) {
   if (btnEl) btnEl.classList.add('active');
 
   const searchVal = document.getElementById('fullArticleSearchInput')?.value.trim().toLowerCase() || '';
+  const md = currentSOSFantaMatchday || 7;
+  const currentSlides = (fullArticleDataCache && fullArticleDataCache[md]?.slides) || fullArticleDataCache?.slides || [];
 
   if (page === 'all') {
-    renderFullArticleMatches(fullArticleDataCache?.slides || [], searchVal, false);
+    renderFullArticleMatches(currentSlides, searchVal, false);
   } else {
-    const singleSlide = (fullArticleDataCache?.slides || []).filter(s => s.page === page);
+    const singleSlide = currentSlides.filter(s => s.page === page);
     renderFullArticleMatches(singleSlide, searchVal, true);
   }
 }
