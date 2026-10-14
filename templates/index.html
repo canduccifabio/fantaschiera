@@ -43,6 +43,20 @@
   <main class="container">
     <!-- ================= TAB 1: SCHIERA FORMAZIONE ================= -->
     <section id="tab-schiera" class="tab-view active">
+      <!-- Matchday Selector Bar -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">📅 GIORNATA:</span>
+          <div class="segmented-control" style="margin:0;">
+            <button id="btnMd6Schiera" class="segment-btn" onclick="switchSchieraMatchday(6)">6ª Giornata (Referti)</button>
+            <button id="btnMd7Schiera" class="segment-btn active" onclick="switchSchieraMatchday(7)">7ª Giornata (In Arrivo) 🟢</button>
+          </div>
+        </div>
+        <div id="schieraMatchdayNotice" style="font-size:0.75rem; color:#34d399; font-weight:700;">
+          🟢 7ª Giornata • Calibrazione Reattiva AI Attiva
+        </div>
+      </div>
+
       <!-- Total Score Banner -->
       <div class="score-banner">
         <div>
@@ -316,10 +330,10 @@
           <div id="aiObservationsReportBox" style="background:rgba(16, 185, 129, 0.08); border:1px solid rgba(16, 185, 129, 0.25); border-radius:10px; padding:10px 14px; margin-bottom:10px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
               <span style="font-size:0.75rem; color:#6ee7b7; font-weight:800; text-transform:uppercase;">
-                📋 Report Reale & Calibrazione Prudente
+                📋 Report Reale & Calibrazione Reattiva
               </span>
               <span class="badge-status badge-success" style="font-size:0.7rem; padding:2px 6px;">
-                🟢 Calibrazione Prudente (α = 0.02)
+                🟢 Calibrazione Reattiva (Soglia Cauta Rimossa)
               </span>
             </div>
             <div id="aiObservationsReportList" style="font-size:0.8rem; color:var(--text-secondary); line-height:1.5; display:flex; flex-direction:column; gap:5px;">
@@ -341,7 +355,7 @@
                   🤖 Sistema di Auto-Apprendimento 100% Autonomo
                 </div>
                 <div style="font-size:0.73rem; color:var(--text-muted); line-height:1.2;">
-                  L'algoritmo valuta e tara i parametri da solo a fine turno con micro-correzioni prudenti (max ±2% per parametro).
+                  L'algoritmo valuta e ricalibra i pesi decisionali in tempo reale per correggere lo scostamento di -13.5 pt (soglia cauta rimossa).
                 </div>
               </div>
             </div>
@@ -458,8 +472,18 @@
 
     <!-- ================= TAB 3: PROBABILI & CALENDARIO ================= -->
     <section id="tab-probabili" class="tab-view">
-      <div class="card-header" style="margin-bottom:14px;">
+      <div class="card-header" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <span class="card-title">📅 Serie A • Partite & Probabili Formazioni</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <div class="segmented-control" style="margin:0;">
+            <button id="btnMd6Probabili" class="segment-btn" onclick="switchProbabiliMatchday(6)">6ª Giornata (Passata)</button>
+            <button id="btnMd7Probabili" class="segment-btn active" onclick="switchProbabiliMatchday(7)">7ª Giornata (In Arrivo) 🟢</button>
+          </div>
+        </div>
+      </div>
+      <div id="probabiliMatchdayBanner" style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:0.8rem; color:#34d399; font-weight:700; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+        <span id="probabiliMatchdayBannerText">🟢 7ª Giornata: Primo anticipo venerdì 16 ottobre ore 20:45 (Frosinone - Sassuolo)</span>
+        <button class="btn btn-secondary btn-sm" onclick="triggerManualSync()" style="font-size:0.7rem; padding:2px 8px;">Aggiorna Live 🔄</button>
       </div>
       <div id="fixturesListContainer">
         <div style="text-align:center; padding:20px; color:var(--text-muted);">Caricamento partite...</div>
@@ -998,6 +1022,6 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="/static/js/notifications.js?v=3.6"></script>
   <script src="/static/js/pitch.js?v=3.6"></script>
-  <script src="/static/js/app.js?v=3.6"></script>
+  <script src="/static/js/app.js?v=3.7"></script>
 </body>
 </html>

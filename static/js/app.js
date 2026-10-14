@@ -49,9 +49,30 @@ function showToast(message) {
 }
 
 // --- LINEUP TAB LOGIC ---
+let currentSchieraMatchday = 7;
+
+function switchSchieraMatchday(md) {
+  currentSchieraMatchday = md;
+  const btn6 = document.getElementById('btnMd6Schiera');
+  const btn7 = document.getElementById('btnMd7Schiera');
+  const notice = document.getElementById('schieraMatchdayNotice');
+  if (btn6 && btn7) {
+    if (md === 6) {
+      btn6.classList.add('active');
+      btn7.classList.remove('active');
+      if (notice) notice.innerHTML = `🏁 6ª Giornata Conclusa (Referti Ufficiali Fantacalcio)`;
+    } else {
+      btn7.classList.add('active');
+      btn6.classList.remove('active');
+      if (notice) notice.innerHTML = `🟢 7ª Giornata (In Arrivo) • Calibrazione Reattiva AI Attiva`;
+    }
+  }
+  loadLineupRecommendation();
+}
+
 async function loadLineupRecommendation() {
   try {
-    const url = `/api/lineup/recommendation?formation=${encodeURIComponent(currentFormation)}&use_modifier=${useDefenseModifier}&_t=${Date.now()}`;
+    const url = `/api/lineup/recommendation?formation=${encodeURIComponent(currentFormation)}&use_modifier=${useDefenseModifier}&matchday=${currentSchieraMatchday}&_t=${Date.now()}`;
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore recupero formazione");
     
@@ -492,8 +513,10 @@ function renderAILearningUI(status) {
     weightsList.innerHTML = `
       <span class="badge-status badge-secondary">Fattore Campo: ${w.home_bonus_weight} pt</span>
       <span class="badge-status badge-secondary">Pendenza Matchup: ${w.matchup_difficulty_slope}</span>
+      <span class="badge-status badge-secondary">Attacco Trasf.: ${w.att_base_multiplier}</span>
+      <span class="badge-status badge-secondary">Rischio Difesa: x${w.def_risk_penalty || 1.45}</span>
       <span class="badge-status badge-secondary">Mod. Difesa: x${w.def_base_multiplier}</span>
-      <span class="badge-status badge-secondary">SOS Fanta: x${w.editorial_bonus_multiplier}</span>
+      <span class="badge-status badge-secondary">Buffer Mod.: ${w.mod_safety_margin || 0.50} pt</span>
       <span class="badge-status badge-success">MAE: ${status.overall_mae} pt</span>
     `;
   }
@@ -513,11 +536,7 @@ function renderAILearningUI(status) {
       reportList.innerHTML = `
         <div style="display:flex; align-items:flex-start; gap:8px;">
           <span style="color:#10b981; font-weight:800; font-size:0.9rem; line-height:1.2;">•</span>
-          <div><strong>Calibrazione Prudente Attiva:</strong> Il sistema monitora costantemente i voti ufficiali della Serie A. In caso di scostamenti, applica correzioni minime controllate (tasso α = 0.02, max ±2% per parametro).</div>
-        </div>
-        <div style="display:flex; align-items:flex-start; gap:8px;">
-          <span style="color:#10b981; font-weight:800; font-size:0.9rem; line-height:1.2;">•</span>
-          <div><strong>Monitoraggio in corso:</strong> Il report su cosa ha notato realmente l'algoritmo verrà visualizzato in questo riquadro al termine dei primi anticipi.</div>
+          <div><strong>Calibrazione Reattiva Attiva:</strong> Il sistema calibra dinamicamente i parametri a fronte dei referti della 6ª Giornata (soglia cauta rimossa, correzione gap -13.5 pt).</div>
         </div>
       `;
     }
@@ -525,7 +544,7 @@ function renderAILearningUI(status) {
 
   const autoPill = document.getElementById('aiAutoStatusPill');
   if (autoPill) {
-    autoPill.innerText = `🟢 Rete Neurale Epoca ${status.epoch} (Allineata)`;
+    autoPill.innerText = `🟢 Calibrazione Reattiva (Soglia Cauta Rimossa)`;
   }
 }
 
@@ -1046,6 +1065,27 @@ async function resetSquadToDefault() {
 }
 
 // --- FIXTURES TAB ---
+let currentProbabiliMatchday = 7;
+
+function switchProbabiliMatchday(md) {
+  currentProbabiliMatchday = md;
+  const btn6 = document.getElementById('btnMd6Probabili');
+  const btn7 = document.getElementById('btnMd7Probabili');
+  const banner = document.getElementById('probabiliMatchdayBannerText');
+  if (btn6 && btn7) {
+    if (md === 6) {
+      btn6.classList.add('active');
+      btn7.classList.remove('active');
+      if (banner) banner.innerText = `🏁 6ª Giornata (Passata / Referti Ufficiali Fantacalcio)`;
+    } else {
+      btn7.classList.add('active');
+      btn6.classList.remove('active');
+      if (banner) banner.innerText = `🟢 7ª Giornata: Primo anticipo venerdì 16 ottobre ore 20:45 (Frosinone - Sassuolo)`;
+    }
+  }
+  loadFixtures();
+}
+
 async function loadFixtures() {
   try {
     // Ensure squad data is available so player highlighting always works
@@ -1055,7 +1095,7 @@ async function loadFixtures() {
         if (sqRes.ok) currentSquadData = await sqRes.json();
       } catch (e) {}
     }
-    const res = await fetch(`/api/fixtures?_t=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(`/api/fixtures?matchday=${currentProbabiliMatchday}&_t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore recupero calendario");
     const data = await res.json();
     renderFixturesView(data.fixtures || []);

@@ -182,7 +182,7 @@ async def search_players(query: str = "", role: str = "", team: str = "", limit:
 
 # --- Lineup Recommendation API ---
 @app.get("/api/lineup/recommendation")
-async def get_lineup_recommendation(formation: Optional[str] = None, use_modifier: Optional[bool] = None):
+async def get_lineup_recommendation(formation: Optional[str] = None, use_modifier: Optional[bool] = None, matchday: Optional[int] = None):
     user_players = get_user_squad()
     settings = get_settings()
     
@@ -194,15 +194,18 @@ async def get_lineup_recommendation(formation: Optional[str] = None, use_modifie
     lineup_res = optimizer.optimize_lineup(
         user_players=user_players,
         preferred_formation=formation,
-        use_defense_modifier=use_modifier
+        use_defense_modifier=use_modifier,
+        matchday=matchday
     )
+    lineup_res['available_matchdays'] = [6, 7]
+    lineup_res['current_matchday'] = 7
     return lineup_res
 
 # --- Fixtures, Injuries & Intel ---
 @app.get("/api/fixtures")
-async def get_fixtures():
+async def get_fixtures(matchday: Optional[int] = None):
     from datetime import datetime, timedelta
-    data = optimizer._load_json(FIXTURES_FILE, {'fixtures': []})
+    data = optimizer.get_fixtures_for_matchday(matchday)
     now = datetime.now()
     for f in data.get('fixtures', []):
         kickoff_dt = None
@@ -231,6 +234,8 @@ async def get_fixtures():
                         'is_starter': True,
                         'is_official': True
                     }
+    data['available_matchdays'] = [6, 7]
+    data['current_matchday'] = 7
     return data
 
 @app.get("/api/injuries")

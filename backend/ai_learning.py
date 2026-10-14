@@ -371,4 +371,17 @@ class AILearningEngine:
             'data': updated_data
         }
 
+    def auto_calibrate_if_needed(self, evaluated_players: List[Dict]) -> Optional[Dict[str, Any]]:
+        """
+        Autonomous background self-calibration:
+        If matches have completed and discrepancies exist, the AI auto-calibrates
+        the reactive weights immediately even if the user never opens or clicks the modal.
+        """
+        weights = self.get_weights()
+        # If cauta threshold was active or weights haven't adapted to the -13.5 pt gap
+        if self.data.get('cauta_threshold_active', True) or weights.get('att_base_multiplier', 8.0) > 7.0:
+            print("[AILearning] Autonomous calibration triggered in background (no user click needed).")
+            return self.run_recalibration(evaluated_players)
+        return None
+
 ai_learning_engine = AILearningEngine()

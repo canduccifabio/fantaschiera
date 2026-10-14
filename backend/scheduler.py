@@ -16,8 +16,11 @@ class AlertManager:
     def start(self):
         if not self.scheduler.running:
             self.scheduler.add_job(self.check_alert_status, 'interval', minutes=2, id='check_alert_job')
+            self.scheduler.add_job(self.check_sosfanta_update, 'interval', minutes=30, id='check_sosfanta_job')
+            self.scheduler.add_job(self.check_fixtures_update, 'interval', minutes=60, id='check_fixtures_job')
+            self.scheduler.add_job(self.check_ai_auto_learning, 'interval', minutes=15, id='check_ai_learning_job')
             self.scheduler.start()
-            print("[AlertManager] Background scheduler started.")
+            print("[AlertManager] Background scheduler started with SOS Fanta auto-sync, fixtures updates and AI auto-learning.")
 
     def get_alert_info(self) -> dict:
         """Returns current alert timing and status."""
@@ -107,3 +110,30 @@ class AlertManager:
                     print(f"[AlertManager] Webhook delivery failed: {e}")
         elif not info.get('alert_active'):
             self.last_alert_sent = False
+
+    def check_sosfanta_update(self):
+        """Periodically checks if SOS Fanta published a new preview article and syncs it."""
+        try:
+            from backend.sosfanta_analyzer import sosfanta_analyzer
+            res = sosfanta_analyzer.check_and_update_latest_preview()
+            if res.get('updated'):
+                print(f"[Scheduler] SOS Fanta updated automatically to: {res.get('matchday')}")
+        except Exception as e:
+            print(f"[Scheduler] Error checking SOS Fanta update: {e}")
+
+    def check_fixtures_update(self):
+        """Periodically syncs fixtures, matchday lineups and percentages from Fantacalcio.it."""
+        try:
+            from backend.scraper import scrape_fixtures_and_lineups
+            scrape_fixtures_and_lineups()
+            print("[Scheduler] Fixtures and lineups refreshed automatically.")
+        except Exception as e:
+            print(f"[Scheduler] Error syncing fixtures: {e}")
+
+    def check_ai_auto_learning(self):
+        """Autonomous AI auto-learning check."""
+        try:
+            from backend.ai_learning import ai_learning_engine
+            ai_learning_engine.auto_calibrate_if_needed([])
+        except Exception as e:
+            print(f"[Scheduler] Error in AI auto-learning check: {e}")

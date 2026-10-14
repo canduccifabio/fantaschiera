@@ -1,7 +1,7 @@
 import json
 import os
 import re
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from datetime import datetime, timedelta
 from backend.sosfanta_analyzer import sosfanta_analyzer
 from backend.intelligence import super_intelligence
@@ -68,16 +68,43 @@ class LineupOptimizer:
             norm = self._normalize_name(p['name'])
             self.players_lookup[norm] = p
 
-    def find_player_match(self, player_team: str) -> Tuple[Dict, bool]:
-        """Finds upcoming match and whether player plays at home."""
-        for match in self.fixtures_data.get('fixtures', []):
+    def get_fixtures_for_matchday(self, matchday: Optional[int] = None) -> Dict:
+        """Returns fixtures data for the specified matchday (6=passata, 7=attuale/prossima)."""
+        if matchday == 6:
+            f_path = os.path.join(DATA_DIR, 'fixtures_giornata_6.json')
+            if os.path.exists(f_path):
+                data = self._load_json(f_path, {'fixtures': []})
+                data['matchday'] = 6
+                data['matchday_label'] = '6ª Giornata (Passata / Referti)'
+                data['is_past'] = True
+                return data
+        elif matchday == 7:
+            f_path = os.path.join(DATA_DIR, 'fixtures_giornata_7.json')
+            if os.path.exists(f_path):
+                data = self._load_json(f_path, {'fixtures': []})
+                data['matchday'] = 7
+                data['matchday_label'] = '7ª Giornata (Attuale / In Arrivo)'
+                data['is_past'] = False
+                return data
+
+        # Default: current fixtures
+        data = self._load_json(FIXTURES_FILE, {'fixtures': []})
+        data['matchday'] = 7
+        data['matchday_label'] = '7ª Giornata (Attuale / In Arrivo)'
+        data['is_past'] = False
+        return data
+
+    def find_player_match(self, player_team: str, fixtures_list: Optional[List[Dict]] = None) -> Tuple[Dict, bool]:
+        """Finds match and whether player plays at home."""
+        flist = fixtures_list if fixtures_list is not None else self.fixtures_data.get('fixtures', [])
+        for match in flist:
             if match.get('home_code') == player_team or player_team in match.get('home_team', ''):
                 return match, True
             if match.get('away_code') == player_team or player_team in match.get('away_team', ''):
                 return match, False
         return {}, False
 
-    def evaluate_player(self, player: Dict) -> Dict:
+    def evaluate_player(self, player: Dict, fixtures_list: Optional[List[Dict]] = None) -> Dict:
         """
         Comprehensive Super-Intelligence evaluation:
         - Fanta-Score Index (0-100)
@@ -141,7 +168,7 @@ class LineupOptimizer:
             }
 
         # 2. Match Fixture & Base Probabilities
-        match, is_home = self.find_player_match(team)
+        match, is_home = self.find_player_match(team, fixtures_list=fixtures_list)
         opponent_code = match.get('away_code' if is_home else 'home_code', 'SERIE A') if match else 'N/A'
         opponent_name = match.get('away_team' if is_home else 'home_team', 'Avversario') if match else 'Avversario'
         opp_diff = TEAM_DIFFICULTY.get(opponent_code, 3.0)
@@ -440,7 +467,7 @@ class LineupOptimizer:
             }
         }
 
-    def optimize_lineup(self, user_players: List[Dict], preferred_formation: str = None, use_defense_modifier: bool = True) -> Dict:
+    def optimize_lineup(self, user_players: List[Dict], preferred_formation: str = None, use_defense_modifier: bool = True, matchday: Optional[int] = None) -> Dict:
         """
         Optimizes lineup, calculates real expected fantapunti, tests all formations,
         and applies the user's defense modifier rules:
@@ -450,8 +477,11 @@ class LineupOptimizer:
 
         When preferred_formation is 'auto' or None, evaluates modules to find the absolute
         maximum expected points (comparing with vs without modifier impact).
+        Supports matchday selection (e.g. 6=passata, 7=attuale/prossima).
         """
-        evaluated_players = [self.evaluate_player(p) for p in user_players]
+        fixtures_data = self.get_fixtures_for_matchday(matchday)
+        fixtures_list = fixtures_data.get('fixtures', [])
+        evaluated_players = [self.evaluate_player(p, fixtures_list=fixtures_list) for p in user_players]
         
         # Filter available vs injured/suspended
         available_players = [p for p in evaluated_players if not p.get('is_out', False)]
@@ -625,6 +655,9 @@ class LineupOptimizer:
 
         return {
             'recommended_formation': best_module,
+            'matchday': fixtures_data.get('matchday', 7),
+            'matchday_label': fixtures_data.get('matchday_label', '7ª Giornata (Attuale / In Arrivo)'),
+            'is_past_matchday': fixtures_data.get('is_past', False),
             'total_expected_score': best_details.get('total_expected_points', 72.0),
             'base_expected_score': best_details.get('base_expected_fv', 70.0),
             'goals_expected': goals_expected,
@@ -643,6 +676,7 @@ class LineupOptimizer:
             'all_formations': list(ALLOWED_FORMATIONS.keys())
         }
 
+optimizer = LineupOptimizer()
+
 if __name__ == '__main__':
-    optimizer = LineupOptimizer()
     print("Optimizer with Super-Intelligence ready.")
