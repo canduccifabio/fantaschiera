@@ -718,8 +718,14 @@ function renderLivePlayerCards(data) {
       baseDisp = 'Exp';
       const expNum = (p.expected_fantavoto !== undefined && p.expected_fantavoto !== null) ? Number(p.expected_fantavoto) : null;
       if (expNum !== null) {
-        fvDisp = expNum.toFixed(1);
-        fvClass = expNum >= 6.5 ? 'fv-good' : (expNum >= 6.0 ? 'fv-avg' : 'fv-warn');
+        if (p.is_injured || expNum === 0) {
+          baseDisp = '🚨';
+          fvDisp = 'OUT';
+          fvClass = 'fv-bad';
+        } else {
+          fvDisp = expNum.toFixed(1);
+          fvClass = expNum >= 6.5 ? 'fv-good' : (expNum >= 6.0 ? 'fv-avg' : 'fv-warn');
+        }
       }
     }
 

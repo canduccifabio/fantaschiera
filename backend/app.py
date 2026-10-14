@@ -328,11 +328,13 @@ async def get_live_votes(use_actual: bool = True, matchday: int = 6):
         matchday=matchday
     )
     starters = lineup_res.get('starters', [])
+    all_evaluated = lineup_res.get('starters', []) + lineup_res.get('bench', []) + lineup_res.get('tribuna', [])
     data = live_tracker.get_live_data(
         user_players=user_players,
         starters=starters,
         actual_lineup=actual_lineup,
-        matchday=matchday
+        matchday=matchday,
+        evaluated_catalog=all_evaluated
     )
     data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
     data['current_matchday'] = matchday
@@ -348,11 +350,14 @@ async def refresh_live_votes(use_actual: bool = True, matchday: int = 6):
         use_defense_modifier=settings.get('defense_modifier', True),
         matchday=matchday
     )
+    starters = lineup_res.get('starters', [])
+    all_evaluated = lineup_res.get('starters', []) + lineup_res.get('bench', []) + lineup_res.get('tribuna', [])
     data = live_tracker.get_live_data(
         user_players=user_players,
-        starters=lineup_res.get('starters', []),
+        starters=starters,
         actual_lineup=actual_lineup,
-        matchday=matchday
+        matchday=matchday,
+        evaluated_catalog=all_evaluated
     )
     data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
     data['current_matchday'] = matchday

@@ -824,7 +824,7 @@ class LiveMatchTracker:
                 'mod_impact': "In attesa di referti ufficiali e voti del reparto difensivo."
             }
 
-    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None, matchday: int = 6) -> Dict[str, Any]:
+    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None, matchday: int = 6, evaluated_catalog: Optional[List[Dict]] = None) -> Dict[str, Any]:
         """
         Builds the live match center comparing real/live performance vs predicted metrics.
         Follows strictly the real Serie A timetable and scrapes live scores from Fantacalcio.it.
@@ -872,8 +872,17 @@ class LiveMatchTracker:
         starter_names = {p.get('name', '').lower().strip() for p in effective_starters if p.get('name')}
         starter_norms = {re.sub(r'[^a-z0-9]', '', p.get('name', '').lower()) for p in effective_starters if p.get('name')}
         
-        # Build mapping of expected fantavoto from evaluated starters/bench
-        exp_map = {p.get('name', '').lower(): p.get('expected_fantavoto') for p in (starters or []) if p.get('expected_fantavoto')}
+        # Build mapping of expected fantavoto from all evaluated players (starters, bench, tribuna)
+        eval_pool = evaluated_catalog or starters or []
+        exp_map = {}
+        for p in eval_pool:
+            if p.get('expected_fantavoto') is not None:
+                p_name_l = p.get('name', '').lower().strip()
+                p_norm_l = re.sub(r'[^a-z0-9]', '', p_name_l)
+                if p_name_l:
+                    exp_map[p_name_l] = p.get('expected_fantavoto')
+                if p_norm_l:
+                    exp_map[p_norm_l] = p.get('expected_fantavoto')
 
         evaluated_players = []
         starters_real_sum = 0.0
@@ -902,7 +911,15 @@ class LiveMatchTracker:
             if not is_starter and len(p_norm) >= 4:
                 is_starter = any((p_norm in sn or sn in p_norm) for sn in starter_norms if len(sn) >= 4)
 
-            exp_fv = exp_map.get(p_name.lower()) or exp_map.get(p_norm) or p.get('expected_fantavoto', 6.2)
+            exp_fv = exp_map.get(p_name.lower())
+            if exp_fv is None:
+                exp_fv = exp_map.get(p_norm)
+            if exp_fv is None:
+                exp_fv = p.get('expected_fantavoto')
+            if exp_fv is None:
+                qa = p.get('qa', 10)
+                role_base = {'P': 5.2, 'D': 6.2, 'C': 6.5, 'A': 7.0}.get(role, 6.0)
+                exp_fv = round(role_base + (qa - 10) * 0.05, 2)
 
             # Fixture & Match status using the matchday's fixtures
             fixture = self._find_player_match(team, fixtures_list=current_fixtures)
