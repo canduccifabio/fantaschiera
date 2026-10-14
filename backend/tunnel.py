@@ -6,10 +6,20 @@ import subprocess
 import threading
 import json
 
+import shutil
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLOUDFLARED_EXE = os.path.join(BASE_DIR, 'cloudflared.exe')
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 TUNNEL_FILE = os.path.join(DATA_DIR, 'tunnel_info.json')
+
+def find_cloudflared_executable():
+    for name in ['cloudflared', 'cloudflared.exe']:
+        path = os.path.join(BASE_DIR, name)
+        if os.path.exists(path):
+            return path
+    return shutil.which('cloudflared')
+
+CLOUDFLARED_EXE = find_cloudflared_executable()
 
 class CloudflareTunnel:
     def __init__(self, local_port=8000):
@@ -18,8 +28,8 @@ class CloudflareTunnel:
         self.process = None
 
     def start(self):
-        if not os.path.exists(CLOUDFLARED_EXE):
-            print("[Tunnel] cloudflared.exe non trovato, tunnel pubblico non avviato.")
+        if not CLOUDFLARED_EXE or not os.path.exists(CLOUDFLARED_EXE):
+            print("[Tunnel] cloudflared non trovato, tunnel pubblico non avviato.")
             return None
 
         # Check if already running or file has active url

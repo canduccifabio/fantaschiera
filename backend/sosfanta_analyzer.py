@@ -47,6 +47,7 @@ class SOSFantaAnalyzer:
     def __init__(self, preview_url: str = DEFAULT_PREVIEW_URL):
         self.preview_url = preview_url.rstrip('/') + '/'
         self.scraped_data = self._load_cache()
+        self._matchday_cache: Dict[int, Dict[str, Any]] = {}
         if self.scraped_data and self.scraped_data.get('preview_url'):
             self.preview_url = self.scraped_data['preview_url']
 
@@ -93,6 +94,9 @@ class SOSFantaAnalyzer:
         """Returns scraped preview data for a specific matchday, isolating rounds cleanly."""
         matchday = int(matchday) if matchday else 7
 
+        if matchday in self._matchday_cache:
+            return self._matchday_cache[matchday]
+
         # 1. Check matchday-specific archive file
         md_file = os.path.join(DATA_DIR, f'sosfanta_preview_giornata_{matchday}.json')
         if os.path.exists(md_file):
@@ -102,6 +106,7 @@ class SOSFantaAnalyzer:
                     if data.get('slides') and len(data.get('slides', [])) > 0:
                         data['is_published'] = True
                         data['matchday_number'] = matchday
+                        self._matchday_cache[matchday] = data
                         return data
             except Exception:
                 pass
@@ -110,6 +115,7 @@ class SOSFantaAnalyzer:
         if self.scraped_data and self.get_matchday_number() == matchday and self.scraped_data.get('slides'):
             self.scraped_data['is_published'] = True
             self.scraped_data['matchday_number'] = matchday
+            self._matchday_cache[matchday] = self.scraped_data
             return self.scraped_data
 
         # 3. Check if base cache file matches matchday 6
@@ -120,6 +126,7 @@ class SOSFantaAnalyzer:
                     if self.get_matchday_number(data.get('preview_url', '')) == 6 and data.get('slides'):
                         data['is_published'] = True
                         data['matchday_number'] = 6
+                        self._matchday_cache[matchday] = data
                         return data
             except Exception:
                 pass
@@ -132,10 +139,11 @@ class SOSFantaAnalyzer:
                 res = self.scrape_all_slides()
                 res['is_published'] = True
                 res['matchday_number'] = matchday
+                self._matchday_cache[matchday] = res
                 return res
 
         # 5. Not yet published on SOS Fanta (published usually 24-48h before kickoff)
-        return {
+        res = {
             'preview_url': None,
             'matchday': f'{matchday}ª Giornata',
             'matchday_number': matchday,
@@ -144,6 +152,8 @@ class SOSFantaAnalyzer:
             'combined_text': '',
             'slides': []
         }
+        self._matchday_cache[matchday] = res
+        return res
 
     def check_and_update_latest_preview(self, force: bool = False) -> Dict[str, Any]:
         """Checks if a new matchday preview exists and automatically scrapes it."""

@@ -322,13 +322,33 @@ function switchLiveMatchday(md) {
       if (notice) notice.innerHTML = `🟢 7ª Giornata (In Arrivo) • Inizio Venerdì 20:45`;
     }
   }
+
+  // If switching to an upcoming round (7) and filter was 'active', reset to 'starters' so list isn't empty
+  if (md === 7 && currentLiveFilter === 'active') {
+    currentLiveFilter = 'starters';
+    document.querySelectorAll('[data-livefilter]').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-livefilter') === 'starters');
+    });
+  }
+
+  // Immediate visual feedback in both player and matches containers
+  const container = document.getElementById('livePlayersListContainer');
+  if (container) {
+    container.innerHTML = `<div style="text-align:center; padding:32px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Caricamento dati ${md}ª Giornata in corso...</div>`;
+  }
+  const matchesContainer = document.getElementById('liveMatchesListContainer');
+  if (matchesContainer) {
+    matchesContainer.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Aggiornamento 10 partite ${md}ª Giornata...</div>`;
+  }
+
+  showToast(`📅 Carico dati ${md}ª Giornata...`);
   loadLiveVotes();
 }
 
 async function loadLiveVotes(useActual = null) {
   if (useActual !== null) currentLiveUseActual = useActual;
   const container = document.getElementById('livePlayersListContainer');
-  if (container && !currentLiveData) {
+  if (container && !container.innerHTML.includes('live-dot') && !currentLiveData) {
     container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Connessione al live match center...</div>`;
   }
   try {
@@ -340,9 +360,10 @@ async function loadLiveVotes(useActual = null) {
     updateLiveLineupModeIndicator(data);
   } catch (err) {
     console.error("Error loading live votes:", err);
-    if (container && !currentLiveData) {
+    if (container) {
       container.innerHTML = `<div style="text-align:center; padding:24px; color:#f87171;">Impossibile recuperare i voti live. Verifica la connessione e riprova.</div>`;
     }
+    showToast("⚠️ Errore caricamento voti live");
   }
 }
 
@@ -413,7 +434,19 @@ function renderLiveView(data) {
   }
   const playersTitle = document.getElementById('livePlayersSectionTitle');
   if (playersTitle && data.players_title) {
-    playersTitle.innerText = data.players_title;
+    playersTitle.innerText = `📊 ${data.players_title}`;
+  }
+  const notice = document.getElementById('liveMatchdayNotice');
+  if (notice && data.matchday) {
+    notice.innerHTML = data.matchday === 6
+      ? `🏁 6ª Giornata (Referti & Voti Ufficiali Fantacalcio)`
+      : `🟢 7ª Giornata (In Arrivo) • Inizio Venerdì 20:45`;
+  }
+  const btn6 = document.getElementById('btnMd6Live');
+  const btn7 = document.getElementById('btnMd7Live');
+  if (btn6 && btn7 && data.matchday) {
+    btn6.classList.toggle('active', data.matchday === 6);
+    btn7.classList.toggle('active', data.matchday === 7);
   }
 
   // Header status badge
@@ -681,6 +714,13 @@ function renderLivePlayerCards(data) {
     } else if (p.match_status === 'IN CORSO') {
       fvDisp = 'LIVE';
       fvClass = 'fv-live';
+    } else {
+      baseDisp = 'Exp';
+      const expNum = (p.expected_fantavoto !== undefined && p.expected_fantavoto !== null) ? Number(p.expected_fantavoto) : null;
+      if (expNum !== null) {
+        fvDisp = expNum.toFixed(1);
+        fvClass = expNum >= 6.5 ? 'fv-good' : (expNum >= 6.0 ? 'fv-avg' : 'fv-warn');
+      }
     }
 
     return `
