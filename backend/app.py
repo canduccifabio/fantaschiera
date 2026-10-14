@@ -36,6 +36,10 @@ TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
+@app.get("/health")
+async def health_check():
+    return {"status": "ok", "app": "FantaSchiera AI"}
+
 # Initialize engines
 optimizer = LineupOptimizer()
 alert_manager = AlertManager()
