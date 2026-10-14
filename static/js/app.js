@@ -304,6 +304,26 @@ function setLiveFilter(filterType) {
 }
 
 let currentLiveUseActual = true;
+let currentLiveMatchday = 6;
+
+function switchLiveMatchday(md) {
+  currentLiveMatchday = md;
+  const btn6 = document.getElementById('btnMd6Live');
+  const btn7 = document.getElementById('btnMd7Live');
+  const notice = document.getElementById('liveMatchdayNotice');
+  if (btn6 && btn7) {
+    if (md === 6) {
+      btn6.classList.add('active');
+      btn7.classList.remove('active');
+      if (notice) notice.innerHTML = `🏁 6ª Giornata (Referti & Voti Ufficiali Fantacalcio)`;
+    } else {
+      btn7.classList.add('active');
+      btn6.classList.remove('active');
+      if (notice) notice.innerHTML = `🟢 7ª Giornata (In Arrivo) • Inizio Venerdì 20:45`;
+    }
+  }
+  loadLiveVotes();
+}
 
 async function loadLiveVotes(useActual = null) {
   if (useActual !== null) currentLiveUseActual = useActual;
@@ -312,7 +332,7 @@ async function loadLiveVotes(useActual = null) {
     container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Connessione al live match center...</div>`;
   }
   try {
-    const res = await fetch(`/api/live/votes?use_actual=${currentLiveUseActual}&_t=${Date.now()}`, { cache: 'no-store' });
+    const res = await fetch(`/api/live/votes?use_actual=${currentLiveUseActual}&matchday=${currentLiveMatchday}&_t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore nel recupero dei voti live");
     const data = await res.json();
     currentLiveData = data;
@@ -333,7 +353,7 @@ async function refreshLiveVotes(btn) {
   }
   try {
     showToast("🔄 Sincronizzo voti e formazioni live...");
-    const res = await fetch(`/api/live/refresh?use_actual=${currentLiveUseActual}&_t=${Date.now()}`, { method: 'POST', cache: 'no-store' });
+    const res = await fetch(`/api/live/refresh?use_actual=${currentLiveUseActual}&matchday=${currentLiveMatchday}&_t=${Date.now()}`, { method: 'POST', cache: 'no-store' });
     const json = await res.json();
     if (json.success && json.data) {
       currentLiveData = json.data;
@@ -386,12 +406,22 @@ function renderLiveView(data) {
   const summary = data.summary || {};
   const retro = data.ai_retrospective || {};
 
+  // Dynamic Section Titles for Players and Matches
+  const matchesTitle = document.getElementById('liveMatchesSectionTitle');
+  if (matchesTitle && data.all_matches_title) {
+    matchesTitle.innerText = data.all_matches_title;
+  }
+  const playersTitle = document.getElementById('livePlayersSectionTitle');
+  if (playersTitle && data.players_title) {
+    playersTitle.innerText = data.players_title;
+  }
+
   // Header status badge
   const statusBadge = document.getElementById('liveStatusBadge');
   if (statusBadge) {
     if (summary.is_pre_match) {
       statusBadge.className = 'badge-status badge-warning';
-      statusBadge.innerText = '⏳ In attesa del 1° match (Sab 15:00)';
+      statusBadge.innerText = '⏳ In attesa del 1° match (Ven 20:45)';
     } else if (summary.live_matches > 0 || summary.live_players > 0) {
       statusBadge.className = 'badge-status badge-danger';
       statusBadge.innerHTML = '<span class="live-dot" style="margin-right:4px;"></span> LIVE in Corso 🔴';

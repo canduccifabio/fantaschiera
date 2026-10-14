@@ -303,33 +303,50 @@ from backend.live_tracker import live_tracker
 from backend.lineup_extractor import lineup_extractor
 
 @app.get("/api/live/votes")
-async def get_live_votes(use_actual: bool = True):
+async def get_live_votes(use_actual: bool = True, matchday: int = 6):
     user_players = get_user_squad()
     settings = get_settings()
     use_modifier = settings.get('defense_modifier', True)
     pref_formation = settings.get('preferred_formation', None)
     
-    # Check if actual fielded lineup is present
-    actual_lineup = lineup_extractor.get_actual_lineup() if use_actual else None
+    # Check if actual fielded lineup is present (relevant for matchday 6)
+    actual_lineup = lineup_extractor.get_actual_lineup() if (use_actual and matchday == 6) else None
     
     lineup_res = optimizer.optimize_lineup(
         user_players=user_players,
         preferred_formation=pref_formation,
-        use_defense_modifier=use_modifier
+        use_defense_modifier=use_modifier,
+        matchday=matchday
     )
     starters = lineup_res.get('starters', [])
-    data = live_tracker.get_live_data(user_players=user_players, starters=starters, actual_lineup=actual_lineup)
+    data = live_tracker.get_live_data(
+        user_players=user_players,
+        starters=starters,
+        actual_lineup=actual_lineup,
+        matchday=matchday
+    )
     data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
+    data['current_matchday'] = matchday
     return data
 
 @app.post("/api/live/refresh")
-async def refresh_live_votes(use_actual: bool = True):
+async def refresh_live_votes(use_actual: bool = True, matchday: int = 6):
     user_players = get_user_squad()
     settings = get_settings()
-    actual_lineup = lineup_extractor.get_actual_lineup() if use_actual else None
-    lineup_res = optimizer.optimize_lineup(user_players=user_players, use_defense_modifier=settings.get('defense_modifier', True))
-    data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), actual_lineup=actual_lineup)
+    actual_lineup = lineup_extractor.get_actual_lineup() if (use_actual and matchday == 6) else None
+    lineup_res = optimizer.optimize_lineup(
+        user_players=user_players,
+        use_defense_modifier=settings.get('defense_modifier', True),
+        matchday=matchday
+    )
+    data = live_tracker.get_live_data(
+        user_players=user_players,
+        starters=lineup_res.get('starters', []),
+        actual_lineup=actual_lineup,
+        matchday=matchday
+    )
     data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
+    data['current_matchday'] = matchday
     return {"success": True, "data": data}
 
 # --- Actual Fielded Lineup & Leghe FC Screenshot API ---

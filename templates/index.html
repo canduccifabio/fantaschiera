@@ -204,6 +204,20 @@
 
     <!-- ================= TAB 2: LIVE & PAGELLE AI ================= -->
     <section id="tab-live" class="tab-view">
+      <!-- Matchday Selector Bar for Live Tab -->
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">📅 GIORNATA:</span>
+          <div class="segmented-control" style="margin:0;">
+            <button id="btnMd6Live" class="segment-btn active" onclick="switchLiveMatchday(6)">6ª Giornata (Referti & Voti)</button>
+            <button id="btnMd7Live" class="segment-btn" onclick="switchLiveMatchday(7)">7ª Giornata (In Arrivo) 🟢</button>
+          </div>
+        </div>
+        <div id="liveMatchdayNotice" style="font-size:0.75rem; color:#34d399; font-weight:700;">
+          🏁 6ª Giornata (Referti & Voti Ufficiali Fantacalcio)
+        </div>
+      </div>
+
       <!-- Live Match Center Hero Card -->
       <div class="card" style="background:linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(59, 130, 246, 0.15)); border-color:rgba(16, 185, 129, 0.3); margin-bottom:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
@@ -374,8 +388,8 @@
       <!-- Live Players Table / Cards (Compressible) -->
       <div class="card" style="margin-bottom:14px;">
         <div class="card-header" style="cursor:pointer;" onclick="toggleLivePlayersSection()">
-          <span class="card-title" style="display:flex; align-items:center; gap:8px;">
-            📊 Pagelle & Voti Reali • I Tuoi Calciatori
+          <span id="livePlayersSectionTitle" class="card-title" style="display:flex; align-items:center; gap:8px;">
+            📊 Pagelle & Voti Reali 6ª Giornata • I Tuoi Calciatori
           </span>
           <div style="display:flex; gap:6px; align-items:center;">
             <span id="livePlayersCountBadge" class="badge-status badge-primary">11 Calciatori</span>
@@ -392,8 +406,8 @@
       <!-- ================= LIVE MATCH CENTER: TUTTE LE 10 PARTITE DELLA GIORNATA ================= -->
       <div class="card">
         <div class="card-header" style="cursor:pointer;" onclick="toggleLiveMatchesSection()">
-          <span class="card-title" style="display:flex; align-items:center; gap:8px;">
-            ⚽ Diretta Partite 6ª Giornata • Serie A Live
+          <span id="liveMatchesSectionTitle" class="card-title" style="display:flex; align-items:center; gap:8px;">
+            ⚽ Risultati & Tabellini 6ª Giornata • Serie A
           </span>
           <div style="display:flex; gap:6px; align-items:center;">
             <span id="liveMatchesSummaryBadge" class="badge-status badge-danger">1 Live • 9 In Programma</span>
@@ -1022,6 +1036,6 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="/static/js/notifications.js?v=3.6"></script>
   <script src="/static/js/pitch.js?v=3.6"></script>
-  <script src="/static/js/app.js?v=3.7"></script>
+  <script src="/static/js/app.js?v=3.8"></script>
 </body>
 </html>
