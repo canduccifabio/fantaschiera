@@ -216,9 +216,14 @@ function renderLineupView(data) {
       decisionsContainer.style.display = 'block';
       decisionsContainer.innerHTML = `
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:6px;">
-          <div class="card-title" style="color:#f59e0b; margin:0; display:flex; align-items:center; gap:8px;">
-            <span>⚖️ Ballottaggi & Scelte Chiave dell'AI</span>
-            <span class="badge-status badge-warning" style="font-size:0.7rem; font-weight:800;">Interattivi • Clicca per analisi</span>
+          <div>
+            <div class="card-title" style="color:#f59e0b; margin:0; display:flex; align-items:center; gap:8px;">
+              <span>⚖️ Ballottaggi & Scelte Chiave dell'AI</span>
+              <span class="badge-status badge-warning" style="font-size:0.7rem; font-weight:800;">Interattivi • Clicca per analisi</span>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">
+              💡 <strong>Come scegliere:</strong> Clicca su ciascun ballottaggio per aprire il testa a testa comparativo con motivazione AI, Opta xG, titolarità, coppe e arbitro.
+            </div>
           </div>
           <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">${data.key_decisions.length} dubbi analizzati</span>
         </div>
@@ -617,18 +622,18 @@ function renderAILearningUI(status) {
   const w = status.weights || {};
   if (weightsList && w) {
     weightsList.innerHTML = `
-      <span class="badge-status badge-secondary">Fattore Campo: ${w.home_bonus_weight} pt</span>
-      <span class="badge-status badge-secondary">Pendenza Matchup: ${w.matchup_difficulty_slope}</span>
-      <span class="badge-status badge-secondary">Attacco Trasf.: ${w.att_base_multiplier}</span>
-      <span class="badge-status badge-secondary">Rischio Difesa: x${w.def_risk_penalty || 1.45}</span>
-      <span class="badge-status badge-secondary">Mod. Difesa: x${w.def_base_multiplier}</span>
-      <span class="badge-status badge-secondary">Buffer Mod.: ${w.mod_safety_margin || 0.50} pt</span>
-      <span class="badge-status badge-secondary">Piazzati/Corner: +${w.corner_specialty_weight || 2.5} pt</span>
-      <span class="badge-status badge-secondary">npxG Azione: x${w.npxg_weight || 5.5}</span>
-      <span class="badge-status badge-secondary">SCA Regia: x${w.sca_weight || 1.8}</span>
-      <span class="badge-status badge-secondary">Turnover Coppe: ${w.turnover_damp_factor || 0.88}x</span>
-      <span class="badge-status badge-secondary">Rischio Arbitro: ${w.referee_strictness_weight || 1.35}x</span>
-      <span class="badge-status badge-success">MAE: ${status.overall_mae} pt</span>
+      <span class="badge-status badge-secondary" title="Bonus punti per chi gioca in casa (ridotto per evitare illusioni)">🏠 Fattore Campo: ${w.home_bonus_weight} pt</span>
+      <span class="badge-status badge-secondary" title="Severità con cui l'AI penalizza le partite contro difese chiuse">📈 Pendenza Matchup: ${w.matchup_difficulty_slope}</span>
+      <span class="badge-status badge-secondary" title="Moltiplicatore sui gol attesi per attaccanti impegnati fuori casa">⚽ Attacco Trasf.: ${w.att_base_multiplier}</span>
+      <span class="badge-status badge-secondary" title="Penalità su difensori fallosi per prevenire malus cartellino/autogol">🛡️ Rischio Difesa: x${w.def_risk_penalty || 1.45}</span>
+      <span class="badge-status badge-secondary" title="Moltiplicatore voto puro per stimare la media reparto difensivo">📊 Mod. Difesa: x${w.def_base_multiplier}</span>
+      <span class="badge-status badge-secondary" title="Buffer di sicurezza di 0.5 pt prima di proiettare bonus modificatore +3/+6">🛡️ Buffer Mod.: ${w.mod_safety_margin || 0.50} pt</span>
+      <span class="badge-status badge-secondary" title="Incremento per i battitori designati di corner e punizioni da fermo">📐 Piazzati/Corner: +${w.corner_specialty_weight || 2.5} pt</span>
+      <span class="badge-status badge-secondary" title="Peso dei gol attesi su azione pura senza penalty (Opta/Understat)">🎯 npxG Azione: x${w.npxg_weight || 5.5}</span>
+      <span class="badge-status badge-secondary" title="Shot-Creating Actions: occasioni create da assist e passaggi chiave">👟 SCA Regia: x${w.sca_weight || 1.8}</span>
+      <span class="badge-status badge-secondary" title="Smorzamento fatica per impegni infrasettimanali Champions/Europa League">⚖️ Turnover Coppe: ${w.turnover_damp_factor || 0.88}x</span>
+      <span class="badge-status badge-secondary" title="Penalità disciplinare basata sulla severità dell'arbitro designato (AIA)">🟨 Rischio Arbitro: ${w.referee_strictness_weight || 1.35}x</span>
+      <span class="badge-status badge-success" title="Mean Absolute Error: scarto medio assoluto tra fanta-voto previsto e reale (minore = più preciso)">🎯 MAE Globale: ${status.overall_mae} pt</span>
     `;
   }
 
@@ -1758,15 +1763,21 @@ function openPlayerModal(player) {
   if (factorsContainer) {
     const factors = player.motivation?.factors || [];
     if (factors.length > 0) {
-      factorsContainer.innerHTML = factors.map(f => `
-        <div class="modal-factor-row">
-          <div class="modal-factor-header">
-            <span class="modal-factor-label">${f.label}</span>
-            <span class="modal-factor-val">${f.val}</span>
+      factorsContainer.innerHTML = factors.map(f => {
+        const isAIEvaluated = f.label.includes('Metriche') || f.label.includes('Piazzati') || f.label.includes('Disciplinare') || f.label.includes('Fatica') || f.label.includes('Modificatore') || f.label.includes('Partita');
+        return `
+          <div class="modal-factor-row">
+            <div class="modal-factor-header">
+              <span class="modal-factor-label" style="display:flex; align-items:center; gap:6px;">
+                <span>${f.label}</span>
+                ${isAIEvaluated ? '<span class="badge-status badge-primary" style="font-size:0.62rem; padding:1px 5px; font-weight:800;">🤖 Analisi AI</span>' : ''}
+              </span>
+              <span class="modal-factor-val">${f.val}</span>
+            </div>
+            <div class="modal-factor-desc">${f.desc}</div>
           </div>
-          <div class="modal-factor-desc">${f.desc}</div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     } else {
       factorsContainer.innerHTML = `<div style="font-size:0.75rem; color:var(--text-muted); padding:6px;">Dati analizzati con modello standard.</div>`;
     }

@@ -13,8 +13,8 @@
   <link rel="apple-touch-icon" href="/static/icon.svg">
   <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
   
-  <link rel="stylesheet" href="/static/css/styles.css?v=4.0">
-  <link rel="stylesheet" href="/static/css/pitch.css?v=4.0">
+  <link rel="stylesheet" href="/static/css/styles.css?v=4.1">
+  <link rel="stylesheet" href="/static/css/pitch.css?v=4.1">
 </head>
 <body>
   <div class="ambient-glow"></div>
@@ -335,8 +335,11 @@
 
           <!-- Dynamic Learned Parameters -->
           <div style="background:rgba(255,255,255,0.02); border:1px solid rgba(139, 92, 246, 0.2); border-radius:10px; padding:8px 12px; margin-bottom:10px;">
-            <div style="font-size:0.72rem; color:#c4b5fd; font-weight:700; text-transform:uppercase; margin-bottom:4px;">
-              Pesi del Modello Calibrati dall'IA:
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              <span style="font-size:0.72rem; color:#c4b5fd; font-weight:700; text-transform:uppercase;">
+                Pesi del Modello Calibrati dall'IA:
+              </span>
+              <span style="font-size:0.68rem; color:#94a3b8;">💡 Tocca o passa il mouse sui badge per la spiegazione</span>
             </div>
             <div id="aiWeightsBadgesList" style="display:flex; flex-wrap:wrap; gap:6px; font-size:0.75rem;">
               <span class="badge-status badge-secondary">Fattore Campo: 3.6 pt</span>
@@ -804,6 +807,23 @@
       </div>
     </div>
 
+    <!-- Expandable Guide: Dati Complessi & Dove Interviene l'AI -->
+    <details style="background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.18); border-radius:10px; padding:10px 12px; margin-bottom:14px; font-size:0.78rem;">
+      <summary style="cursor:pointer; font-weight:800; color:#93c5fd; display:flex; align-items:center; gap:6px; outline:none; user-select:none;">
+        <span>💡</span> <span>Guida Rapida ai Dati Complessi & Dove Interviene l'AI</span>
+        <span style="font-size:0.7rem; color:var(--text-muted); margin-left:auto;">(Tocca per aprire)</span>
+      </summary>
+      <div style="margin-top:10px; line-height:1.6; color:#cbd5e1; display:flex; flex-direction:column; gap:8px;">
+        <div>• <strong style="color:#60a5fa;">xG (Expected Goals)</strong>: Numero stimato di gol in base alla qualità e posizione dei tiri. <span class="badge-status badge-primary" style="font-size:0.65rem; padding:1px 5px;">🤖 Analisi AI</span> <em>L'algoritmo stima la probabilità di bonus gol (+3 pt).</em></div>
+        <div>• <strong style="color:#60a5fa;">npxG (Non-Penalty xG)</strong>: Gol attesi esclusi i rigori. <span class="badge-status badge-primary" style="font-size:0.65rem; padding:1px 5px;">🤖 Analisi AI</span> <em>Misura la reale pericolosità su azione manovrata evitando di sovrastimare chi segna solo dal dischetto.</em></div>
+        <div>• <strong style="color:#60a5fa;">xA & SCA (Shot-Creating Actions)</strong>: Assist attesi e azioni che portano direttamente a una conclusione. <span class="badge-status badge-primary" style="font-size:0.65rem; padding:1px 5px;">🤖 Analisi AI</span> <em>Individua i veri registi di manovra con potenziale di assist (+1 pt).</em></div>
+        <div>• <strong style="color:#60a5fa;">xGC & Clean Sheet (Portieri)</strong>: Gol subiti previsti tramite modello di Poisson. <span class="badge-status badge-primary" style="font-size:0.65rem; padding:1px 5px;">🤖 Analisi AI</span> <em>Stima le chance di porta inviolata per evitare i malus da gol subito (-1 pt).</em></div>
+        <div>• <strong style="color:#60a5fa;">Rischio Disciplinare Arbitro (AIA)</strong>: Storico cartellini dell'arbitro del match incrociato con i falli del giocatore. <span class="badge-status badge-primary" style="font-size:0.65rem; padding:1px 5px;">🤖 Analisi AI</span> <em>Applica una penalità preventiva se l'arbitro è severo per proteggersi da ammonizioni (-0.5 pt).</em></div>
+        <div>• <strong style="color:#60a5fa;">Fatica Coppe UEFA & Turnover</strong>: Rileva impegni infrasettimanali Champions/Europa League. <span class="badge-status badge-primary" style="font-size:0.65rem; padding:1px 5px;">🤖 Analisi AI</span> <em>Smorza l'indice del calciatore per prevenire il rischio di s.v. o staffette a gara in corso.</em></div>
+        <div>• <strong style="color:#60a5fa;">Buffer Modificatore Difesa (+0.50 pt)</strong>: Margine di prudenza sulla media voto pura del difensore per non contare su bonus modificatore (+3/+6) incerti.</div>
+      </div>
+    </details>
+
     <!-- SOS Fanta Quote Box -->
     <div id="modalSOSFantaBox" style="background:rgba(239, 68, 68, 0.08); border:1px solid rgba(239, 68, 68, 0.25); border-radius:12px; padding:12px; margin-bottom:12px; display:none;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -1003,6 +1023,14 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
       </div>
     </div>
 
+    <!-- AI Decision Engine Explanation Banner -->
+    <div style="background:rgba(59, 130, 246, 0.08); border:1px solid rgba(59, 130, 246, 0.25); border-radius:10px; padding:8px 12px; margin-bottom:14px; font-size:0.77rem; color:#cbd5e1; line-height:1.45; display:flex; align-items:flex-start; gap:8px;">
+      <span style="font-size:1.1rem; line-height:1;">🤖</span>
+      <div>
+        <strong style="color:#93c5fd;">Come decide l'AI:</strong> Pondera titolarità da 3 fonti indipendenti, pericolo gol/assist (Opta xG/SCA), probabilità clean sheet (Poisson), rotazioni da coppe europee e severità dell'arbitro per calcolare il vantaggio netto in punti.
+      </div>
+    </div>
+
     <!-- Side-by-Side Dual Cards -->
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
       <!-- Starter Card -->
@@ -1177,8 +1205,8 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="/static/js/notifications.js?v=4.0"></script>
-  <script src="/static/js/pitch.js?v=4.0"></script>
-  <script src="/static/js/app.js?v=4.0"></script>
+  <script src="/static/js/notifications.js?v=4.1"></script>
+  <script src="/static/js/pitch.js?v=4.1"></script>
+  <script src="/static/js/app.js?v=4.1"></script>
 </body>
 </html>
