@@ -212,14 +212,57 @@ function renderLineupView(data) {
   const decisionsContainer = document.getElementById('keyDecisionsContainer');
   if (decisionsContainer) {
     if (data.key_decisions && data.key_decisions.length > 0) {
+      window.currentKeyDecisions = data.key_decisions;
       decisionsContainer.style.display = 'block';
       decisionsContainer.innerHTML = `
-        <div class="card-title" style="margin-bottom:10px; color:#f59e0b;">⚖️ Ballottaggi & Dubbi di Giornata</div>
-        ${data.key_decisions.map(d => `
-          <div style="background:rgba(245, 158, 11, 0.1); border:1px solid rgba(245, 158, 11, 0.25); border-radius:10px; padding:10px; margin-bottom:8px; font-size:0.85rem;">
-            <strong>[Ruolo ${d.role}]</strong> ${d.note}
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:6px;">
+          <div class="card-title" style="color:#f59e0b; margin:0; display:flex; align-items:center; gap:8px;">
+            <span>⚖️ Ballottaggi & Scelte Chiave dell'AI</span>
+            <span class="badge-status badge-warning" style="font-size:0.7rem; font-weight:800;">Interattivi • Clicca per analisi</span>
           </div>
-        `).join('')}
+          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">${data.key_decisions.length} dubbi analizzati</span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          ${data.key_decisions.map((d, idx) => {
+            const roleBadgeClass = d.role === 'P' ? 'badge-primary' : (d.role === 'D' ? 'badge-success' : (d.role === 'C' ? 'badge-warning' : 'badge-danger'));
+            const roleIcon = d.role === 'P' ? '🧤' : (d.role === 'D' ? '🛡️' : (d.role === 'C' ? '⚙️' : '🎯'));
+            return `
+              <div class="ballottaggio-card" onclick="openBallottaggioModal(${idx})" 
+                   style="background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.3); border-radius:12px; padding:12px 14px; cursor:pointer; transition:all 0.2s ease; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:260px;">
+                  <span class="badge-status ${roleBadgeClass}" style="font-size:0.75rem; padding:4px 8px; font-weight:800; display:flex; align-items:center; gap:4px; flex-shrink:0;">
+                    <span>${roleIcon}</span>
+                    <span>${d.role_label || d.role}</span>
+                  </span>
+                  <div>
+                    <div style="font-size:0.92rem; font-weight:800; color:#f8fafc; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                      <span style="color:#34d399; display:flex; align-items:center; gap:3px;">
+                        <span>⭐</span>
+                        <span>${d.starter}</span>
+                      </span>
+                      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">(★${d.starter_score})</span>
+                      <span style="color:#94a3b8; font-size:0.8rem; font-weight:700;">vs</span>
+                      <span style="color:#fbbf24; display:flex; align-items:center; gap:3px;">
+                        <span>🔄</span>
+                        <span>${d.benched}</span>
+                      </span>
+                      <span style="font-size:0.75rem; color:var(--text-muted); font-weight:600;">(★${d.benched_score})</span>
+                    </div>
+                    <div style="font-size:0.77rem; color:var(--text-muted); margin-top:3px; line-height:1.4;">
+                      Vantaggio AI: <strong style="color:#34d399;">+${d.diff || 0} pt</strong> a favore di ${d.starter} • <span style="color:#cbd5e1;">${(d.comparison && d.comparison.headline) ? d.comparison.headline : d.note}</span>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex; align-items:center; gap:6px; margin-left:auto;">
+                  <span class="badge-status badge-warning" style="font-size:0.75rem; padding:5px 10px; font-weight:800; display:flex; align-items:center; gap:4px; box-shadow:0 2px 8px rgba(245, 158, 11, 0.2);">
+                    <span>🔍 Analisi Decisionale AI</span>
+                    <span>▶</span>
+                  </span>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
       `;
     } else {
       decisionsContainer.style.display = 'none';
@@ -580,6 +623,11 @@ function renderAILearningUI(status) {
       <span class="badge-status badge-secondary">Rischio Difesa: x${w.def_risk_penalty || 1.45}</span>
       <span class="badge-status badge-secondary">Mod. Difesa: x${w.def_base_multiplier}</span>
       <span class="badge-status badge-secondary">Buffer Mod.: ${w.mod_safety_margin || 0.50} pt</span>
+      <span class="badge-status badge-secondary">Piazzati/Corner: +${w.corner_specialty_weight || 2.5} pt</span>
+      <span class="badge-status badge-secondary">npxG Azione: x${w.npxg_weight || 5.5}</span>
+      <span class="badge-status badge-secondary">SCA Regia: x${w.sca_weight || 1.8}</span>
+      <span class="badge-status badge-secondary">Turnover Coppe: ${w.turnover_damp_factor || 0.88}x</span>
+      <span class="badge-status badge-secondary">Rischio Arbitro: ${w.referee_strictness_weight || 1.35}x</span>
       <span class="badge-status badge-success">MAE: ${status.overall_mae} pt</span>
     `;
   }
@@ -1406,6 +1454,137 @@ async function syncLiveData() {
       syncBtn.disabled = false;
     }
   }
+}
+
+// --- MODAL: BALLOTTAGGIO COMPARATIVO AI ---
+function openBallottaggioModal(index) {
+  if (!window.currentKeyDecisions || !window.currentKeyDecisions[index]) return;
+  const decision = window.currentKeyDecisions[index];
+  const dialog = document.getElementById('ballottaggioModal');
+  if (!dialog) return;
+
+  const st = decision.starter_player || {};
+  const be = decision.benched_player || {};
+  const comp = decision.comparison || {};
+
+  // Title & Role
+  const roleTitle = document.getElementById('balModalRoleTitle');
+  const roleBadge = document.getElementById('balModalRoleBadge');
+  if (roleTitle) roleTitle.innerText = `⚖️ Ballottaggio ${decision.role_label || decision.role}: ${decision.starter} vs ${decision.benched}`;
+  if (roleBadge) {
+    const roleIcon = decision.role === 'P' ? '🧤' : (decision.role === 'D' ? '🛡️' : (decision.role === 'C' ? '⚙️' : '🎯'));
+    roleBadge.innerText = `${roleIcon} Ruolo ${decision.role_label || decision.role}`;
+  }
+
+  // Advantage banner
+  const advText = document.getElementById('balModalAdvantageText');
+  const advDiff = document.getElementById('balModalAdvantageDiff');
+  if (advText) advText.innerText = `${decision.starter} favorito (+${decision.diff || 0} pt) su ${decision.benched}`;
+  if (advDiff) advDiff.innerText = `+${decision.diff || 0} pt Vantaggio AI`;
+
+  // Starter Card
+  const stAvatar = document.getElementById('balStarterAvatar');
+  const stName = document.getElementById('balStarterName');
+  const stTeam = document.getElementById('balStarterTeam');
+  const stScore = document.getElementById('balStarterScore');
+  const stFV = document.getElementById('balStarterFV');
+  const stTit = document.getElementById('balStarterTit');
+  const stMatch = document.getElementById('balStarterMatch');
+
+  if (stAvatar) stAvatar.src = st.photo || '/static/icon.svg';
+  if (stName) stName.innerText = decision.starter;
+  if (stTeam) stTeam.innerText = `${st.team_full || st.team || ''} • Ruolo ${st.role || decision.role}`;
+  if (stScore) stScore.innerText = `★ ${decision.starter_score}`;
+  if (stFV) stFV.innerText = `${st.expected_fantavoto || '-'} pt`;
+  if (stTit) stTit.innerText = `${st.titolarita_pct || 70}% (${(st.super_intelligence && st.super_intelligence.consensus && st.super_intelligence.consensus.consensus_level) || 'Titolare'})`;
+  if (stMatch) stMatch.innerText = `${st.is_home ? 'In Casa 🏠' : 'Trasferta ✈️'} vs ${st.opponent_name || st.opponent || '-'}`;
+
+  const btnStProfile = document.getElementById('btnViewStarterProfile');
+  if (btnStProfile) {
+    btnStProfile.onclick = () => {
+      closeBallottaggioModal();
+      openPlayerModal(st);
+    };
+  }
+
+  // Benched Card
+  const beAvatar = document.getElementById('balBenchedAvatar');
+  const beName = document.getElementById('balBenchedName');
+  const beTeam = document.getElementById('balBenchedTeam');
+  const beScore = document.getElementById('balBenchedScore');
+  const beFV = document.getElementById('balBenchedFV');
+  const beTit = document.getElementById('balBenchedTit');
+  const beMatch = document.getElementById('balBenchedMatch');
+
+  if (beAvatar) beAvatar.src = be.photo || '/static/icon.svg';
+  if (beName) beName.innerText = decision.benched;
+  if (beTeam) beTeam.innerText = `${be.team_full || be.team || ''} • Ruolo ${be.role || decision.role}`;
+  if (beScore) beScore.innerText = `★ ${decision.benched_score}`;
+  if (beFV) beFV.innerText = `${be.expected_fantavoto || '-'} pt`;
+  if (beTit) beTit.innerText = `${be.titolarita_pct || 50}% (${(be.super_intelligence && be.super_intelligence.consensus && be.super_intelligence.consensus.consensus_level) || 'In Ballottaggio'})`;
+  if (beMatch) beMatch.innerText = `${be.is_home ? 'In Casa 🏠' : 'Trasferta ✈️'} vs ${be.opponent_name || be.opponent || '-'}`;
+
+  const btnBeProfile = document.getElementById('btnViewBenchedProfile');
+  if (btnBeProfile) {
+    btnBeProfile.onclick = () => {
+      closeBallottaggioModal();
+      openPlayerModal(be);
+    };
+  }
+
+  // AI Narrative Reasoning
+  const reasoningTitle = document.getElementById('balModalReasoningTitle');
+  const reasoningBody = document.getElementById('balModalReasoningBody');
+  if (reasoningTitle) reasoningTitle.innerText = comp.headline || `Perché l'AI sceglie ${decision.starter} rispetto a ${decision.benched}?`;
+  if (reasoningBody) reasoningBody.innerText = comp.summary || decision.note;
+
+  // Factors List
+  const factorsContainer = document.getElementById('balModalFactorsList');
+  if (factorsContainer) {
+    const factors = comp.factors || [];
+    if (factors.length === 0) {
+      factorsContainer.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted);">Nessun fattore specifico da confrontare.</div>`;
+    } else {
+      factorsContainer.innerHTML = factors.map(f => {
+        const isStWinner = f.advantage === 'starter';
+        const isBeWinner = f.advantage === 'benched';
+        const stStyle = isStWinner ? 'color:#34d399; font-weight:800; background:rgba(16, 185, 129, 0.15); border:1px solid rgba(16, 185, 129, 0.3); border-radius:6px; padding:2px 6px; display:inline-block;' : 'color:#cbd5e1;';
+        const beStyle = isBeWinner ? 'color:#fbbf24; font-weight:800; background:rgba(245, 158, 11, 0.15); border:1px solid rgba(245, 158, 11, 0.3); border-radius:6px; padding:2px 6px; display:inline-block;' : 'color:#cbd5e1;';
+
+        return `
+          <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:10px 12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:4px;">
+              <span style="font-size:0.82rem; font-weight:800; color:#f1f5f9; display:flex; align-items:center; gap:6px;">
+                <span>${f.icon || '📌'}</span>
+                <span>${f.label}</span>
+              </span>
+              <span style="font-size:0.7rem; font-weight:700;" class="${isStWinner ? 'badge-status badge-success' : (isBeWinner ? 'badge-status badge-warning' : 'badge-status badge-secondary')}">
+                ${isStWinner ? `Vantaggio ${decision.starter} ✅` : (isBeWinner ? `Vantaggio ${decision.benched} ⚠️` : 'Equilibrato ⚖️')}
+              </span>
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.76rem; margin-bottom:4px;">
+              <div>
+                <span style="color:var(--text-muted); font-size:0.7rem; display:block; margin-bottom:2px;">${decision.starter}:</span>
+                <span style="${stStyle}">${f.starter_val}</span>
+              </div>
+              <div>
+                <span style="color:var(--text-muted); font-size:0.7rem; display:block; margin-bottom:2px;">${decision.benched}:</span>
+                <span style="${beStyle}">${f.benched_val}</span>
+              </div>
+            </div>
+            ${f.detail ? `<div style="font-size:0.73rem; color:var(--text-muted); margin-top:4px; font-style:italic;">${f.detail}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+  }
+
+  dialog.showModal();
+}
+
+function closeBallottaggioModal() {
+  const dialog = document.getElementById('ballottaggioModal');
+  if (dialog) dialog.close();
 }
 
 // --- MODALS (Modern HTML5 <dialog>) ---

@@ -31,7 +31,12 @@ DEFAULT_WEIGHTS = {
         'att_away_damp': 0.85,
         'gk_base_multiplier': 18.0,
         'editorial_bonus_multiplier': 1.02,
-        'mod_safety_margin': 0.50
+        'mod_safety_margin': 0.50,
+        'npxg_weight': 5.5,
+        'sca_weight': 1.8,
+        'corner_specialty_weight': 2.5,
+        'turnover_damp_factor': 0.88,
+        'referee_strictness_weight': 1.35
     },
     'learning_log': [
         {
@@ -103,6 +108,36 @@ PARAM_DESCRIPTIONS = {
         'category': 'Editoriale',
         'unit': 'Fattore',
         'description': "Peso dei consigli editoriali, tarato a 1.02 per dare priorità ai dati statistici rispetto alle sensazioni giornalistiche."
+    },
+    'npxg_weight': {
+        'name': 'Peso npxG (Gol Senza Rigori)',
+        'category': 'Metriche Avanzate',
+        'unit': 'Weight',
+        'description': "Valuta la pericolosità pura su azione senza contare i penalty, evitando di sovrastimare chi segna solo dal dischetto."
+    },
+    'sca_weight': {
+        'name': 'Peso SCA (Shot Creating Actions)',
+        'category': 'Regia & Assist',
+        'unit': 'Weight',
+        'description': "Quantifica le azioni da tiro generate da passaggi chiave, dribbling e falli guadagnati."
+    },
+    'corner_specialty_weight': {
+        'name': 'Bonus Specialista Corner / Piazzati',
+        'category': 'Piazzati',
+        'unit': 'Punti',
+        'description': "Incremento assegnato ai battitori designati di calci d'angolo e punizioni per l'alto potenziale di assist da fermo (+2.5 pt)."
+    },
+    'turnover_damp_factor': {
+        'name': 'Smorzamento Turn-over Coppe Europee',
+        'category': 'Fatica & Coppe',
+        'unit': 'Fattore %',
+        'description': "Protezione contro la stanchezza da impegni infrasettimanali Champions/Europa League per evitare s.v. e staffette."
+    },
+    'referee_strictness_weight': {
+        'name': 'Penalità Severità Arbitro (AIA)',
+        'category': 'Disciplinare',
+        'unit': 'Malus Factor',
+        'description': "Misura l'incidenza dei cartellini dell'arbitro designato per proteggersi da malus ammonizione su difensori irruenti."
     }
 }
 
@@ -321,6 +356,11 @@ class AILearningEngine:
         weights['matchup_difficulty_slope'] = 2.90
         weights['home_bonus_weight'] = 3.2
         weights['mod_safety_margin'] = 0.50
+        weights['npxg_weight'] = 5.5
+        weights['sca_weight'] = 1.8
+        weights['corner_specialty_weight'] = 2.5
+        weights['turnover_damp_factor'] = 0.88
+        weights['referee_strictness_weight'] = 1.35
 
         new_epoch = self.data.get('epoch', 6) + 1
         timestamp_str = datetime.now().strftime('%Y-%m-%d %H:%M')
@@ -330,7 +370,9 @@ class AILearningEngine:
             f"Penalità Rischio Malus Difesa: 1.0 -> {weights['def_risk_penalty']} (+45.0%)",
             f"Pendenza Matchup: 2.55 -> {weights['matchup_difficulty_slope']} (+13.7%)",
             f"Home Bonus: 3.6 -> {weights['home_bonus_weight']} (-11.1%)",
-            f"Soglia Prudenza Modificatore: +0.50 pt"
+            f"Soglia Prudenza Modificatore: +0.50 pt",
+            f"Piazzati & Corner Bonus: +{weights['corner_specialty_weight']} pt",
+            f"Fattore Disciplinare Arbitri AIA: {weights['referee_strictness_weight']}x"
         ]
 
         insights = [

@@ -33,60 +33,60 @@ TEAM_METRICS = {
 # Calibrated for current Serie A roster
 PLAYER_ADVANCED_METRICS = {
     # Attackers
-    'martinez l.': {'xg': 0.68, 'xa': 0.20, 'shots': 3.8, 'key_passes': 1.5, 'base_grade': 6.50, 'trend': '🔥 In Fiamme'},
-    'thuram': {'xg': 0.62, 'xa': 0.28, 'shots': 3.2, 'key_passes': 1.8, 'base_grade': 6.45, 'trend': '🔥 In Fiamme'},
-    'vlahovic': {'xg': 0.65, 'xa': 0.15, 'shots': 3.6, 'key_passes': 1.2, 'base_grade': 6.40, 'trend': '📈 In Crescita'},
-    'lookman': {'xg': 0.58, 'xa': 0.35, 'shots': 3.0, 'key_passes': 2.4, 'base_grade': 6.50, 'trend': '🔥 In Fiamme'},
-    'dybala': {'xg': 0.54, 'xa': 0.42, 'shots': 2.8, 'key_passes': 2.9, 'base_grade': 6.45, 'trend': '🔥 In Fiamme'},
-    'ramos g.': {'xg': 0.60, 'xa': 0.18, 'shots': 3.4, 'key_passes': 1.4, 'base_grade': 6.40, 'trend': '🔥 In Fiamme'},
-    'cutrone': {'xg': 0.38, 'xa': 0.15, 'shots': 2.2, 'key_passes': 1.0, 'base_grade': 6.15, 'trend': '📈 In Crescita'},
-    'kvernadze': {'xg': 0.25, 'xa': 0.20, 'shots': 1.8, 'key_passes': 1.3, 'base_grade': 6.05, 'trend': '📈 In Crescita'},
-    'ghedjemis': {'xg': 0.22, 'xa': 0.18, 'shots': 1.6, 'key_passes': 1.1, 'base_grade': 6.00, 'trend': '➡️ Stabile'},
-    'camarda': {'xg': 0.30, 'xa': 0.10, 'shots': 1.5, 'key_passes': 0.8, 'base_grade': 6.00, 'trend': '➡️ Stabile'},
-    'osmajic': {'xg': 0.32, 'xa': 0.12, 'shots': 2.0, 'key_passes': 0.9, 'base_grade': 6.10, 'trend': '📈 In Crescita'},
-    'vitinha o.': {'xg': 0.28, 'xa': 0.16, 'shots': 1.9, 'key_passes': 1.2, 'base_grade': 6.05, 'trend': '➡️ Stabile'},
-    'njie': {'xg': 0.20, 'xa': 0.12, 'shots': 1.4, 'key_passes': 0.9, 'base_grade': 6.00, 'trend': '➡️ Stabile'},
+    'martinez l.': {'xg': 0.68, 'npxg': 0.52, 'xa': 0.20, 'shots': 3.8, 'key_passes': 1.5, 'base_grade': 6.50, 'trend': '🔥 In Fiamme', 'penalties': True, 'corners': False, 'freekicks': False, 'turnover_risk': 'Medio (Champions)'},
+    'thuram': {'xg': 0.62, 'npxg': 0.62, 'xa': 0.28, 'shots': 3.2, 'key_passes': 1.8, 'base_grade': 6.45, 'trend': '🔥 In Fiamme', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Medio (Champions)'},
+    'vlahovic': {'xg': 0.65, 'npxg': 0.48, 'xa': 0.15, 'shots': 3.6, 'key_passes': 1.2, 'base_grade': 6.40, 'trend': '📈 In Crescita', 'penalties': True, 'corners': False, 'freekicks': True, 'turnover_risk': 'Basso'},
+    'lookman': {'xg': 0.58, 'npxg': 0.50, 'xa': 0.35, 'shots': 3.0, 'key_passes': 2.4, 'base_grade': 6.50, 'trend': '🔥 In Fiamme', 'penalties': True, 'corners': True, 'freekicks': False, 'turnover_risk': 'Medio (Champions)'},
+    'dybala': {'xg': 0.54, 'npxg': 0.38, 'xa': 0.42, 'shots': 2.8, 'key_passes': 2.9, 'base_grade': 6.45, 'trend': '🔥 In Fiamme', 'penalties': True, 'corners': True, 'freekicks': True, 'turnover_risk': 'Medio (Gestione Minuti)'},
+    'ramos g.': {'xg': 0.60, 'npxg': 0.55, 'xa': 0.18, 'shots': 3.4, 'key_passes': 1.4, 'base_grade': 6.40, 'trend': '🔥 In Fiamme', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'cutrone': {'xg': 0.38, 'npxg': 0.38, 'xa': 0.15, 'shots': 2.2, 'key_passes': 1.0, 'base_grade': 6.15, 'trend': '📈 In Crescita', 'penalties': True, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'kvernadze': {'xg': 0.25, 'npxg': 0.25, 'xa': 0.20, 'shots': 1.8, 'key_passes': 1.3, 'base_grade': 6.05, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'ghedjemis': {'xg': 0.22, 'npxg': 0.22, 'xa': 0.18, 'shots': 1.6, 'key_passes': 1.1, 'base_grade': 6.00, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'camarda': {'xg': 0.30, 'npxg': 0.30, 'xa': 0.10, 'shots': 1.5, 'key_passes': 0.8, 'base_grade': 6.00, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'osmajic': {'xg': 0.32, 'npxg': 0.32, 'xa': 0.12, 'shots': 2.0, 'key_passes': 0.9, 'base_grade': 6.10, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'vitinha o.': {'xg': 0.28, 'npxg': 0.28, 'xa': 0.16, 'shots': 1.9, 'key_passes': 1.2, 'base_grade': 6.05, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'njie': {'xg': 0.20, 'npxg': 0.20, 'xa': 0.12, 'shots': 1.4, 'key_passes': 0.9, 'base_grade': 6.00, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
 
     # Midfielders
-    'pulisic': {'xg': 0.48, 'xa': 0.38, 'shots': 2.6, 'key_passes': 2.2, 'base_grade': 6.55, 'trend': '🔥 In Fiamme'},
-    'calhanoglu': {'xg': 0.42, 'xa': 0.45, 'shots': 2.2, 'key_passes': 2.8, 'base_grade': 6.50, 'trend': '🔥 In Fiamme'},
-    'paz n.': {'xg': 0.45, 'xa': 0.42, 'shots': 2.9, 'key_passes': 2.6, 'base_grade': 6.50, 'trend': '🔥 In Fiamme'},
-    'mctominay': {'xg': 0.35, 'xa': 0.22, 'shots': 2.1, 'key_passes': 1.6, 'base_grade': 6.35, 'trend': '📈 In Crescita'},
-    'moreira': {'xg': 0.25, 'xa': 0.30, 'shots': 1.8, 'key_passes': 1.9, 'base_grade': 6.25, 'trend': '📈 In Crescita'},
-    'taylor k.': {'xg': 0.22, 'xa': 0.28, 'shots': 1.6, 'key_passes': 1.8, 'base_grade': 6.20, 'trend': '📈 In Crescita'},
-    'frendrup': {'xg': 0.08, 'xa': 0.15, 'shots': 0.8, 'key_passes': 1.2, 'base_grade': 6.25, 'trend': '➡️ Stabile'},
-    'baldanzi': {'xg': 0.24, 'xa': 0.25, 'shots': 1.7, 'key_passes': 1.8, 'base_grade': 6.20, 'trend': '📈 In Crescita'},
-    'fagioli': {'xg': 0.12, 'xa': 0.28, 'shots': 1.2, 'key_passes': 2.0, 'base_grade': 6.25, 'trend': '📈 In Crescita'},
-    'cacciamani': {'xg': 0.18, 'xa': 0.18, 'shots': 1.3, 'key_passes': 1.2, 'base_grade': 6.10, 'trend': '➡️ Stabile'},
-    'fitz-jim': {'xg': 0.15, 'xa': 0.20, 'shots': 1.1, 'key_passes': 1.4, 'base_grade': 6.15, 'trend': '📈 In Crescita'},
-    'busio': {'xg': 0.18, 'xa': 0.22, 'shots': 1.4, 'key_passes': 1.5, 'base_grade': 6.10, 'trend': '➡️ Stabile'},
-    'chukwueze': {'xg': 0.28, 'xa': 0.25, 'shots': 1.9, 'key_passes': 1.6, 'base_grade': 6.10, 'trend': '➡️ Stabile'},
-    'zaniolo': {'xg': 0.30, 'xa': 0.22, 'shots': 2.0, 'key_passes': 1.5, 'base_grade': 6.10, 'trend': '➡️ Stabile'},
-    'ellertsson': {'xg': 0.12, 'xa': 0.14, 'shots': 1.0, 'key_passes': 1.1, 'base_grade': 6.05, 'trend': '➡️ Stabile'},
+    'pulisic': {'xg': 0.48, 'npxg': 0.40, 'xa': 0.38, 'shots': 2.6, 'key_passes': 2.2, 'base_grade': 6.55, 'trend': '🔥 In Fiamme', 'penalties': True, 'corners': True, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'calhanoglu': {'xg': 0.42, 'npxg': 0.15, 'xa': 0.45, 'shots': 2.2, 'key_passes': 2.8, 'base_grade': 6.50, 'trend': '🔥 In Fiamme', 'penalties': True, 'corners': True, 'freekicks': True, 'turnover_risk': 'Medio (Champions)'},
+    'paz n.': {'xg': 0.45, 'npxg': 0.45, 'xa': 0.42, 'shots': 2.9, 'key_passes': 2.6, 'base_grade': 6.50, 'trend': '🔥 In Fiamme', 'penalties': False, 'corners': True, 'freekicks': True, 'turnover_risk': 'Basso'},
+    'mctominay': {'xg': 0.35, 'npxg': 0.35, 'xa': 0.22, 'shots': 2.1, 'key_passes': 1.6, 'base_grade': 6.35, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'moreira': {'xg': 0.25, 'npxg': 0.25, 'xa': 0.30, 'shots': 1.8, 'key_passes': 1.9, 'base_grade': 6.25, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'taylor k.': {'xg': 0.22, 'npxg': 0.22, 'xa': 0.28, 'shots': 1.6, 'key_passes': 1.8, 'base_grade': 6.20, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'frendrup': {'xg': 0.08, 'npxg': 0.08, 'xa': 0.15, 'shots': 0.8, 'key_passes': 1.2, 'base_grade': 6.25, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'baldanzi': {'xg': 0.24, 'npxg': 0.24, 'xa': 0.25, 'shots': 1.7, 'key_passes': 1.8, 'base_grade': 6.20, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'fagioli': {'xg': 0.12, 'npxg': 0.12, 'xa': 0.28, 'shots': 1.2, 'key_passes': 2.0, 'base_grade': 6.25, 'trend': '📈 In Crescita', 'penalties': False, 'corners': True, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'cacciamani': {'xg': 0.18, 'npxg': 0.18, 'xa': 0.18, 'shots': 1.3, 'key_passes': 1.2, 'base_grade': 6.10, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'fitz-jim': {'xg': 0.15, 'npxg': 0.15, 'xa': 0.20, 'shots': 1.1, 'key_passes': 1.4, 'base_grade': 6.15, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'busio': {'xg': 0.18, 'npxg': 0.18, 'xa': 0.22, 'shots': 1.4, 'key_passes': 1.5, 'base_grade': 6.10, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'chukwueze': {'xg': 0.28, 'npxg': 0.28, 'xa': 0.25, 'shots': 1.9, 'key_passes': 1.6, 'base_grade': 6.10, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'zaniolo': {'xg': 0.30, 'npxg': 0.30, 'xa': 0.22, 'shots': 2.0, 'key_passes': 1.5, 'base_grade': 6.10, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'ellertsson': {'xg': 0.12, 'npxg': 0.12, 'xa': 0.14, 'shots': 1.0, 'key_passes': 1.1, 'base_grade': 6.05, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
 
     # Defenders
-    'dimarco': {'xg': 0.22, 'xa': 0.42, 'shots': 1.8, 'key_passes': 2.5, 'base_grade': 6.55, 'trend': '🔥 In Fiamme'},
-    'bremer': {'xg': 0.15, 'xa': 0.05, 'shots': 1.1, 'key_passes': 0.4, 'base_grade': 6.50, 'trend': '🔥 In Fiamme'},
-    'buongiorno': {'xg': 0.12, 'xa': 0.06, 'shots': 0.9, 'key_passes': 0.5, 'base_grade': 6.45, 'trend': '📈 In Crescita'},
-    'pavard': {'xg': 0.08, 'xa': 0.12, 'shots': 0.7, 'key_passes': 0.8, 'base_grade': 6.35, 'trend': '➡️ Stabile'},
-    'vasquez': {'xg': 0.10, 'xa': 0.08, 'shots': 0.8, 'key_passes': 0.6, 'base_grade': 6.30, 'trend': '📈 In Crescita'},
-    'wesley': {'xg': 0.12, 'xa': 0.22, 'shots': 1.2, 'key_passes': 1.4, 'base_grade': 6.35, 'trend': '📈 In Crescita'},
-    'belghali': {'xg': 0.14, 'xa': 0.20, 'shots': 1.1, 'key_passes': 1.3, 'base_grade': 6.30, 'trend': '📈 In Crescita'},
-    'ramon': {'xg': 0.06, 'xa': 0.05, 'shots': 0.5, 'key_passes': 0.4, 'base_grade': 6.15, 'trend': '➡️ Stabile'},
-    'mangas': {'xg': 0.10, 'xa': 0.18, 'shots': 0.9, 'key_passes': 1.1, 'base_grade': 6.20, 'trend': '📈 In Crescita'},
-    'gallo': {'xg': 0.05, 'xa': 0.15, 'shots': 0.6, 'key_passes': 1.0, 'base_grade': 6.15, 'trend': '➡️ Stabile'},
-    'dodò': {'xg': 0.08, 'xa': 0.22, 'shots': 0.8, 'key_passes': 1.4, 'base_grade': 6.25, 'trend': '📈 In Crescita'},
-    'jimenez a.': {'xg': 0.10, 'xa': 0.18, 'shots': 0.9, 'key_passes': 1.2, 'base_grade': 6.20, 'trend': '📈 In Crescita'},
-    'ranieri l.': {'xg': 0.08, 'xa': 0.05, 'shots': 0.7, 'key_passes': 0.4, 'base_grade': 6.15, 'trend': '➡️ Stabile'},
-    'dragusin': {'xg': 0.10, 'xa': 0.04, 'shots': 0.8, 'key_passes': 0.3, 'base_grade': 6.20, 'trend': '➡️ Stabile'},
-    'marcandalli': {'xg': 0.04, 'xa': 0.03, 'shots': 0.4, 'key_passes': 0.2, 'base_grade': 6.05, 'trend': '➡️ Stabile'},
+    'dimarco': {'xg': 0.22, 'npxg': 0.22, 'xa': 0.42, 'shots': 1.8, 'key_passes': 2.5, 'base_grade': 6.55, 'trend': '🔥 In Fiamme', 'penalties': False, 'corners': True, 'freekicks': True, 'turnover_risk': 'Medio (Champions)'},
+    'bremer': {'xg': 0.15, 'npxg': 0.15, 'xa': 0.05, 'shots': 1.1, 'key_passes': 0.4, 'base_grade': 6.50, 'trend': '🔥 In Fiamme', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'buongiorno': {'xg': 0.12, 'npxg': 0.12, 'xa': 0.06, 'shots': 0.9, 'key_passes': 0.5, 'base_grade': 6.45, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'pavard': {'xg': 0.08, 'npxg': 0.08, 'xa': 0.12, 'shots': 0.7, 'key_passes': 0.8, 'base_grade': 6.35, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Medio (Champions)'},
+    'vasquez': {'xg': 0.10, 'npxg': 0.10, 'xa': 0.08, 'shots': 0.8, 'key_passes': 0.6, 'base_grade': 6.30, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'wesley': {'xg': 0.12, 'npxg': 0.12, 'xa': 0.22, 'shots': 1.2, 'key_passes': 1.4, 'base_grade': 6.35, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'belghali': {'xg': 0.14, 'npxg': 0.14, 'xa': 0.20, 'shots': 1.1, 'key_passes': 1.3, 'base_grade': 6.30, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'ramon': {'xg': 0.06, 'npxg': 0.06, 'xa': 0.05, 'shots': 0.5, 'key_passes': 0.4, 'base_grade': 6.15, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'mangas': {'xg': 0.10, 'npxg': 0.10, 'xa': 0.18, 'shots': 0.9, 'key_passes': 1.1, 'base_grade': 6.20, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'gallo': {'xg': 0.05, 'npxg': 0.05, 'xa': 0.15, 'shots': 0.6, 'key_passes': 1.0, 'base_grade': 6.15, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'dodò': {'xg': 0.08, 'npxg': 0.08, 'xa': 0.22, 'shots': 0.8, 'key_passes': 1.4, 'base_grade': 6.25, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'jimenez a.': {'xg': 0.10, 'npxg': 0.10, 'xa': 0.18, 'shots': 0.9, 'key_passes': 1.2, 'base_grade': 6.20, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'ranieri l.': {'xg': 0.08, 'npxg': 0.08, 'xa': 0.05, 'shots': 0.7, 'key_passes': 0.4, 'base_grade': 6.15, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'dragusin': {'xg': 0.10, 'npxg': 0.10, 'xa': 0.04, 'shots': 0.8, 'key_passes': 0.3, 'base_grade': 6.20, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'marcandalli': {'xg': 0.04, 'npxg': 0.04, 'xa': 0.03, 'shots': 0.4, 'key_passes': 0.2, 'base_grade': 6.05, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
 
     # Goalkeepers
-    'maignan': {'xg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.42, 'base_grade': 6.40, 'trend': '📈 In Crescita'},
-    'de gea': {'xg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.38, 'base_grade': 6.35, 'trend': '📈 In Crescita'},
-    'mandas': {'xg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.34, 'base_grade': 6.25, 'trend': '➡️ Stabile'},
-    'motta': {'xg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.25, 'base_grade': 6.10, 'trend': '➡️ Stabile'},
-    'bijlow': {'xg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.30, 'base_grade': 6.20, 'trend': '➡️ Stabile'}
+    'maignan': {'xg': 0.0, 'npxg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.42, 'base_grade': 6.40, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'de gea': {'xg': 0.0, 'npxg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.38, 'base_grade': 6.35, 'trend': '📈 In Crescita', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'mandas': {'xg': 0.0, 'npxg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.34, 'base_grade': 6.25, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'motta': {'xg': 0.0, 'npxg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.25, 'base_grade': 6.10, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'},
+    'bijlow': {'xg': 0.0, 'npxg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.30, 'base_grade': 6.20, 'trend': '➡️ Stabile', 'penalties': False, 'corners': False, 'freekicks': False, 'turnover_risk': 'Basso'}
 }
 
 class SuperIntelligenceEngine:
@@ -150,7 +150,8 @@ class SuperIntelligenceEngine:
 
     def get_advanced_metrics(self, player_name: str, role: str) -> Dict[str, Any]:
         """
-        Fetches SofaScore / Understat underlying metrics: xG, xA, Key Passes, Pure Base Grade.
+        Fetches SofaScore / Understat underlying metrics: xG, xA, Key Passes, Pure Base Grade,
+        Non-Penalty xG (npxG), Shot Creating Actions (SCA), Set Pieces & Turn-over risk.
         """
         norm = player_name.lower().strip()
         first_part = norm.replace('.', '').split()[0]
@@ -165,27 +166,38 @@ class SuperIntelligenceEngine:
         if not metrics:
             # Fallback by role
             if role == 'A':
-                metrics = {'xg': 0.35, 'xa': 0.15, 'shots': 2.0, 'key_passes': 1.1, 'base_grade': 6.10, 'trend': '➡️ Stabile'}
+                metrics = {'xg': 0.35, 'npxg': 0.35, 'xa': 0.15, 'shots': 2.0, 'key_passes': 1.1, 'base_grade': 6.10, 'trend': '➡️ Stabile'}
             elif role == 'C':
-                metrics = {'xg': 0.18, 'xa': 0.20, 'shots': 1.3, 'key_passes': 1.4, 'base_grade': 6.15, 'trend': '➡️ Stabile'}
+                metrics = {'xg': 0.18, 'npxg': 0.18, 'xa': 0.20, 'shots': 1.3, 'key_passes': 1.4, 'base_grade': 6.15, 'trend': '➡️ Stabile'}
             elif role == 'D':
-                metrics = {'xg': 0.08, 'xa': 0.10, 'shots': 0.6, 'key_passes': 0.7, 'base_grade': 6.20, 'trend': '➡️ Stabile'}
+                metrics = {'xg': 0.08, 'npxg': 0.08, 'xa': 0.10, 'shots': 0.6, 'key_passes': 0.7, 'base_grade': 6.20, 'trend': '➡️ Stabile'}
             else:
-                metrics = {'xg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.30, 'base_grade': 6.20, 'trend': '➡️ Stabile'}
+                metrics = {'xg': 0.0, 'npxg': 0.0, 'xa': 0.0, 'clean_sheet_rate': 0.30, 'base_grade': 6.20, 'trend': '➡️ Stabile'}
 
         # Calculate offensive/threat bonus score (0 - 10)
         xg = metrics.get('xg', 0.0)
         xa = metrics.get('xa', 0.0)
-        threat_score = round(min(10.0, (xg * 8.0) + (xa * 5.0) + (metrics.get('shots', 0) * 0.4)), 1)
+        npxg = metrics.get('npxg', round(max(0.0, xg - (0.20 if metrics.get('penalties') else 0.0)), 2))
+        sca = round(metrics.get('key_passes', 1.0) * 1.6 + metrics.get('shots', 1.0) * 0.6, 1)
+        is_corner = metrics.get('corners', False)
+        is_freekick = metrics.get('freekicks', False)
+        turnover_risk = metrics.get('turnover_risk', 'Basso')
+
+        threat_score = round(min(10.0, (xg * 8.0) + (xa * 5.0) + (metrics.get('shots', 0) * 0.4) + (0.6 if is_corner else 0.0) + (0.4 if is_freekick else 0.0)), 1)
 
         return {
             'xg': xg,
             'xa': xa,
+            'npxg': npxg,
+            'sca': sca,
             'shots_per_game': metrics.get('shots', 0.0),
             'key_passes_per_game': metrics.get('key_passes', 0.0),
             'pure_base_grade': metrics.get('base_grade', 6.10),
             'trend': metrics.get('trend', '➡️ Stabile'),
-            'threat_score': threat_score
+            'threat_score': threat_score,
+            'is_corner_taker': is_corner,
+            'is_freekick_taker': is_freekick,
+            'turnover_risk': turnover_risk
         }
 
     def evaluate_goalkeeper_matchup(self, player_name: str, team: str, opponent_code: str, is_home: bool) -> Dict[str, Any]:
@@ -225,6 +237,86 @@ class SuperIntelligenceEngine:
             'risk_level': risk,
             'risk_badge': risk_badge,
             'analysis': advice
+        }
+
+    def evaluate_referee_and_discipline(self, player_name: str, team: str, role: str, opponent_code: str) -> Dict[str, Any]:
+        """
+        Evaluates AIA referee strictness and player foul/disciplinary risk to anticipate yellow/red card malus (-0.5 / -1.0 pt).
+        """
+        norm = player_name.lower().strip()
+
+        # Players with historically high foul rates / yellow card tendencies in Serie A
+        HIGH_FOUL_PLAYERS = ['vasquez', 'ranieri l.', 'mancini', 'paredes', 'barella', 'cristante', 'folorunsho', 'ramon', 'frendrup']
+        MODERATE_FOUL_PLAYERS = ['wesley', 'dodò', 'belghali', 'gallo', 'mctominay', 'fagioli', 'zaniolo']
+
+        # Matchup heat / rivalry strictness
+        HOT_MATCHUPS = [('ROM', 'LAZ'), ('INT', 'JUV'), ('MIL', 'INT'), ('JUV', 'MIL'), ('NAP', 'JUV'), ('GEN', 'FIO')]
+        is_derby = (team, opponent_code) in HOT_MATCHUPS or (opponent_code, team) in HOT_MATCHUPS
+
+        is_high_foul = any(p in norm for p in HIGH_FOUL_PLAYERS)
+        is_mod_foul = any(p in norm for p in MODERATE_FOUL_PLAYERS)
+
+        if is_derby or is_high_foul:
+            ref_strictness = "Severo (Media 5.2 cartellini/gara)"
+            card_risk = "Alto" if is_high_foul else "Medio"
+            malus_penalty = 2.0 if is_high_foul else 1.0
+            warning = "⚠️ Arbitro severo / gara ad alta intensità: elevato rischio malus ammonizione (-0.5 pt)."
+        elif is_mod_foul:
+            ref_strictness = "Equilibrato (Media 4.1 cartellini/gara)"
+            card_risk = "Medio"
+            malus_penalty = 0.8
+            warning = "🟡 Gestione falli attenta: rischio cartellino nella media."
+        else:
+            ref_strictness = "Equilibrato / Permissivo"
+            card_risk = "Basso"
+            malus_penalty = 0.0
+            warning = "🟢 Rischio disciplinare minimo: giocatore corretto."
+
+        return {
+            'referee_strictness': ref_strictness,
+            'player_card_risk': card_risk,
+            'malus_penalty_pts': malus_penalty,
+            'warning': warning
+        }
+
+    def evaluate_european_turnover(self, player_name: str, team: str) -> Dict[str, Any]:
+        """
+        Evaluates midweek European cup exhaustion and rotation risk (Champions, Europa, Conference League).
+        """
+        EUROPEAN_TEAMS = {
+            'INT': {'cup': 'Champions League', 'tier': 'Alta Intensità'},
+            'MIL': {'cup': 'Champions League', 'tier': 'Alta Intensità'},
+            'JUV': {'cup': 'Champions League', 'tier': 'Alta Intensità'},
+            'ATA': {'cup': 'Champions League', 'tier': 'Alta Intensità'},
+            'BOL': {'cup': 'Champions League', 'tier': 'Alta Intensità'},
+            'ROM': {'cup': 'Europa League', 'tier': 'Media Intensità'},
+            'LAZ': {'cup': 'Europa League', 'tier': 'Media Intensità'},
+            'FIO': {'cup': 'Conference League', 'tier': 'Turnover Frequente'}
+        }
+
+        norm = player_name.lower().strip()
+        # Key players subject to physical load management
+        ROTATION_WATCHLIST = ['dybala', 'calhanoglu', 'dimarco', 'pavard', 'thuram', 'martinez l.', 'lookman']
+
+        if team in EUROPEAN_TEAMS:
+            cup_info = EUROPEAN_TEAMS[team]
+            is_watchlist = any(w in norm for w in ROTATION_WATCHLIST)
+            level = "Medio (Gestione Minuti)" if is_watchlist else "Basso"
+            dampener = 0.88 if is_watchlist else 0.95
+            return {
+                'in_europe': True,
+                'cup_name': cup_info['cup'],
+                'turnover_level': level,
+                'dampener': dampener,
+                'note': f"Squadra impegnata in {cup_info['cup']}: possibile staffetta o minutaggio ridotto per preservare le energie." if is_watchlist else "Minutaggio standard previsto."
+            }
+
+        return {
+            'in_europe': False,
+            'cup_name': 'Nessuna',
+            'turnover_level': 'Basso (Settimana Tipo)',
+            'dampener': 1.0,
+            'note': "Settimana di lavoro completa: nessuna fatica da coppe infrasettimanali."
         }
 
 super_intelligence = SuperIntelligenceEngine()

@@ -549,7 +549,7 @@
         },
         "di lorenzo": {
           "name": "Di Lorenzo",
-          "percentage": 75,
+          "percentage": 70,
           "role": "D",
           "is_starter": true
         },
@@ -567,7 +567,7 @@
         },
         "spinazzola": {
           "name": "Spinazzola",
-          "percentage": 85,
+          "percentage": 90,
           "role": "D",
           "is_starter": true
         },
@@ -591,7 +591,7 @@
         },
         "politano": {
           "name": "Politano",
-          "percentage": 85,
+          "percentage": 90,
           "role": "C",
           "is_starter": true
         },
@@ -639,7 +639,7 @@
         },
         "olivera": {
           "name": "Olivera",
-          "percentage": 55,
+          "percentage": 50,
           "role": "D",
           "is_starter": false
         },
@@ -651,7 +651,7 @@
         },
         "zambo anguissa": {
           "name": "Zambo Anguissa",
-          "percentage": 50,
+          "percentage": 55,
           "role": "C",
           "is_starter": false
         },
@@ -669,7 +669,7 @@
         },
         "santos a.": {
           "name": "Santos A.",
-          "percentage": 55,
+          "percentage": 60,
           "role": "A",
           "is_starter": false
         },
@@ -1687,7 +1687,7 @@
         "Valle",
         "Da Cunha",
         "Milla",
-        "Diao",
+        "Rodriguez Je.",
         "Paz N.",
         "Baturina",
         "Douvikas"
@@ -1821,31 +1821,31 @@
         },
         "butez": {
           "name": "Butez",
-          "percentage": 70,
+          "percentage": 80,
           "role": "P",
           "is_starter": true
         },
         "couto": {
           "name": "Couto",
-          "percentage": 55,
+          "percentage": 90,
           "role": "D",
           "is_starter": true
         },
         "ramon": {
           "name": "Ramon",
-          "percentage": 80,
+          "percentage": 70,
           "role": "D",
           "is_starter": true
         },
         "chalobah t.": {
           "name": "Chalobah T.",
-          "percentage": 80,
+          "percentage": 55,
           "role": "D",
           "is_starter": true
         },
         "valle": {
           "name": "Valle",
-          "percentage": 60,
+          "percentage": 80,
           "role": "D",
           "is_starter": true
         },
@@ -1861,15 +1861,15 @@
           "role": "C",
           "is_starter": true
         },
-        "diao": {
-          "name": "Diao",
-          "percentage": 60,
-          "role": "A",
+        "rodriguez je.": {
+          "name": "Rodriguez Je.",
+          "percentage": 80,
+          "role": "C",
           "is_starter": true
         },
         "paz n.": {
           "name": "Paz N.",
-          "percentage": 80,
+          "percentage": 75,
           "role": "C",
           "is_starter": true
         },
@@ -1881,13 +1881,13 @@
         },
         "douvikas": {
           "name": "Douvikas",
-          "percentage": 85,
+          "percentage": 90,
           "role": "A",
           "is_starter": true
         },
         "sanchez ro.": {
           "name": "Sanchez Ro.",
-          "percentage": 30,
+          "percentage": 5,
           "role": "P",
           "is_starter": false
         },
@@ -1899,13 +1899,13 @@
         },
         "smolcic i.": {
           "name": "Smolcic I.",
-          "percentage": 50,
+          "percentage": 35,
           "role": "D",
           "is_starter": false
         },
         "kempf": {
           "name": "Kempf",
-          "percentage": 35,
+          "percentage": 55,
           "role": "D",
           "is_starter": false
         },
@@ -1935,7 +1935,7 @@
         },
         "caqueret": {
           "name": "Caqueret",
-          "percentage": 60,
+          "percentage": 55,
           "role": "C",
           "is_starter": false
         },
@@ -1947,7 +1947,7 @@
         },
         "ricci s.": {
           "name": "Ricci S.",
-          "percentage": 55,
+          "percentage": 40,
           "role": "C",
           "is_starter": false
         },
@@ -1968,22 +1968,14 @@
           "percentage": 35,
           "role": "C",
           "is_starter": false
-        },
-        "rodriguez je.": {
-          "name": "Rodriguez Je.",
-          "percentage": 60,
-          "role": "C",
-          "is_starter": false
         }
       },
       "ballottaggi": [
         "Ranieri L. 60% Viery 40%",
         "Gnonto 55% Njie 45%",
         "Beto 55% Pellegrino M. 45%",
-        "Couto 55% Smolcic I. 45%",
-        "Valle 60% Kaiki 40%",
-        "Da Cunha 60% Perrone 40%",
-        "Diao 60% Rodriguez Je. 40%"
+        "Chalobah T. 55% Kempf 45%",
+        "Da Cunha 60% Perrone 40%"
       ]
     },
     {
@@ -3286,5 +3278,5 @@
       ]
     }
   ],
-  "last_updated": "2026-10-14T11:48:03.946446"
+  "last_updated": "2026-10-14T19:49:32.900107"
 }

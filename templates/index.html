@@ -13,8 +13,8 @@
   <link rel="apple-touch-icon" href="/static/icon.svg">
   <link rel="icon" type="image/svg+xml" href="/static/icon.svg">
   
-  <link rel="stylesheet" href="/static/css/styles.css?v=3.5">
-  <link rel="stylesheet" href="/static/css/pitch.css?v=3.5">
+  <link rel="stylesheet" href="/static/css/styles.css?v=4.0">
+  <link rel="stylesheet" href="/static/css/pitch.css?v=4.0">
 </head>
 <body>
   <div class="ambient-glow"></div>
@@ -303,27 +303,33 @@
         </div>
 
         <div id="retrospectiveBody" style="font-size:0.85rem; line-height:1.6; margin-top:8px; display:none;">
+          <!-- Informative explanation for MAE -->
+          <div style="font-size:0.75rem; color:#cbd5e1; background:rgba(139, 92, 246, 0.12); border:1px solid rgba(139, 92, 246, 0.25); border-radius:8px; padding:6px 10px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+            <span style="font-size:1rem;">💡</span>
+            <div><strong>Cos'è la voce MAE?</strong> (<em>Mean Absolute Error</em>): È l'errore medio assoluto in fantapunti tra il voto previsto dall'AI e il voto effettivo a fine gara. Più è basso (es. 0.28 nei portieri), più le previsioni dell'algoritmo sono vicine alla realtà.</div>
+          </div>
+
           <!-- Role Confidence Matrix -->
           <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:6px; margin-bottom:10px;">
             <div style="background:rgba(0,0,0,0.25); border:1px solid var(--glass-border); border-radius:8px; padding:6px 4px; text-align:center;">
               <div style="font-size:0.68rem; color:var(--role-p); font-weight:800;">🧤 Portieri</div>
               <div id="roleAccP" style="font-size:0.9rem; font-weight:800; color:#ffffff;">92.4%</div>
-              <div style="font-size:0.65rem; color:var(--text-muted);">MAE 0.28</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);" title="Mean Absolute Error: scarto medio tra voto previsto e reale">MAE 0.28 ℹ️</div>
             </div>
             <div style="background:rgba(0,0,0,0.25); border:1px solid var(--glass-border); border-radius:8px; padding:6px 4px; text-align:center;">
               <div style="font-size:0.68rem; color:var(--role-d); font-weight:800;">🛡️ Difensori</div>
               <div id="roleAccD" style="font-size:0.9rem; font-weight:800; color:#ffffff;">91.2%</div>
-              <div style="font-size:0.65rem; color:var(--text-muted);">MAE 0.31</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);" title="Mean Absolute Error: scarto medio tra voto previsto e reale">MAE 0.31 ℹ️</div>
             </div>
             <div style="background:rgba(0,0,0,0.25); border:1px solid var(--glass-border); border-radius:8px; padding:6px 4px; text-align:center;">
               <div style="font-size:0.68rem; color:var(--role-c); font-weight:800;">⚙️ Centrocamp.</div>
               <div id="roleAccC" style="font-size:0.9rem; font-weight:800; color:#ffffff;">87.8%</div>
-              <div style="font-size:0.65rem; color:var(--text-muted);">MAE 0.46</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);" title="Mean Absolute Error: scarto medio tra voto previsto e reale">MAE 0.46 ℹ️</div>
             </div>
             <div style="background:rgba(0,0,0,0.25); border:1px solid var(--glass-border); border-radius:8px; padding:6px 4px; text-align:center;">
               <div style="font-size:0.68rem; color:var(--role-a); font-weight:800;">🎯 Attaccanti</div>
               <div id="roleAccA" style="font-size:0.9rem; font-weight:800; color:#ffffff;">85.5%</div>
-              <div style="font-size:0.65rem; color:var(--text-muted);">MAE 0.62</div>
+              <div style="font-size:0.65rem; color:var(--text-muted);" title="Mean Absolute Error: scarto medio tra voto previsto e reale">MAE 0.62 ℹ️</div>
             </div>
           </div>
 
@@ -966,6 +972,141 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
     </div>
   </dialog>
 
+  <!-- ================= MODAL: ANALISI BALLOTTAGGIO INTERATTIVO AI ================= -->
+  <dialog id="ballottaggioModal" style="max-width:680px; width:95%; border:1px solid rgba(245, 158, 11, 0.4); background:#0f172a; border-radius:18px; padding:20px; color:#f8fafc; box-shadow:0 25px 50px rgba(0,0,0,0.7); max-height:92vh; overflow-y:auto;">
+    <div class="modal-header" style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:flex-start;">
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <h3 id="balModalRoleTitle" style="font-size:1.22rem; font-weight:900; color:#f59e0b; margin:0;">
+            ⚖️ Analisi Ballottaggio AI
+          </h3>
+          <span id="balModalRoleBadge" class="badge-status badge-warning" style="font-size:0.75rem;">Ruolo</span>
+        </div>
+        <div id="balModalSubtitle" style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">
+          Confronto testa a testa algoritmico tra il titolare consigliato e la prima alternativa in panchina.
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeBallottaggioModal()">&times;</button>
+    </div>
+
+    <!-- Advantage Score Callout -->
+    <div id="balModalAdvantageBanner" style="background:linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(245, 158, 11, 0.15)); border:1px solid rgba(16, 185, 129, 0.35); border-radius:12px; padding:10px 14px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:1.4rem;">🎯</span>
+        <div>
+          <div style="font-size:0.72rem; text-transform:uppercase; color:#34d399; font-weight:800;">Verdetto FantaSchiera AI</div>
+          <div id="balModalAdvantageText" style="font-size:0.92rem; font-weight:800; color:#ffffff;">Starter favorito su Benched</div>
+        </div>
+      </div>
+      <div id="balModalAdvantageDiff" class="badge-status badge-success" style="font-size:0.9rem; padding:4px 12px; font-weight:800;">
+        +0.0 pt
+      </div>
+    </div>
+
+    <!-- Side-by-Side Dual Cards -->
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px;">
+      <!-- Starter Card -->
+      <div id="balStarterCard" style="background:rgba(16, 185, 129, 0.08); border:1.5px solid rgba(16, 185, 129, 0.4); border-radius:12px; padding:12px; position:relative;">
+        <div style="position:absolute; top:8px; right:8px;">
+          <span class="badge-status badge-success" style="font-size:0.68rem; font-weight:800;">⭐ TITOLARE AI</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <img id="balStarterAvatar" src="/static/icon.svg" style="width:44px; height:44px; border-radius:50%; object-fit:cover; border:2px solid #10b981;" onerror="this.src='/static/icon.svg'">
+          <div style="overflow:hidden;">
+            <div id="balStarterName" style="font-weight:900; font-size:1rem; color:#f8fafc; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">Nome</div>
+            <div id="balStarterTeam" style="font-size:0.75rem; color:var(--text-muted);">SQUADRA • RUOLO</div>
+          </div>
+        </div>
+        <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:8px; font-size:0.78rem; display:flex; flex-direction:column; gap:5px;">
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Indice Schierabilità:</span>
+            <span id="balStarterScore" style="color:#10b981; font-weight:800;">★ 0.0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Fanta-Voto Atteso:</span>
+            <span id="balStarterFV" style="color:#ffffff; font-weight:800;">6.50 pt</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Titolarità Prevista:</span>
+            <span id="balStarterTit" style="color:#34d399; font-weight:700;">85%</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Matchup:</span>
+            <span id="balStarterMatch" style="color:#e2e8f0; font-weight:600;">Casa vs ...</span>
+          </div>
+        </div>
+        <button id="btnViewStarterProfile" class="btn btn-secondary btn-sm" style="width:100%; margin-top:8px; font-size:0.75rem; padding:5px 8px;">
+          🔎 Scheda Giocatore
+        </button>
+      </div>
+
+      <!-- Benched Card -->
+      <div id="balBenchedCard" style="background:rgba(245, 158, 11, 0.06); border:1.5px solid rgba(245, 158, 11, 0.3); border-radius:12px; padding:12px; position:relative;">
+        <div style="position:absolute; top:8px; right:8px;">
+          <span class="badge-status badge-warning" style="font-size:0.68rem; font-weight:800;">🔄 IN PANCHINA</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+          <img id="balBenchedAvatar" src="/static/icon.svg" style="width:44px; height:44px; border-radius:50%; object-fit:cover; border:2px solid #f59e0b;" onerror="this.src='/static/icon.svg'">
+          <div style="overflow:hidden;">
+            <div id="balBenchedName" style="font-weight:900; font-size:1rem; color:#f8fafc; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;">Nome</div>
+            <div id="balBenchedTeam" style="font-size:0.75rem; color:var(--text-muted);">SQUADRA • RUOLO</div>
+          </div>
+        </div>
+        <div style="background:rgba(0,0,0,0.3); border-radius:8px; padding:8px; font-size:0.78rem; display:flex; flex-direction:column; gap:5px;">
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Indice Schierabilità:</span>
+            <span id="balBenchedScore" style="color:#f59e0b; font-weight:800;">★ 0.0</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Fanta-Voto Atteso:</span>
+            <span id="balBenchedFV" style="color:#ffffff; font-weight:800;">6.00 pt</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Titolarità Prevista:</span>
+            <span id="balBenchedTit" style="color:#fbbf24; font-weight:700;">60%</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span style="color:var(--text-muted);">Matchup:</span>
+            <span id="balBenchedMatch" style="color:#e2e8f0; font-weight:600;">Trasferta vs ...</span>
+          </div>
+        </div>
+        <button id="btnViewBenchedProfile" class="btn btn-secondary btn-sm" style="width:100%; margin-top:8px; font-size:0.75rem; padding:5px 8px;">
+          🔎 Scheda Giocatore
+        </button>
+      </div>
+    </div>
+
+    <!-- AI Narrative Motivation Section -->
+    <div style="background:rgba(139, 92, 246, 0.1); border:1px solid rgba(139, 92, 246, 0.3); border-radius:12px; padding:12px 14px; margin-bottom:16px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+        <span style="font-size:1.15rem;">🧠</span>
+        <span id="balModalReasoningTitle" style="font-size:0.9rem; font-weight:800; color:#c4b5fd;">
+          Perché l'AI sceglie il titolare?
+        </span>
+      </div>
+      <div id="balModalReasoningBody" style="font-size:0.84rem; line-height:1.6; color:#e2e8f0;">
+        Spiegazione dettagliata...
+      </div>
+    </div>
+
+    <!-- Detailed Factor Breakdown Table -->
+    <div style="margin-bottom:14px;">
+      <div style="font-size:0.75rem; color:#94a3b8; font-weight:800; text-transform:uppercase; margin-bottom:8px;">
+        📊 Fattori Chiave a Confronto:
+      </div>
+      <div id="balModalFactorsList" style="display:flex; flex-direction:column; gap:8px;">
+        <!-- Populated via JS -->
+      </div>
+    </div>
+
+    <!-- Modal Footer Actions -->
+    <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px; padding-top:12px; border-top:1px solid rgba(255,255,255,0.08);">
+      <button class="btn btn-secondary btn-sm" onclick="closeBallottaggioModal()">
+        Chiudi Confronto
+      </button>
+    </div>
+  </dialog>
+
   <!-- ================= MODAL: CONFERMA FORMAZIONE REALE (DA LEGHE FC) ================= -->
   <dialog id="actualLineupModal" style="max-width:640px; width:94%; border:1px solid rgba(59, 130, 246, 0.4); background:#0f172a; border-radius:16px; padding:18px 20px; color:#f8fafc; box-shadow:0 20px 40px rgba(0,0,0,0.6); max-height:90vh; overflow-y:auto;">
     <div class="modal-header" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:flex-start;">
@@ -1036,8 +1177,8 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
 
   <!-- Scripts -->
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script src="/static/js/notifications.js?v=3.6"></script>
-  <script src="/static/js/pitch.js?v=3.6"></script>
-  <script src="/static/js/app.js?v=3.11"></script>
+  <script src="/static/js/notifications.js?v=4.0"></script>
+  <script src="/static/js/pitch.js?v=4.0"></script>
+  <script src="/static/js/app.js?v=4.0"></script>
 </body>
 </html>

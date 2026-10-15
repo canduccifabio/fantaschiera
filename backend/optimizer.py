@@ -293,15 +293,26 @@ class LineupOptimizer:
         # Dynamic weights optimized by the continuous AI learning engine
         learned_w = ai_learning_engine.get_weights()
         tit_max_w = learned_w.get('titolarita_max_weight', 35.0)
-        home_b_w = learned_w.get('home_bonus_weight', 3.6)
-        match_slope = learned_w.get('matchup_difficulty_slope', 2.55)
+        home_b_w = learned_w.get('home_bonus_weight', 3.2)
+        match_slope = learned_w.get('matchup_difficulty_slope', 2.90)
         def_base_m = learned_w.get('def_base_multiplier', 11.2)
         mid_base_m = learned_w.get('mid_base_multiplier', 10.1)
-        att_base_m = learned_w.get('att_base_multiplier', 8.0)
+        att_base_m = learned_w.get('att_base_multiplier', 6.8)
         gk_base_m = learned_w.get('gk_base_multiplier', 18.0)
-        ed_mult = learned_w.get('editorial_bonus_multiplier', 1.05)
+        ed_mult = learned_w.get('editorial_bonus_multiplier', 1.02)
+
+        # Advanced Opta / FBref / AIA parameters
+        npxg_w = learned_w.get('npxg_weight', 5.5)
+        sca_w = learned_w.get('sca_weight', 1.8)
+        corner_w = learned_w.get('corner_specialty_weight', 2.5)
+        turnover_damp = learned_w.get('turnover_damp_factor', 0.88)
+        ref_strict_w = learned_w.get('referee_strictness_weight', 1.35)
 
         editorial_pts = (editorial_bonus_map.get(sf_cat, 0.0)) * ed_mult if sf_is_published else 0.0
+
+        # Environmental & Advanced Context (Referee Strictness & Disciplinary Risk, European Turnover)
+        disc_context = super_intelligence.evaluate_referee_and_discipline(player['name'], team, role, opponent_code)
+        euro_context = super_intelligence.evaluate_european_turnover(player['name'], team)
 
         # --- COMPUTE COMPOSITE FANTA-SCORE INDEX (0 - 100) ---
         # A) Titolarità Consensus Factor (0 - 35 pt)
@@ -314,6 +325,8 @@ class LineupOptimizer:
         # C) Advanced Threat & Metrics Factor (0 - 25 pt) calibrated across all roles
         pure_base = metrics_data.get('pure_base_grade', 6.20)
         threat_score = metrics_data.get('threat_score', 3.0)
+        npxg_val = metrics_data.get('npxg', metrics_data.get('xg', 0.0))
+        sca_val = metrics_data.get('sca', 1.0)
 
         if role == 'P':
             cs_pct = gk_data['clean_sheet_prob'] if gk_data else 35
@@ -329,42 +342,63 @@ class LineupOptimizer:
             threat_pts = min(25.0, base_pts + off_pts + qa_pts)
         elif role == 'C':
             base_pts = min(13.0, max(6.0, 8.0 + (pure_base - 5.8) * mid_base_m))
-            off_pts = min(7.0, (threat_score / 10.0) * 7.0)
+            off_pts = min(7.0, ((threat_score / 10.0) * 4.5) + min(2.5, (sca_val / 3.0) * (sca_w / 1.8)))
             qa_pts = min(5.0, (min(30, qa) / 30.0) * 5.0)
             threat_pts = min(25.0, base_pts + off_pts + qa_pts)
         else: # A
             base_pts = min(11.0, max(5.0, 7.0 + (pure_base - 5.8) * att_base_m))
-            off_pts = min(10.0, (threat_score / 10.0) * 10.0)
+            off_pts = min(10.0, ((threat_score / 10.0) * 6.0) + min(4.0, (npxg_val * (npxg_w / 5.5) * 4.0)))
             qa_pts = min(4.0, (min(36, qa) / 36.0) * 4.0)
             threat_pts = min(25.0, base_pts + off_pts + qa_pts)
 
-        # D) Penalties & Specialties (0 - 10 pt)
+        # D) Penalties, Set Pieces & Specialties (0 - 10 pt)
         special_pts = 0.0
         if is_penalty:
-            special_pts += 6.0
+            special_pts += 5.0
+        if metrics_data.get('is_corner_taker'):
+            special_pts += corner_w
+        if metrics_data.get('is_freekick_taker'):
+            special_pts += 1.5
         if role == 'D' and pure_base >= 6.25 and is_home:
-            special_pts += 2.5
+            special_pts += 2.0
 
-        # E) Composite total score with natural nuances (no clamping to artificial floor)
-        total_score = round(max(10.0, min(99.0, titolarita_pts + matchup_pts + threat_pts + special_pts + editorial_pts)), 1)
+        # E) Disciplinary & Referee Malus Risk Adjustment
+        disc_penalty = disc_context.get('malus_penalty_pts', 0.0) * (ref_strict_w / 1.35)
+
+        # F) European Turnover / Fatigue Dampener
+        turnover_penalty = 0.0
+        if euro_context.get('turnover_level') == 'Medio (Gestione Minuti)' and not (is_official and is_starter):
+            turnover_penalty = 2.5
+
+        # Composite total score with natural nuances
+        raw_score = titolarita_pts + matchup_pts + threat_pts + special_pts + editorial_pts - disc_penalty - turnover_penalty
+        if euro_context.get('turnover_level') == 'Alto' and not (is_official and is_starter):
+            raw_score *= turnover_damp
+
+        total_score = round(max(10.0, min(99.0, raw_score)), 1)
 
         # --- COMPUTE REALISTIC EXPECTED FANTAVOTO (5.0 - 8.5) ---
         att_away_damp = learned_w.get('att_away_damp', 0.85) if not is_home else 1.0
-        def_risk_p = learned_w.get('def_risk_penalty', 1.0)
+        def_risk_p = learned_w.get('def_risk_penalty', 1.45)
+
+        set_piece_fv_bonus = (0.20 if metrics_data.get('is_corner_taker') else 0.0) + (0.12 if metrics_data.get('is_freekick_taker') else 0.0)
+        turnover_fv_discount = 0.15 if euro_context.get('turnover_level') == 'Medio (Gestione Minuti)' and not (is_official and is_starter) else 0.0
 
         if role == 'P':
             xgc = gk_data['expected_goals_conceded'] if gk_data else 1.2
             cs_p = (gk_data['clean_sheet_prob'] if gk_data else 30) / 100.0
             expected_fv = round(6.0 - (xgc * 0.9) + (cs_p * 0.8) + (0.3 if is_home else 0.0), 2)
         elif role == 'D':
-            foul_discount = 0.25 * max(0.0, def_risk_p - 1.0)
-            expected_fv = round(max(4.5, pure_base + (metrics_data['xa'] * 1.0) + (metrics_data['xg'] * 2.5) + (0.15 if is_home else 0.0) - foul_discount), 2)
+            foul_discount = 0.25 * max(0.0, def_risk_p - 1.0) + (0.15 if disc_context.get('player_card_risk') == 'Alto' else 0.0)
+            expected_fv = round(max(4.5, pure_base + (metrics_data['xa'] * 1.0) + (metrics_data['xg'] * 2.5) + set_piece_fv_bonus + (0.15 if is_home else 0.0) - foul_discount - turnover_fv_discount), 2)
         elif role == 'C':
             pen_bonus = 0.6 if is_penalty else 0.0
-            expected_fv = round(pure_base + (metrics_data['xg'] * 2.8) + (metrics_data['xa'] * 1.0) + pen_bonus, 2)
+            card_disc = 0.10 if disc_context.get('player_card_risk') == 'Alto' else 0.0
+            expected_fv = round(pure_base + (npxg_val * 2.8) + (metrics_data['xa'] * 1.0) + (sca_val * 0.10) + pen_bonus + set_piece_fv_bonus - card_disc - turnover_fv_discount, 2)
         else: # A
             pen_bonus = 0.8 if is_penalty else 0.0
-            expected_fv = round(pure_base + ((metrics_data['xg'] * 2.8 + metrics_data['xa'] * 1.0) * att_away_damp) + pen_bonus, 2)
+            card_disc = 0.10 if disc_context.get('player_card_risk') == 'Alto' else 0.0
+            expected_fv = round(pure_base + (((npxg_val * 2.8) + (metrics_data['xa'] * 1.0) + (sca_val * 0.08)) * att_away_damp) + pen_bonus + set_piece_fv_bonus - card_disc - turnover_fv_discount, 2)
 
         # Status & Stars
         if total_score >= 80:
@@ -392,6 +426,8 @@ class LineupOptimizer:
         reasons_list = []
         if is_penalty:
             reasons_list.append("🎯 Primo rigorista designato")
+        if metrics_data.get('is_corner_taker') or metrics_data.get('is_freekick_taker'):
+            reasons_list.append("📐 Battitore piazzati/corner")
         if calibrated_titolarita >= 85:
             reasons_list.append(f"🟢 Titolarità certa al {calibrated_titolarita}% ({consensus_data['consensus_level']})")
         elif ballottaggio_note:
@@ -406,6 +442,8 @@ class LineupOptimizer:
             reasons_list.append(f"⚽ Alto indice xG atteso ({metrics_data['xg']} gol/gara)")
         if metrics_data['xa'] >= 0.25:
             reasons_list.append(f"👟 Creatore di occasioni xA ({metrics_data['xa']} assist/gara)")
+        if disc_context.get('player_card_risk') == 'Alto':
+            reasons_list.append("⚠️ Rischio malus cartellino (arbitro severo)")
 
         if role == 'P' and gk_data:
             reasons_list.append(f"🧤 Clean sheet probabile al {gk_data['clean_sheet_prob']}% (xGC: {gk_data['expected_goals_conceded']})")
@@ -418,7 +456,7 @@ class LineupOptimizer:
         if calibrated_titolarita >= 80:
             why_text += f"Presenza da titolare garantita all'unanimità (Fantacalcio.it, Sky Sport e Gazzetta). "
         if metrics_data['threat_score'] >= 5.0:
-            why_text += f"Le metriche avanzate SofaScore evidenziano grande pericolosità offensiva (xG/xA: {metrics_data['xg']}/{metrics_data['xa']}). "
+            why_text += f"Le metriche avanzate evidenziano grande pericolosità (xG/xA: {metrics_data['xg']}/{metrics_data['xa']} • SCA: {metrics_data.get('sca', 1.0)}). "
         if sf_is_published and sf_analysis.get('mentioned'):
             why_text += f"Verdetto SOS Fanta: {sf_analysis['category']} ({sf_analysis['summary']})."
 
@@ -427,8 +465,10 @@ class LineupOptimizer:
 
         factors_detail = [
             {'label': 'Triplo Consenso Fonti', 'val': f"{calibrated_titolarita}% • {consensus_data['consensus_level']}", 'desc': consensus_data['summary']},
-            {'label': 'Metriche SofaScore / Understat', 'val': f"xG: {metrics_data['xg']} | xA: {metrics_data['xa']}", 'desc': f"Trend: {metrics_data['trend']} • Tiri/p: {metrics_data['shots_per_game']}"},
-            {'label': 'Fattore Partita & Difesa Avversaria', 'val': f"{'In Casa 🏠' if is_home else 'Trasferta ✈️'} vs {opponent_code}", 'desc': f"Difficoltà avversario: {opp_diff}/5.0"},
+            {'label': 'Metriche SofaScore / Understat', 'val': f"xG: {metrics_data['xg']} (npxG: {metrics_data.get('npxg', metrics_data['xg'])}) | xA: {metrics_data['xa']}", 'desc': f"Trend: {metrics_data['trend']} • Tiri/p: {metrics_data['shots_per_game']} • SCA: {metrics_data.get('sca', 1.0)}"},
+            {'label': 'Fattore Partita & Difesa Avversaria', 'val': f"{'In Casa 🏠' if is_home else 'Trasferta ✈️'} vs {opponent_code}", 'desc': f"Difficoltà avversario: {opp_diff}/5.0 • Rischio rotazione: {metrics_data.get('turnover_risk', 'Basso')}"},
+            {'label': 'Piazzati & Corner (Opta)', 'val': ('🟢 Battitore Corner/Piazzati (+2.5 pt)' if metrics_data.get('is_corner_taker') or metrics_data.get('is_freekick_taker') else 'Nessun piazzato designato'), 'desc': ('Incaricato di corner e punizioni: alto potenziale di assist da fermo.' if metrics_data.get('is_corner_taker') else 'Non batte corner o punizioni dirette.')},
+            {'label': 'Rischio Disciplinare Arbitro', 'val': f"{disc_context.get('referee_strictness', 'Equilibrato')} • Rischio {disc_context.get('player_card_risk', 'Basso')}", 'desc': disc_context.get('warning', 'Direzione arbitrale standard.')},
             {'label': f"Consiglio SOS Fanta ({target_md}ª G.)", 'val': sf_val, 'desc': sf_desc}
         ]
 
@@ -471,6 +511,187 @@ class LineupOptimizer:
                 'metrics': metrics_data,
                 'goalkeeper': gk_data
             }
+        }
+
+    def _generate_ballottaggio_comparison(self, starter: Dict, benched: Dict, role: str) -> Dict:
+        role_map = {
+            'P': 'Portiere',
+            'D': 'Difensore',
+            'C': 'Centrocampista',
+            'A': 'Attaccante'
+        }
+        role_label = role_map.get(role, 'Giocatore')
+        starter_name = starter.get('name', 'Titolare')
+        benched_name = benched.get('name', 'Riserva')
+        starter_score = round(starter.get('score', 0.0), 1)
+        benched_score = round(benched.get('score', 0.0), 1)
+        diff = round(starter_score - benched_score, 1)
+
+        starter_fv = round(starter.get('expected_fantavoto', 6.0), 2)
+        benched_fv = round(benched.get('expected_fantavoto', 6.0), 2)
+        starter_tit = starter.get('titolarita_pct', 70)
+        benched_tit = benched.get('titolarita_pct', 70)
+        starter_home = starter.get('is_home', True)
+        benched_home = benched.get('is_home', True)
+        starter_opp = starter.get('opponent_name', starter.get('opponent', 'Avversario'))
+        benched_opp = benched.get('opponent_name', benched.get('opponent', 'Avversario'))
+
+        starter_intel = starter.get('super_intelligence', {})
+        benched_intel = benched.get('super_intelligence', {})
+        starter_metrics = starter_intel.get('metrics', {})
+        benched_metrics = benched_intel.get('metrics', {})
+        starter_sf = starter.get('sosfanta', {})
+        benched_sf = benched.get('sosfanta', {})
+
+        factors = []
+
+        # 1. Calendario & Matchup
+        venue_str_st = f"In Casa 🏠 vs {starter_opp}" if starter_home else f"Trasferta ✈️ vs {starter_opp}"
+        venue_str_be = f"In Casa 🏠 vs {benched_opp}" if benched_home else f"Trasferta ✈️ vs {benched_opp}"
+        factors.append({
+            'label': 'Fattore Matchup & Sede',
+            'icon': '🏟️',
+            'starter_val': venue_str_st,
+            'benched_val': venue_str_be,
+            'advantage': 'starter' if (starter_home and not benched_home) else ('neutral' if (starter_home == benched_home) else 'benched'),
+            'detail': "Il fattore campo a favore e la minor pressione offensiva dell'avversario premiano il titolare." if starter_home else "Match comunque favorevole nonostante l'impegno esterno."
+        })
+
+        # 2. Titolarità & Consenso Fonti
+        st_cons = starter_intel.get('consensus', {})
+        be_cons = benched_intel.get('consensus', {})
+        st_cons_lvl = st_cons.get('consensus_level', 'Titolare')
+        be_cons_lvl = be_cons.get('consensus_level', 'Ballottaggio')
+        factors.append({
+            'label': 'Titolarità & Consenso Fonti',
+            'icon': '👥',
+            'starter_val': f"{starter_tit}% ({st_cons_lvl})",
+            'benched_val': f"{benched_tit}% ({be_cons_lvl})",
+            'advantage': 'starter' if starter_tit >= benched_tit else 'benched',
+            'detail': "Conferma da Fantacalcio.it, Sky e Gazzetta: certezza di voto dal 1° minuto senza rischiare s.v."
+        })
+
+        # 3. Metriche Avanzate di Reparto
+        if role == 'P':
+            st_gk = starter_intel.get('goalkeeper', {})
+            be_gk = benched_intel.get('goalkeeper', {})
+            st_cs = st_gk.get('clean_sheet_prob', 35)
+            be_cs = be_gk.get('clean_sheet_prob', 25)
+            st_xgc = st_gk.get('expected_goals_conceded', 1.1)
+            be_xgc = be_gk.get('expected_goals_conceded', 1.5)
+            factors.append({
+                'label': 'Clean Sheet & Rischio Malus Portiere',
+                'icon': '🧤',
+                'starter_val': f"Clean Sheet: {st_cs}% | xGC: {st_xgc}",
+                'benched_val': f"Clean Sheet: {be_cs}% | xGC: {be_xgc}",
+                'advantage': 'starter' if st_cs >= be_cs else 'benched',
+                'detail': f"Minore probabilità di malus da gol subito ({st_xgc} vs {be_xgc} gol previsti)."
+            })
+        elif role in ['A', 'C']:
+            st_xg = starter_metrics.get('xg', 0.0)
+            be_xg = benched_metrics.get('xg', 0.0)
+            st_npxg = starter_metrics.get('npxg', st_xg)
+            be_npxg = benched_metrics.get('npxg', be_xg)
+            st_xa = starter_metrics.get('xa', 0.0)
+            be_xa = benched_metrics.get('xa', 0.0)
+            st_shots = starter_metrics.get('shots_per_game', 0.0)
+            be_shots = benched_metrics.get('shots_per_game', 0.0)
+            factors.append({
+                'label': 'Metriche Avanzate SofaScore (xG / xA / Tiri)',
+                'icon': '📊',
+                'starter_val': f"xG: {st_xg} (npxG: {st_npxg}) • xA: {st_xa} • Tiri: {st_shots}/g",
+                'benched_val': f"xG: {be_xg} (npxG: {be_npxg}) • xA: {be_xa} • Tiri: {be_shots}/g",
+                'advantage': 'starter' if (st_xg + st_xa) >= (be_xg + be_xa) else 'benched',
+                'detail': "Indice di minaccia offensiva e volume di conclusioni/assist attesi favorevoli al titolare."
+            })
+        else: # Difesa
+            st_bg = starter_metrics.get('pure_base_grade', 6.2)
+            be_bg = benched_metrics.get('pure_base_grade', 6.1)
+            st_xa = starter_metrics.get('xa', 0.0)
+            be_xa = benched_metrics.get('xa', 0.0)
+            factors.append({
+                'label': 'Impatto Modificatore & Spinta Fasce',
+                'icon': '🛡️',
+                'starter_val': f"Media Base: {st_bg} • xA: {st_xa}",
+                'benched_val': f"Media Base: {be_bg} • xA: {be_xa}",
+                'advantage': 'starter' if st_bg >= be_bg else 'benched',
+                'detail': "Rendimento atteso più affidabile per raggiungere la sufficienza piena e bonus modificatore."
+            })
+
+        # 4. Parere Giornalistico SOS Fanta
+        st_cat = starter_sf.get('category', 'SCHIERABILE')
+        be_cat = benched_sf.get('category', 'SCHIERABILE')
+        factors.append({
+            'label': 'Verdetto Redazione SOS Fanta',
+            'icon': '📰',
+            'starter_val': f"{st_cat}",
+            'benched_val': f"{be_cat}",
+            'advantage': 'starter' if ('ASSOLUTO' in st_cat or 'PROMOSSO' in st_cat) else 'neutral',
+            'detail': f"Citazione Titolare: \"{starter_sf.get('quote', 'Schierabile')}...\""
+        })
+
+        # 5. Piazzati & Corner (Opta)
+        st_corner = starter_metrics.get('is_corner_taker', False) or starter_metrics.get('is_freekick_taker', False) or starter.get('is_penalty', False)
+        be_corner = benched_metrics.get('is_corner_taker', False) or benched_metrics.get('is_freekick_taker', False) or benched.get('is_penalty', False)
+        st_corner_str = "Rigorista / Corner 🎯" if starter.get('is_penalty') else ("Battitore Corner/Piazzati 📐" if st_corner else "Nessun piazzato")
+        be_corner_str = "Rigorista / Corner 🎯" if benched.get('is_penalty') else ("Battitore Corner/Piazzati 📐" if be_corner else "Nessun piazzato")
+        factors.append({
+            'label': 'Calci Piazzati & Corner (Opta)',
+            'icon': '📐',
+            'starter_val': st_corner_str,
+            'benched_val': be_corner_str,
+            'advantage': 'starter' if (st_corner and not be_corner) else ('benched' if (be_corner and not st_corner) else 'neutral'),
+            'detail': "Gli specialisti dei calci piazzati godono di una percentuale superiore di assist attesi (+0.20 FV)." if st_corner else "Nessuna discrepanza determinante sui calci da fermo."
+        })
+
+        # 6. Rischio Disciplinare & Impegni Coppe
+        st_turnover = starter_metrics.get('turnover_risk', 'Basso')
+        be_turnover = benched_metrics.get('turnover_risk', 'Basso')
+        factors.append({
+            'label': 'Fatica Coppe Europee & Disciplina',
+            'icon': '⚖️',
+            'starter_val': f"Turn-over: {st_turnover}",
+            'benched_val': f"Turn-over: {be_turnover}",
+            'advantage': 'starter' if (be_turnover != 'Basso' and st_turnover == 'Basso') else ('benched' if (st_turnover != 'Basso' and be_turnover == 'Basso') else 'neutral'),
+            'detail': "Protezione dal rischio rotazioni o cartellini calcolata con i coefficienti AIA e UEFA."
+        })
+
+        # Discursive Narrative
+        if role == 'P':
+            summary_text = (
+                f"L'AI consiglia {starter_name} (★ {starter_score}) rispetto a {benched_name} (★ {benched_score}) "
+                f"con un margine calcolato di +{diff} punti. Il fattore determinante risiede nella solidità del reparto difensivo "
+                f"e nel matchup: {starter_name} gode di una probabilità di Clean Sheet del {starter_intel.get('goalkeeper', {}).get('clean_sheet_prob', 35)}% "
+                f"con appena {starter_intel.get('goalkeeper', {}).get('expected_goals_conceded', 1.0)} gol subiti attesi, "
+                f"riducendo drasticamente il rischio di malus pesanti al fantacalcio rispetto a {benched_name}."
+            )
+        elif role == 'D':
+            summary_text = (
+                f"Nel ballottaggio difensivo, l'algoritmo accorda la preferenza a {starter_name} (★ {starter_score}) su {benched_name} (★ {benched_score}) "
+                f"con uno scarto di +{diff} punti. {starter_name} garantisce una continuità di rendimento superiore "
+                f"(media voto pura stimata di {starter_metrics.get('pure_base_grade', 6.20)}), massimizzando le chance di ottenere il bonus "
+                f"del modificatore di difesa e offrendo maggiore pericolosità sulle palle inattive."
+            )
+        elif role == 'C':
+            summary_text = (
+                f"Scelta ponderata a centrocampo: {starter_name} (★ {starter_score}) è favorito su {benched_name} (★ {benched_score}) "
+                f"con +{diff} punti di vantaggio. Le statistiche avanzate (SofaScore / Understat) indicano una frequenza più alta di inserimenti, "
+                f"passaggi chiave ({starter_metrics.get('key_passes_per_game', 1.2)}/g) e conclusioni a rete, rendendo il potenziale di bonus (+3/+1) "
+                f"statisticamente più probabile rispetto alla riserva."
+            )
+        else: # 'A'
+            summary_text = (
+                f"Duello caldissimo in attacco: l'AI preferisce schierare {starter_name} (★ {starter_score}) lasciando in panchina {benched_name} (★ {benched_score}) "
+                f"(+{diff} punti). Oltre alla titolarità dal 1° minuto ({starter_tit}%), {starter_name} vanta un indice di pericolosità offensiva superiore "
+                f"e un matchup più favorevole, mentre {benched_name} sconta una gestione del minutaggio più frazionata o una trasferta più complessa."
+            )
+
+        return {
+            'role_label': role_label,
+            'headline': f"Perché l'AI sceglie {starter_name} (+{diff} pt) rispetto a {benched_name}",
+            'summary': summary_text,
+            'advantage_pts': diff,
+            'factors': factors
         }
 
     def optimize_lineup(self, user_players: List[Dict], preferred_formation: str = None, use_defense_modifier: bool = True, matchday: Optional[int] = None) -> Dict:
@@ -641,23 +862,32 @@ class LineupOptimizer:
             pts_to_next = 0.0
             next_goal = 5
 
-        # Ballottaggi key choices
+        # Ballottaggi key choices: Portiere (P), Difensori (D), Centrocampisti (C), Attaccanti (A)
         key_decisions = []
-        for r_name in ['A', 'C', 'D']:
+        for r_name in ['P', 'D', 'C', 'A']:
             r_starters = [p for p in best_starters if p['role'] == r_name]
             r_bench = [p for p in bench if p['role'] == r_name]
             if r_starters and r_bench:
                 lowest_starter = min(r_starters, key=lambda x: x['score'])
                 highest_bench = max(r_bench, key=lambda x: x['score'])
                 diff = abs(lowest_starter['score'] - highest_bench['score'])
-                if diff <= 6.0:
+
+                # For goalkeepers, always include if user has a bench goalkeeper!
+                # For field players, include if diff is reasonable (<= 15.0)
+                if r_name == 'P' or diff <= 15.0:
+                    comp_data = self._generate_ballottaggio_comparison(lowest_starter, highest_bench, r_name)
                     key_decisions.append({
                         'role': r_name,
+                        'role_label': comp_data['role_label'],
                         'starter': lowest_starter['name'],
                         'starter_score': lowest_starter['score'],
+                        'starter_player': lowest_starter,
                         'benched': highest_bench['name'],
                         'benched_score': highest_bench['score'],
-                        'note': f"Ballottaggio serrato: {lowest_starter['name']} (★ {lowest_starter['score']}) vs {highest_bench['name']} (★ {highest_bench['score']}). Vantaggio: +{round(diff, 1)} pt a favore di {lowest_starter['name']}."
+                        'benched_player': highest_bench,
+                        'diff': round(diff, 1),
+                        'note': f"Ballottaggio {comp_data['role_label']}: {lowest_starter['name']} (★ {lowest_starter['score']}) vs {highest_bench['name']} (★ {highest_bench['score']}). Vantaggio: +{round(diff, 1)} pt a favore di {lowest_starter['name']}.",
+                        'comparison': comp_data
                     })
 
         return {

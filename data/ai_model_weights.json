@@ -41,7 +41,12 @@
     "att_away_damp": 0.85,
     "gk_base_multiplier": 18.0,
     "editorial_bonus_multiplier": 1.02,
-    "mod_safety_margin": 0.50
+    "mod_safety_margin": 0.50,
+    "npxg_weight": 5.5,
+    "sca_weight": 1.8,
+    "corner_specialty_weight": 2.5,
+    "turnover_damp_factor": 0.88,
+    "referee_strictness_weight": 1.35
   },
   "last_report": {
     "title": "Referti Ufficiali 6ª Giornata & Auto-Calibrazione Reattiva Applicata",
