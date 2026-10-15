@@ -887,27 +887,46 @@ function renderLiveMatches(matches) {
       const cards = [];
       const subs = [];
 
-      // Helper to test if a player belongs to the user
-      function checkIsMyPlayer(name, outName) {
-        const p1 = (name || '').toLowerCase().trim();
-        const p2 = (outName || '').toLowerCase().trim();
+      // Helper to test if a player belongs to the user with token matching
+      function getTokens(s) {
+        return (s || '').toLowerCase().replace(/[^a-z0-9\s]/g, ' ').split(/\s+/).filter(Boolean);
+      }
+      function matchesPlayerName(evName, myName) {
+        if (!evName || !myName) return false;
+        const e1 = evName.toLowerCase().trim();
+        const m1 = myName.toLowerCase().trim();
+        if (e1 === m1 || e1.includes(m1) || m1.includes(e1)) return true;
+        const tE = getTokens(e1);
+        const tM = getTokens(m1);
+        if (tE.length > 0 && tM.length > 0) {
+          const common = tE.filter(t => t.length >= 4 && tM.includes(t));
+          if (common.length > 0) return true;
+          const lastE = tE[0].length >= 4 ? tE[0] : tE[tE.length - 1];
+          const lastM = tM[tM.length - 1].length >= 4 ? tM[tM.length - 1] : tM[0];
+          if (lastE && lastM && lastE === lastM) return true;
+        }
+        return false;
+      }
+
+      function checkIsMyPlayer(name, outName, assistName) {
         return Array.from(myPlayerNames).some(myName => {
           if (!myName) return false;
-          return (p1 && (myName === p1 || myName.includes(p1) || p1.includes(myName))) ||
-                 (p2 && (myName === p2 || myName.includes(p2) || p2.includes(myName)));
+          return matchesPlayerName(name, myName) ||
+                 matchesPlayerName(outName, myName) ||
+                 matchesPlayerName(assistName, myName);
         });
       }
 
       // Filter and categorize
       m.events.forEach(ev => {
-        const isMy = checkIsMyPlayer(ev.player_name, ev.player_out);
+        const isMy = ev.is_my_player || ev.is_my_assist || ev.is_my_sub_out || checkIsMyPlayer(ev.player_name, ev.player_out, ev.assist_player);
         const item = { ...ev, isMyPlayer: isMy };
 
         if (ev.type === 'goal' || ev.type === 'penalty' || ev.type === 'own_goal' || ev.type === 'potm') {
           goalsAndKey.push(item);
         } else if (ev.type === 'assist') {
           // If preceding goal already lists this assist, skip standalone assist unless it's user's player
-          const alreadyLinked = goalsAndKey.some(g => g.assist_player && g.assist_player.toLowerCase() === (ev.player_name || '').toLowerCase());
+          const alreadyLinked = goalsAndKey.some(g => g.assist_player && matchesPlayerName(g.assist_player, ev.player_name));
           if (!alreadyLinked || isMy) {
             goalsAndKey.push(item);
           }
@@ -933,7 +952,10 @@ function renderLiveMatches(matches) {
 
         let label = '';
         if (ev.type === 'goal') {
-          let assistPart = ev.assist_player ? ` <span style="color:#a7f3d0; font-size:0.7rem; font-weight:600;">(👟 Assist: ${ev.assist_player})</span>` : '';
+          let assistHighlight = (ev.is_my_assist || checkIsMyPlayer(ev.assist_player, ''));
+          let assistPart = ev.assist_player 
+            ? ` <span style="color:${assistHighlight ? '#fbbf24; font-weight:800;' : '#a7f3d0; font-weight:600;'}; font-size:0.7rem;">(👟 Assist: ${assistHighlight ? '⭐ ' : ''}${ev.assist_player})</span>` 
+            : '';
           label = `${ev.icon || '⚽'} ${minText}<strong>${ev.player_name}</strong>${assistPart}`;
         } else if (ev.type === 'own_goal') {
           label = `${ev.icon || '🔴'} ${minText}<strong>${ev.player_name}</strong> <span style="color:#f87171; font-size:0.7rem; font-weight:700;">(Autogol)</span>`;
@@ -941,12 +963,17 @@ function renderLiveMatches(matches) {
           let cardColor = ev.icon === '🟥' ? '#f87171' : '#fbbf24';
           label = `${ev.icon || '🟨'} ${minText}<strong style="color:${ev.isMyPlayer ? '#fbbf24' : cardColor};">${ev.player_name}</strong>`;
         } else if (ev.type === 'sub') {
-          let outPart = ev.player_out ? ` <span style="opacity:0.75; font-size:0.7rem;">(esce ${ev.player_out})</span>` : '';
-          label = `${ev.icon || '⇄'} ${minText}<strong>${ev.player_name}</strong>${outPart}`;
+          let outIsMy = ev.is_my_sub_out || checkIsMyPlayer(ev.player_out, '');
+          let inIsMy = ev.is_my_player || checkIsMyPlayer(ev.player_name, '');
+          let inName = inIsMy ? `<strong style="color:#fbbf24;">${ev.player_name}</strong>` : `<strong>${ev.player_name}</strong>`;
+          let outPart = ev.player_out 
+            ? ` <span style="opacity:0.85; font-size:0.7rem; color:${outIsMy ? '#fbbf24; font-weight:700;' : 'inherit'};">(esce ${outIsMy ? '⭐ ' : ''}${ev.player_out})</span>` 
+            : '';
+          label = `${ev.icon || '⇄'} ${minText}${inName}${outPart}`;
         } else if (ev.type === 'assist') {
           label = `${ev.icon || '👟'} ${minText}<strong>${ev.player_name}</strong> <span style="opacity:0.8; font-size:0.7rem;">(Assist)</span>`;
         } else if (ev.type === 'conceded') {
-          label = `${ev.icon || '🧤'} ${minText}<strong>${ev.player_name}</strong> <span style="opacity:0.8; font-size:0.7rem;">(Gol subito)</span>`;
+          label = `${ev.icon || '🧤'} ${minText}<strong style="color:#fbbf24;">${ev.player_name}</strong> <span style="opacity:0.9; font-size:0.7rem; color:#f87171; font-weight:700;">(Gol subito -1.0)</span>`;
         } else {
           label = `${ev.icon || '•'} ${minText}<strong>${ev.player_name}</strong>`;
         }

@@ -1532,6 +1532,33 @@ class LiveMatchTracker:
             m_state = fixture_state_by_key.get(match_key) or self.get_fixture_state(f, now, live_scores=live_scores)
             match_events = reconciled_events_by_key.get(match_key, [])
 
+            # Tag events involving user's players directly in the backend
+            tagged_events = []
+            for ev in match_events:
+                ev_copy = dict(ev)
+                ev_copy['is_my_player'] = False
+                ev_copy['is_my_assist'] = False
+                ev_copy['is_my_sub_out'] = False
+
+                for up in user_players:
+                    up_name = up.get('name', '')
+                    up_vars = set(get_player_name_variants(up_name))
+
+                    if ev.get('player_name') and up_vars.intersection(set(get_player_name_variants(ev['player_name']))):
+                        ev_copy['is_my_player'] = True
+                        ev_copy['my_player_name'] = up_name
+                        ev_copy['my_player_role'] = up.get('role', '')
+
+                    if ev.get('assist_player') and up_vars.intersection(set(get_player_name_variants(ev['assist_player']))):
+                        ev_copy['is_my_assist'] = True
+                        ev_copy['my_assist_name'] = up_name
+
+                    if ev.get('player_out') and up_vars.intersection(set(get_player_name_variants(ev['player_out']))):
+                        ev_copy['is_my_sub_out'] = True
+                        ev_copy['my_sub_name'] = up_name
+
+                tagged_events.append(ev_copy)
+
             # Find user players in this match
             involved_my_players = []
             for p in (user_players_by_team.get(f_h_code, []) + user_players_by_team.get(f_a_code, [])):
@@ -1566,7 +1593,7 @@ class LiveMatchTracker:
                 'is_upcoming': m_state.get('is_upcoming'),
                 'is_official_lineup': m_state.get('is_live') or m_state.get('is_finished') or (m_state.get('kickoff_dt') and now >= m_state['kickoff_dt'] - timedelta(minutes=60)),
                 'my_players': involved_my_players,
-                'events': match_events,
+                'events': tagged_events,
                 'score_verified': True,
                 'sources': ['Fantacalcio.it', 'ESPN Scoreboard'],
                 'verification_badge': '✅ Doppia Fonte: Fantacalcio + ESPN'
