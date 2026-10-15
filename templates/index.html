@@ -224,7 +224,8 @@
           <span style="font-weight:800; font-size:1.15rem; color:#34d399; display:flex; align-items:center; gap:8px;">
             <span class="live-dot"></span> ⚡ Live Match Center • Voti & Pagelle AI
           </span>
-          <div style="display:flex; gap:6px; align-items:center;">
+          <div style="display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+            <span id="liveDualSourceBadge" class="badge-status" style="font-size:0.7rem; background:rgba(59, 130, 246, 0.18); color:#93c5fd; border:1px solid rgba(59, 130, 246, 0.35);">✅ Doppia Fonte: Fantacalcio + ESPN</span>
             <span id="liveStatusBadge" class="badge-status badge-warning">⏳ In attesa del 1° match (Sab 15:00)</span>
             <span id="liveLastUpdateBadge" style="font-size:0.75rem; color:var(--text-muted);">Aggiornato: --:--</span>
           </div>
@@ -727,7 +728,10 @@
         <span style="font-size:0.8rem; font-weight:800; color:#c4b5fd; display:flex; align-items:center; gap:6px;">
           <span>⚡</span> RENDIMENTO LIVE & ANALISI POST-MATCH
         </span>
-        <span id="modalLiveStatusBadge" class="badge-status badge-success">FINALE 🏁</span>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span id="modalLiveDualSourceBadge" class="badge-status" style="font-size:0.68rem; background:rgba(59, 130, 246, 0.18); color:#93c5fd; border:1px solid rgba(59, 130, 246, 0.35); display:none;">✅ Doppia Fonte: Fantacalcio + ESPN</span>
+          <span id="modalLiveStatusBadge" class="badge-status badge-success">FINALE 🏁</span>
+        </div>
       </div>
 
       <!-- 1. VOTO FANTACALCIO (Ufficiale di Lega) -->

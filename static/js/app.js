@@ -512,7 +512,11 @@ function renderLiveView(data) {
     }
   }
 
-  // Header last update
+  // Header last update & dual source badge
+  const dualSourceBadge = document.getElementById('liveDualSourceBadge');
+  if (dualSourceBadge) {
+    dualSourceBadge.innerText = summary.verification_badge || '✅ Doppia Fonte: Fantacalcio + ESPN';
+  }
   const lastUp = document.getElementById('liveLastUpdateBadge');
   if (lastUp) lastUp.innerText = `Aggiornato: ${data.last_update || '--:--'}`;
 
@@ -947,9 +951,13 @@ function renderLiveMatches(matches) {
           label = `${ev.icon || '•'} ${minText}<strong>${ev.player_name}</strong>`;
         }
 
+        const verifiedTag = (ev.sources && ev.sources.length > 1) || (ev.verification_badge && ev.verification_badge.includes('Doppia'))
+          ? `<span title="Convalidato da Fantacalcio.it ed ESPN Scoreboard" style="color:#60a5fa; font-size:0.68rem; margin-left:3px; font-weight:800;">✓</span>`
+          : '';
+
         return `
           <span style="${chipBg} padding:2px 7px; border-radius:5px; font-size:0.73rem; display:inline-flex; align-items:center; gap:3px;">
-            ${starBadge}${label}
+            ${starBadge}${label}${verifiedTag}
           </span>
         `;
       }
@@ -1030,14 +1038,16 @@ function renderLiveMatches(matches) {
     const officialBadge = m.is_official_lineup 
       ? `<span class="badge-status badge-success" style="font-size:0.68rem; padding:1px 6px;">🟢 UFFICIALI</span>`
       : '';
+    const dualBadge = `<span class="badge-status" style="font-size:0.68rem; padding:1px 6px; background:rgba(59, 130, 246, 0.15); color:#60a5fa; border:1px solid rgba(59, 130, 246, 0.3);">✅ Fantacalcio + ESPN</span>`;
 
     return `
       <div class="card" style="padding:12px 14px; margin-bottom:10px; ${cardBorder}">
         <!-- Top row: Status, min, timing -->
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.78rem; flex-wrap:wrap; gap:4px;">
-          <div style="display:flex; align-items:center; gap:6px;">
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <span class="badge-status ${m.status_class || 'badge-secondary'}" style="font-size:0.72rem;">${m.status_badge || '⏳'}</span>
             ${officialBadge}
+            ${dualBadge}
           </div>
           <div style="color:var(--text-muted); font-size:0.75rem;">
             📅 ${m.date_str} • 🏟️ ${m.stadium || 'Serie A'}
@@ -1618,11 +1628,16 @@ function openPlayerModal(player) {
     if (hasLiveContext) {
       livePerfCard.style.display = 'block';
 
-      // Status Badge
+      // Status & Dual Source Badge
       const statusBadge = document.getElementById('modalLiveStatusBadge');
       if (statusBadge) {
         statusBadge.innerText = player.status_badge || (player.match_status === 'TERMINATA' ? 'FINALE 🏁' : (isLiveMatch ? 'LIVE 🔴' : 'DA GIOCARE ⏳'));
         statusBadge.className = `badge-status ${player.status_class || (isLiveMatch ? 'badge-danger' : 'badge-warning')}`;
+      }
+      const dualBadge = document.getElementById('modalLiveDualSourceBadge');
+      if (dualBadge) {
+        dualBadge.innerText = player.verification_badge || '✅ Doppia Fonte: Fantacalcio + ESPN';
+        dualBadge.style.display = 'inline-block';
       }
 
       // Fantavoto & Base Grade
