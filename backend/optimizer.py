@@ -286,15 +286,28 @@ class LineupOptimizer:
         
         editorial_bonus_map = {
             'SCHIERARE ASSOLUTO': 12.0,
-            'PROMOSSO': 7.5,
+            'PROMOSSO / CERTEZZA': 8.0,
+            'PROMOSSO': 8.0,
             'IDEA A SORPRESA': 5.0,
+            'SCHIERABILE / ALTERNATIVA': 3.0,
             'SCHIERABILE': 3.0,
-            'CITATO': 2.0,
-            'COPERTURA': 1.0,
+            'CITATO': 1.5,
+            'COPERTURA CON RISERVA': 0.0,
+            'COPERTURA': 0.0,
             'NEUTRO': 0.0,
-            'ATTENZIONE / RISCHIOSO': -7.0,
-            'SCONSIGLIATO': -12.0
+            'ATTENZIONE / RISCHIOSO': -6.0,
+            'SCONSIGLIATO / EVITARE': -10.0,
+            'SCONSIGLIATO': -10.0,
+            'MASSIMA PRUDENZA / PANCHINA / RISCHIO S.V.': -18.0
         }
+
+        # Severe bench hazard / no-vote protection: if SOS Fanta warns player will at most sit on bench
+        if sf_cat == 'MASSIMA PRUDENZA / PANCHINA / RISCHIO S.V.' and not (is_official or is_live or is_finished):
+            calibrated_titolarita = min(calibrated_titolarita, 25)
+            is_starter = False
+            consensus_data['consensus_percentage'] = min(consensus_data.get('consensus_percentage', 80), 25)
+            consensus_data['consensus_level'] = 'RISCHIO PANCHINA / S.V.'
+            consensus_data['summary'] = 'SOS Fanta: al massimo in panchina, massima prudenza e riserva sicurissima (rischio s.v.).'
         # Dynamic weights optimized by the continuous AI learning engine
         learned_w = ai_learning_engine.get_weights()
         tit_max_w = learned_w.get('titolarita_max_weight', 35.0)
@@ -626,13 +639,25 @@ class LineupOptimizer:
         # 4. Parere Giornalistico SOS Fanta
         st_cat = starter_sf.get('category', 'SCHIERABILE')
         be_cat = benched_sf.get('category', 'SCHIERABILE')
+        is_st_top = any(k in st_cat for k in ['ASSOLUTO', 'PROMOSSO'])
+        is_be_top = any(k in be_cat for k in ['ASSOLUTO', 'PROMOSSO'])
+        is_st_warn = any(k in st_cat for k in ['PRUDENZA', 'RISCHIO S.V.', 'SCONSIGLIATO', 'ATTENZIONE'])
+        is_be_warn = any(k in be_cat for k in ['PRUDENZA', 'RISCHIO S.V.', 'SCONSIGLIATO', 'ATTENZIONE'])
+
+        if (is_st_top and not is_be_top) or (is_be_warn and not is_st_warn):
+            sf_adv = 'starter'
+        elif (is_be_top and not is_st_top) or (is_st_warn and not is_be_warn):
+            sf_adv = 'benched'
+        else:
+            sf_adv = 'neutral'
+
         factors.append({
             'label': 'Verdetto Redazione SOS Fanta',
             'icon': '📰',
             'starter_val': f"{st_cat}",
             'benched_val': f"{be_cat}",
-            'advantage': 'starter' if ('ASSOLUTO' in st_cat or 'PROMOSSO' in st_cat) else 'neutral',
-            'detail': f"Citazione Titolare: \"{starter_sf.get('quote', 'Schierabile')}...\""
+            'advantage': sf_adv,
+            'detail': f"Analisi Titolare: \"{starter_sf.get('clause', starter_sf.get('quote', 'Schierabile'))}\""
         })
 
         # 5. Piazzati & Corner (Opta)
@@ -690,6 +715,12 @@ class LineupOptimizer:
                 f"(+{diff} punti). Oltre alla titolarità dal 1° minuto ({starter_tit}%), {starter_name} vanta un indice di pericolosità offensiva superiore "
                 f"e un matchup più favorevole, mentre {benched_name} sconta una gestione del minutaggio più frazionata o una trasferta più complessa."
             )
+
+        # Append editorial tactical alert
+        if is_be_warn:
+            summary_text += f" 🚨 Allerta SOS Fanta per {benched_name}: {benched_sf.get('summary', 'rischio panchina o s.v.')}. Schierare {starter_name} assicura copertura e voto certo dal 1'."
+        elif is_st_top:
+            summary_text += f" 🔥 Semaforo verde SOS Fanta per {starter_name}: {starter_sf.get('summary', 'consigliatissimo per questo turno')}."
 
         return {
             'role_label': role_label,

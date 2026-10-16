@@ -2317,6 +2317,25 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Backdrop click-to-close on all modals (<dialog>)
+  document.querySelectorAll('dialog').forEach(dialog => {
+    dialog.addEventListener('click', (e) => {
+      // In native HTML5 <dialog>, clicks on the ::backdrop have e.target === dialog
+      if (e.target === dialog) {
+        const rect = dialog.getBoundingClientRect();
+        const isInDialog = (
+          rect.top <= e.clientY &&
+          e.clientY <= rect.top + rect.height &&
+          rect.left <= e.clientX &&
+          e.clientX <= rect.left + rect.width
+        );
+        if (!isInDialog) {
+          dialog.close();
+        }
+      }
+    });
+  });
+
   // Initial load
   loadLineupRecommendation();
   loadActualLineupState();
@@ -2442,7 +2461,8 @@ async function loadSOSFantaAnalysis() {
     // Stats count
     const mentionedCount = results.filter(r => r.sosfanta && r.sosfanta.mentioned).length;
     const topCount = results.filter(r => r.sosfanta && r.sosfanta.category === 'SCHIERARE ASSOLUTO').length;
-    const promossiCount = results.filter(r => r.sosfanta && r.sosfanta.category === 'PROMOSSO').length;
+    const promossiCount = results.filter(r => r.sosfanta && (r.sosfanta.category === 'PROMOSSO' || r.sosfanta.category.includes('PROMOSSO'))).length;
+    const alertCount = results.filter(r => r.sosfanta && (r.sosfanta.category.includes('PRUDENZA') || r.sosfanta.category.includes('RISCHIO') || r.sosfanta.category.includes('SCONSIGLIATO'))).length;
 
     if (statsContainer) {
       statsContainer.innerHTML = `
@@ -2458,6 +2478,11 @@ async function loadSOSFantaAnalysis() {
           <div class="counter-val" style="color:#3b82f6;">${promossiCount}</div>
           <div class="counter-lbl">Promossi / In Forma</div>
         </div>
+        ${alertCount > 0 ? `
+        <div class="counter-box" style="border:1px solid rgba(239, 68, 68, 0.4);">
+          <div class="counter-val" style="color:#f87171;">${alertCount}</div>
+          <div class="counter-lbl">Prudenza / Rischio 🚨</div>
+        </div>` : ''}
       `;
     }
 

@@ -367,6 +367,26 @@ async def update_sosfanta_url(req: SOSFantaUrlRequest):
         "matchday": sosfanta_analyzer.get_matchday_label()
     }
 
+class SOSFantaLLMRequest(BaseModel):
+    matchday: Optional[int] = None
+    api_key: Optional[str] = None
+
+@app.post("/api/sosfanta/reanalyze-llm")
+async def reanalyze_sosfanta_llm(req: Optional[SOSFantaLLMRequest] = None):
+    user_players = get_user_squad()
+    current_md, _ = get_current_and_available_matchdays()
+    target_md = (req.matchday if req else None) or current_md
+    key = req.api_key if req else None
+    parsed = sosfanta_analyzer.analyze_preview_with_llm(target_md, user_players, api_key=key)
+    optimizer.reload_data()
+    analysis = sosfanta_analyzer.analyze_entire_squad(user_players, matchday=target_md)
+    return {
+        "success": True,
+        "llm_applied": parsed is not None,
+        "matchday": target_md,
+        "results": analysis
+    }
+
 # --- Live & Matchday Ratings API ---
 from backend.live_tracker import live_tracker
 from backend.lineup_extractor import lineup_extractor
