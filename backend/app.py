@@ -22,13 +22,10 @@ app = FastAPI(title="FantaSchiera AI", description="Piattaforma intelligente per
 async def add_no_cache_headers(request: Request, call_next):
     response = await call_next(request)
     path = request.url.path
-    if path.startswith("/api/") or path == "/":
+    if path.startswith("/api/") or path == "/" or path.startswith("/static/js/"):
         response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
         response.headers["Expires"] = "0"
-    elif path.startswith("/static/js/") or path.startswith("/static/css/"):
-        # Cache static assets but allow revalidation (version busting handles freshness)
-        response.headers["Cache-Control"] = "public, max-age=300, must-revalidate"
     return response
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
