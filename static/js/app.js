@@ -160,7 +160,7 @@ function renderLineupView(data) {
   // Update formation last updated banner
   const updateBannerEl = document.getElementById('formationLastUpdatedText');
   if (updateBannerEl && data.last_updated_human) {
-    updateBannerEl.innerText = `Aggiornate ${data.last_updated_human} (Fantacalcio.it & SOS Fanta)`;
+    updateBannerEl.innerText = `Aggiornate ${data.last_updated_human} (Fantacalcio.it, Sky, Gazzetta & SOS Fanta)`;
   }
 
   // Update dynamic matchday segmented control

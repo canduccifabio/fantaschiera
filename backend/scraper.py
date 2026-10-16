@@ -36,6 +36,14 @@ TEAM_DIFFICULTY = {
     'FRO': 2.5, 'VEN': 2.4
 }
 
+def get_rome_now() -> datetime:
+    """Returns current datetime in Europe/Rome timezone (naive for easy arithmetic)."""
+    try:
+        from zoneinfo import ZoneInfo
+        return datetime.now(ZoneInfo('Europe/Rome')).replace(tzinfo=None)
+    except Exception:
+        return datetime.now()
+
 def clean_player_name(name: str) -> str:
     """Normalizes player name for matching."""
     if not name:
@@ -180,7 +188,7 @@ def parse_match_datetime(date_str: str) -> datetime:
         month = month_map.get(month_name, 10)
         return datetime(year, month, day, hour, minute)
     # Fallback to tomorrow 15:00
-    now = datetime.now()
+    now = get_rome_now()
     return now + timedelta(days=1, hours=2)
 
 def scrape_fixtures_and_lineups():
@@ -297,8 +305,8 @@ def scrape_fixtures_and_lineups():
                 'ballottaggi': ballots
             })
             
-        alert_datetime = earliest_kickoff - timedelta(hours=1) if earliest_kickoff else datetime.now() + timedelta(days=1)
-        now_dt = datetime.now()
+        alert_datetime = earliest_kickoff - timedelta(hours=1) if earliest_kickoff else get_rome_now() + timedelta(days=1)
+        now_dt = get_rome_now()
         months_it = {1: 'Gen', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'Mag', 6: 'Giu', 7: 'Lug', 8: 'Ago', 9: 'Set', 10: 'Ott', 11: 'Nov', 12: 'Dic'}
         last_updated_human = f"{now_dt.day} {months_it.get(now_dt.month, '')}, {now_dt.strftime('%H:%M')}"
         matchday_num = detected_matchday or 7

@@ -4,6 +4,7 @@ import urllib.request
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from backend.database import get_settings
+from backend.scraper import get_rome_now
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 FIXTURES_FILE = os.path.join(DATA_DIR, 'fixtures_cache.json')
@@ -50,7 +51,7 @@ class AlertManager:
                 
         earliest_iso = data.get('earliest_kickoff_iso')
         alert_iso = data.get('alert_time_iso')
-        now = datetime.now()
+        now = get_rome_now()
         
         if not earliest_iso:
             return {

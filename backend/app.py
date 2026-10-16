@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
 
-from backend.scraper import sync_all_data, PLAYERS_FILE, FIXTURES_FILE, INJURIES_FILE
+from backend.scraper import sync_all_data, PLAYERS_FILE, FIXTURES_FILE, INJURIES_FILE, get_rome_now
 from backend.optimizer import LineupOptimizer
 from backend.scheduler import AlertManager
 from backend.database import (
@@ -237,7 +237,7 @@ async def get_fixtures(matchday: Optional[int] = None):
     current_md, available_mds = get_current_and_available_matchdays()
     target_md = matchday or current_md
     data = optimizer.get_fixtures_for_matchday(target_md)
-    now = datetime.now()
+    now = get_rome_now()
     for f in data.get('fixtures', []):
         kickoff_dt = None
         if f.get('datetime_iso'):
