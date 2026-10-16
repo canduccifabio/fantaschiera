@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 CACHE_FILE = os.path.join(DATA_DIR, 'sosfanta_preview.json')
 
-DEFAULT_PREVIEW_URL = 'https://www.sosfanta.com/chi-schierare-fantacalcio/preview-6a-giornata-seriea-campionato-fantacalcio-tutti-consigli-chi-schierare/'
+DEFAULT_PREVIEW_URL = 'https://www.sosfanta.com/chi-schierare-fantacalcio/preview-7a-giornata-seriea-campionato-fantacalcio-tutti-consigli-chi-schierare/'
 CATEGORY_URL = 'https://www.sosfanta.com/chi-schierare-fantacalcio/'
 
 HEADERS = {
@@ -83,7 +83,7 @@ class SOSFantaAnalyzer:
         m = re.search(r'preview-(\d+)a-giornata', target, re.I)
         if m:
             return int(m.group(1))
-        return 6
+        return 7
 
     def get_matchday_label(self, matchday: Optional[int] = None) -> str:
         """Returns human readable matchday label (e.g. '6ª Giornata')."""

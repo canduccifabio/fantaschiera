@@ -295,6 +295,14 @@ def scrape_fixtures_and_lineups():
         
         with open(FIXTURES_FILE, 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
+
+        md7_file = os.path.join(DATA_DIR, 'fixtures_giornata_7.json')
+        try:
+            with open(md7_file, 'w', encoding='utf-8') as f:
+                json.dump(result, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"[Scraper] Error writing fixtures_giornata_7.json: {e}")
+
         print(f"[Scraper] Saved {len(fixtures)} fixtures. Earliest kickoff: {earliest_kickoff}. Alert: {alert_datetime}")
         return result
         

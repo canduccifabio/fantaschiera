@@ -8,6 +8,21 @@ from backend.database import get_settings
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data')
 FIXTURES_FILE = os.path.join(DATA_DIR, 'fixtures_cache.json')
 
+WEEKDAYS_IT = {
+    0: "Venerdì",  # Python Monday is 0, but let's make standard mapping:
+}
+# Python datetime.weekday(): 0=Monday, 1=Tuesday, 2=Wednesday, 3=Thursday, 4=Friday, 5=Saturday, 6=Sunday
+WEEKDAYS_IT = {
+    0: "Lunedì", 1: "Martedì", 2: "Mercoledì", 3: "Giovedì",
+    4: "Venerdì", 5: "Sabato", 6: "Domenica"
+}
+
+MONTHS_IT = {
+    1: "Gennaio", 2: "Febbraio", 3: "Marzo", 4: "Aprile",
+    5: "Maggio", 6: "Giugno", 7: "Luglio", 8: "Agosto",
+    9: "Settembre", 10: "Ottobre", 11: "Novembre", 12: "Dicembre"
+}
+
 class AlertManager:
     def __init__(self):
         self.scheduler = BackgroundScheduler()
@@ -15,9 +30,10 @@ class AlertManager:
         
     def start(self):
         if not self.scheduler.running:
-            self.scheduler.add_job(self.check_alert_status, 'interval', minutes=2, id='check_alert_job')
-            self.scheduler.add_job(self.check_sosfanta_update, 'interval', minutes=30, id='check_sosfanta_job')
-            self.scheduler.add_job(self.check_fixtures_update, 'interval', minutes=60, id='check_fixtures_job')
+            now = datetime.now()
+            self.scheduler.add_job(self.check_alert_status, 'interval', minutes=2, id='check_alert_job', next_run_time=now)
+            self.scheduler.add_job(self.check_sosfanta_update, 'interval', minutes=30, id='check_sosfanta_job', next_run_time=now)
+            self.scheduler.add_job(self.check_fixtures_update, 'interval', minutes=60, id='check_fixtures_job', next_run_time=now)
             self.scheduler.add_job(self.check_ai_auto_learning, 'interval', minutes=15, id='check_ai_learning_job')
             self.scheduler.start()
             print("[AlertManager] Background scheduler started with SOS Fanta auto-sync, fixtures updates and AI auto-learning.")
@@ -59,6 +75,11 @@ class AlertManager:
         # - diff_alert <= 0 and diff_kickoff > 0: ALERT ATTIVO! Manca meno di un'ora al fischio d'inizio!
         # - diff_kickoff <= 0: Partita già iniziata o turno in corso
         
+        weekday_it = WEEKDAYS_IT.get(kickoff_dt.weekday(), kickoff_dt.strftime('%A'))
+        month_it = MONTHS_IT.get(kickoff_dt.month, kickoff_dt.strftime('%B'))
+        kickoff_formatted = f"{weekday_it} {kickoff_dt.day} {month_it}, {kickoff_dt.strftime('%H:%M')}"
+        alert_formatted = f"{alert_dt.strftime('%d/%m/%Y alle %H:%M')}"
+
         if diff_kickoff <= 0:
             status = "IN_CORSO"
             message = "La giornata è già iniziata! Le partite sono in corso."
@@ -77,14 +98,14 @@ class AlertManager:
             hours = int((diff_alert % 86400) // 3600)
             mins = int((diff_alert % 3600) // 60)
             countdown_text = f"{days}g {hours}h {mins}m all'alert"
-            message = f"Prossimo anticipo: {kickoff_dt.strftime('%d/%m/%Y alle %H:%M')}. Riceverai l'alert 1 ora prima (alle {alert_dt.strftime('%H:%M')})."
+            message = f"Prossimo anticipo: {kickoff_formatted}. Riceverai l'alert 1 ora prima (alle {alert_dt.strftime('%H:%M')})."
 
         return {
             'has_fixture': True,
             'status': status,
-            'kickoff_time': kickoff_dt.strftime('%A %d %B, %H:%M'),
+            'kickoff_time': kickoff_formatted,
             'kickoff_iso': kickoff_dt.isoformat(),
-            'alert_time': alert_dt.strftime('%d/%m/%Y alle %H:%M'),
+            'alert_time': alert_formatted,
             'alert_iso': alert_dt.isoformat(),
             'seconds_to_alert': max(0, int(diff_alert)),
             'seconds_to_kickoff': max(0, int(diff_kickoff)),

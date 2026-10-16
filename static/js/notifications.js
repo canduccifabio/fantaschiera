@@ -77,6 +77,38 @@ class AlertController {
     }
   }
 
+  formatItalianDate(dateStr, isoStr) {
+    if (isoStr) {
+      try {
+        const d = new Date(isoStr);
+        if (!isNaN(d.getTime())) {
+          const days = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+          const months = ['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'];
+          const dayName = days[d.getDay()];
+          const dayNum = d.getDate();
+          const monthName = months[d.getMonth()];
+          const time = d.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+          return `${dayName} ${dayNum} ${monthName}, ${time}`;
+        }
+      } catch (e) {
+        console.warn('Error formatting Italian date:', e);
+      }
+    }
+    if (!dateStr) return '';
+    const translations = {
+      'Monday': 'Lunedì', 'Tuesday': 'Martedì', 'Wednesday': 'Mercoledì',
+      'Thursday': 'Giovedì', 'Friday': 'Venerdì', 'Saturday': 'Sabato', 'Sunday': 'Domenica',
+      'January': 'Gennaio', 'February': 'Febbraio', 'March': 'Marzo', 'April': 'Aprile',
+      'May': 'Maggio', 'June': 'Giugno', 'July': 'Luglio', 'August': 'Agosto',
+      'September': 'Settembre', 'October': 'Ottobre', 'November': 'Novembre', 'December': 'Dicembre'
+    };
+    let out = dateStr;
+    for (const [en, it] of Object.entries(translations)) {
+      out = out.replace(new RegExp(`\\b${en}\\b`, 'gi'), it);
+    }
+    return out;
+  }
+
   updateAlertUI() {
     if (!this.alertData) return;
     
@@ -85,6 +117,8 @@ class AlertController {
     const bannerBadge = document.getElementById('alertBannerBadge');
     
     if (!banner || !bannerText) return;
+
+    const formattedKickoff = this.formatItalianDate(this.alertData.kickoff_time, this.alertData.kickoff_iso);
 
     if (this.alertData.alert_active) {
       banner.style.display = 'flex';
@@ -106,7 +140,7 @@ class AlertController {
       bannerBadge.innerText = '🔔 PROSSIMO TURNO';
       bannerBadge.className = 'alert-badge-live';
       bannerBadge.style.background = '#2563eb';
-      bannerText.innerHTML = `Primo anticipo: <strong>${this.alertData.kickoff_time || 'Sabato'}</strong> (Alert 1h prima attivo: ${this.alertData.alert_time})`;
+      bannerText.innerHTML = `Primo anticipo: <strong>${formattedKickoff || 'Venerdì'}</strong> (Alert 1h prima attivo: ${this.alertData.alert_time})`;
     } else {
       banner.style.display = 'none';
     }
@@ -117,8 +151,8 @@ class AlertController {
       alertTimeEl.innerText = this.alertData.alert_time;
     }
     const kickoffTimeEl = document.getElementById('settingKickoffTime');
-    if (kickoffTimeEl && this.alertData.kickoff_time) {
-      kickoffTimeEl.innerText = this.alertData.kickoff_time;
+    if (kickoffTimeEl && formattedKickoff) {
+      kickoffTimeEl.innerText = formattedKickoff;
     }
   }
 
