@@ -83,16 +83,26 @@ class SOSFantaAnalyzer:
         m = re.search(r'preview-(\d+)a-giornata', target, re.I)
         if m:
             return int(m.group(1))
+        # Fallback to current fixtures cache
+        fixtures_file = os.path.join(DATA_DIR, 'fixtures_cache.json')
+        if os.path.exists(fixtures_file):
+            try:
+                with open(fixtures_file, 'r', encoding='utf-8') as f:
+                    f_data = json.load(f)
+                    if f_data.get('matchday'):
+                        return int(f_data['matchday'])
+            except Exception:
+                pass
         return 7
 
     def get_matchday_label(self, matchday: Optional[int] = None) -> str:
-        """Returns human readable matchday label (e.g. '6ª Giornata')."""
+        """Returns human readable matchday label (e.g. '7ª Giornata')."""
         num = matchday if matchday is not None else self.get_matchday_number()
         return f"{num}ª Giornata"
 
-    def get_data_for_matchday(self, matchday: int = 7) -> Dict[str, Any]:
+    def get_data_for_matchday(self, matchday: Optional[int] = None) -> Dict[str, Any]:
         """Returns scraped preview data for a specific matchday, isolating rounds cleanly."""
-        matchday = int(matchday) if matchday else 7
+        matchday = int(matchday) if matchday else self.get_matchday_number()
 
         if matchday in self._matchday_cache:
             return self._matchday_cache[matchday]
@@ -118,29 +128,29 @@ class SOSFantaAnalyzer:
             self._matchday_cache[matchday] = self.scraped_data
             return self.scraped_data
 
-        # 3. Check if base cache file matches matchday 6
-        if matchday == 6 and os.path.exists(CACHE_FILE):
+        # 3. If matchday is current/upcoming, check if published online right now via auto-discovery or direct probe
+        discovered = self.auto_discover_latest_preview_url()
+        target_preview = None
+        if discovered and self.get_matchday_number(discovered) == matchday:
+            target_preview = discovered
+        else:
+            # Deterministic probe of standard SOS Fanta URL format
+            candidate_url = f"https://www.sosfanta.com/chi-schierare-fantacalcio/preview-{matchday}a-giornata-seriea-campionato-fantacalcio-tutti-consigli-chi-schierare/"
             try:
-                with open(CACHE_FILE, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-                    if self.get_matchday_number(data.get('preview_url', '')) == 6 and data.get('slides'):
-                        data['is_published'] = True
-                        data['matchday_number'] = 6
-                        self._matchday_cache[matchday] = data
-                        return data
+                req = urllib.request.Request(candidate_url, headers=HEADERS)
+                resp = urllib.request.urlopen(req, timeout=5)
+                if resp.status == 200:
+                    target_preview = candidate_url
             except Exception:
                 pass
 
-        # 4. If matchday is current/upcoming, check if published online right now
-        if matchday >= 7:
-            discovered = self.auto_discover_latest_preview_url()
-            if discovered and self.get_matchday_number(discovered) == matchday:
-                self.preview_url = discovered
-                res = self.scrape_all_slides()
-                res['is_published'] = True
-                res['matchday_number'] = matchday
-                self._matchday_cache[matchday] = res
-                return res
+        if target_preview:
+            self.preview_url = target_preview
+            res = self.scrape_all_slides()
+            res['is_published'] = True
+            res['matchday_number'] = matchday
+            self._matchday_cache[matchday] = res
+            return res
 
         # 5. Not yet published on SOS Fanta (published usually 24-48h before kickoff)
         res = {
@@ -160,7 +170,11 @@ class SOSFantaAnalyzer:
         discovered = self.auto_discover_latest_preview_url()
         updated = False
         target_url = discovered if discovered else self.preview_url
-        if force or (target_url != self.preview_url) or not self.scraped_data.get('slides'):
+        target_md = self.get_matchday_number(target_url)
+        md_file = os.path.join(DATA_DIR, f'sosfanta_preview_giornata_{target_md}.json')
+        
+        needs_scrape = force or (target_url != self.preview_url) or (not os.path.exists(md_file)) or (not self.scraped_data.get('slides'))
+        if needs_scrape and target_url:
             self.preview_url = target_url
             self.scrape_all_slides()
             updated = True

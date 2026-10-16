@@ -69,28 +69,33 @@ class LineupOptimizer:
             self.players_lookup[norm] = p
 
     def get_fixtures_for_matchday(self, matchday: Optional[int] = None) -> Dict:
-        """Returns fixtures data for the specified matchday (6=passata, 7=attuale/prossima)."""
-        if matchday == 6:
-            f_path = os.path.join(DATA_DIR, 'fixtures_giornata_6.json')
+        """Returns fixtures data dynamically for any matchday."""
+        now = datetime.now()
+        # 1. If specific matchday requested, check specific file first
+        if matchday:
+            f_path = os.path.join(DATA_DIR, f'fixtures_giornata_{matchday}.json')
             if os.path.exists(f_path):
                 data = self._load_json(f_path, {'fixtures': []})
-                data['matchday'] = 6
-                data['matchday_label'] = '6ª Giornata (Passata / Referti)'
-                data['is_past'] = True
-                return data
-        elif matchday == 7:
-            f_path = os.path.join(DATA_DIR, 'fixtures_giornata_7.json')
-            if os.path.exists(f_path):
-                data = self._load_json(f_path, {'fixtures': []})
-                data['matchday'] = 7
-                data['matchday_label'] = '7ª Giornata (Attuale / In Arrivo)'
-                data['is_past'] = False
+                earliest = data.get('earliest_kickoff_iso')
+                is_past = False
+                if earliest:
+                    try:
+                        is_past = datetime.fromisoformat(earliest) < (now - timedelta(days=4))
+                    except Exception:
+                        pass
+                data['matchday'] = matchday
+                data['matchday_label'] = f"{matchday}ª Giornata ({'Referti' if is_past else 'In Arrivo'})"
+                data['is_past'] = is_past
                 return data
 
-        # Default: current fixtures
+        # 2. Default: current fixtures cache
         data = self._load_json(FIXTURES_FILE, {'fixtures': []})
-        data['matchday'] = 7
-        data['matchday_label'] = '7ª Giornata (Attuale / In Arrivo)'
+        current_md = data.get('matchday')
+        if not current_md:
+            from backend.sosfanta_analyzer import sosfanta_analyzer
+            current_md = sosfanta_analyzer.get_matchday_number() or 7
+        data['matchday'] = current_md
+        data['matchday_label'] = f"{current_md}ª Giornata (Attuale / In Arrivo)"
         data['is_past'] = False
         return data
 
@@ -692,6 +697,98 @@ class LineupOptimizer:
             'summary': summary_text,
             'advantage_pts': diff,
             'factors': factors
+        }
+
+    def compare_any_two_players(self, player_a_name: str, player_b_name: str, user_players: List[Dict], matchday: Optional[int] = None) -> Dict:
+        """
+        Interactively compares ANY two players from the user squad or database.
+        Returns a rich Head-to-Head decision analysis with winner, score delta,
+        detailed comparative factors and AI reasoning.
+        """
+        fixtures_data = self.get_fixtures_for_matchday(matchday)
+        target_md = fixtures_data.get('matchday', matchday or 7)
+        fixtures_list = fixtures_data.get('fixtures', [])
+
+        def find_p(name_query: str) -> Optional[Dict]:
+            if not name_query:
+                return None
+            norm = self._normalize_name(name_query)
+            for p in user_players:
+                p_n = self._normalize_name(p.get('name', ''))
+                if p_n == norm or norm in p_n or p_n in norm:
+                    return p
+            if norm in self.players_lookup:
+                return self.players_lookup[norm]
+            for p in self.players_db:
+                p_n = self._normalize_name(p.get('name', ''))
+                if norm in p_n or p_n in norm:
+                    return p
+            return None
+
+        p_a_raw = find_p(player_a_name)
+        p_b_raw = find_p(player_b_name)
+
+        if not p_a_raw or not p_b_raw:
+            return {
+                'success': False,
+                'error': f"Impossibile trovare uno o entrambi i calciatori selezionati: '{player_a_name}', '{player_b_name}'"
+            }
+
+        eval_a = self.evaluate_player(p_a_raw, fixtures_list=fixtures_list, matchday=target_md)
+        eval_b = self.evaluate_player(p_b_raw, fixtures_list=fixtures_list, matchday=target_md)
+
+        score_a = round(eval_a.get('score', 0.0), 1)
+        score_b = round(eval_b.get('score', 0.0), 1)
+        fv_a = round(eval_a.get('expected_fantavoto', 6.0), 2)
+        fv_b = round(eval_b.get('expected_fantavoto', 6.0), 2)
+
+        if score_a >= score_b:
+            favored_eval = eval_a
+            underdog_eval = eval_b
+            winner_key = 'player_a'
+            diff_score = round(score_a - score_b, 1)
+            diff_fv = round(fv_a - fv_b, 2)
+        else:
+            favored_eval = eval_b
+            underdog_eval = eval_a
+            winner_key = 'player_b'
+            diff_score = round(score_b - score_a, 1)
+            diff_fv = round(fv_b - fv_a, 2)
+
+        shared_role = eval_a.get('role', 'C') if eval_a.get('role') == eval_b.get('role') else 'MIXED'
+        comp_role = shared_role if shared_role != 'MIXED' else (favored_eval.get('role') or 'A')
+        base_comp = self._generate_ballottaggio_comparison(favored_eval, underdog_eval, role=comp_role)
+
+        fav_name = favored_eval.get('name', '')
+        und_name = underdog_eval.get('name', '')
+
+        if shared_role == 'MIXED':
+            headline = f"🏆 Verdetto AI: Consigliato {fav_name} (Ruolo {favored_eval.get('role')}) rispetto a {und_name} (Ruolo {underdog_eval.get('role')})"
+            ai_narrative = (
+                f"Nel testa a testa inter-ruolo per la {target_md}ª Giornata, l'AI consiglia di schierare {fav_name} (★ {favored_eval.get('score')}) "
+                f"rispetto a {und_name} (★ {underdog_eval.get('score')}) con un margine di +{diff_score} punti di indice schierabilità e una proiezione "
+                f"di {favored_eval.get('expected_fantavoto')} vs {underdog_eval.get('expected_fantavoto')} fantapunti attesi. "
+                f"La preferenza è motivata da un matchup favorevole ({'in casa 🏠' if favored_eval.get('is_home') else 'trasferta ✈️'} vs {favored_eval.get('opponent_name')}) "
+                f"e da una probabilità di titolarità del {favored_eval.get('titolarita_pct')}%, che garantisce sicurezza di voto e opportunità di bonus."
+            )
+        else:
+            headline = f"🏆 Verdetto AI: Consigliato {fav_name} (+{diff_score} pt su {und_name})"
+            ai_narrative = base_comp.get('summary', '')
+
+        return {
+            'success': True,
+            'matchday': target_md,
+            'matchday_label': f"{target_md}ª Giornata",
+            'winner': winner_key,
+            'winner_name': fav_name,
+            'loser_name': und_name,
+            'diff_score': diff_score,
+            'diff_fantavoto': diff_fv,
+            'headline': headline,
+            'ai_narrative': ai_narrative,
+            'player_a': eval_a,
+            'player_b': eval_b,
+            'factors': base_comp.get('factors', [])
         }
 
     def optimize_lineup(self, user_players: List[Dict], preferred_formation: str = None, use_defense_modifier: bool = True, matchday: Optional[int] = None) -> Dict:

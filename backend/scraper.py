@@ -194,6 +194,19 @@ def scrape_fixtures_and_lineups():
         soup = BeautifulSoup(html, 'html.parser')
         match_items = soup.select('li.match.match-item')
         
+        # Dynamically detect Serie A matchday number from metadata
+        detected_matchday = None
+        for meta in soup.find_all('meta'):
+            content = meta.get('content', '')
+            m_g = re.search(r'(\d+)[°ª]\s*giornata', content, re.I)
+            if m_g:
+                detected_matchday = int(m_g.group(1))
+                break
+            m_u = re.search(r'/serie-a/calendario/(\d+)/', content)
+            if m_u:
+                detected_matchday = int(m_u.group(1))
+                break
+
         for idx, m in enumerate(match_items):
             match_info = m.select_one('.match-info')
             match_info_text = match_info.get_text(separator=' - ', strip=True) if match_info else ""
@@ -285,25 +298,32 @@ def scrape_fixtures_and_lineups():
             })
             
         alert_datetime = earliest_kickoff - timedelta(hours=1) if earliest_kickoff else datetime.now() + timedelta(days=1)
-        
+        now_dt = datetime.now()
+        months_it = {1: 'Gen', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'Mag', 6: 'Giu', 7: 'Lug', 8: 'Ago', 9: 'Set', 10: 'Ott', 11: 'Nov', 12: 'Dic'}
+        last_updated_human = f"{now_dt.day} {months_it.get(now_dt.month, '')}, {now_dt.strftime('%H:%M')}"
+        matchday_num = detected_matchday or 7
+
         result = {
+            'matchday': matchday_num,
+            'matchday_label': f"{matchday_num}ª Giornata",
             'earliest_kickoff_iso': earliest_kickoff.isoformat() if earliest_kickoff else "",
             'alert_time_iso': alert_datetime.isoformat(),
             'fixtures': fixtures,
-            'last_updated': datetime.now().isoformat()
+            'last_updated': now_dt.isoformat(),
+            'last_updated_human': last_updated_human
         }
         
         with open(FIXTURES_FILE, 'w', encoding='utf-8') as f:
             json.dump(result, f, ensure_ascii=False, indent=2)
 
-        md7_file = os.path.join(DATA_DIR, 'fixtures_giornata_7.json')
+        md_file = os.path.join(DATA_DIR, f'fixtures_giornata_{matchday_num}.json')
         try:
-            with open(md7_file, 'w', encoding='utf-8') as f:
+            with open(md_file, 'w', encoding='utf-8') as f:
                 json.dump(result, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"[Scraper] Error writing fixtures_giornata_7.json: {e}")
+            print(f"[Scraper] Error writing {md_file}: {e}")
 
-        print(f"[Scraper] Saved {len(fixtures)} fixtures. Earliest kickoff: {earliest_kickoff}. Alert: {alert_datetime}")
+        print(f"[Scraper] Saved {len(fixtures)} fixtures for {matchday_num}ª Giornata. Last update: {last_updated_human}. Earliest kickoff: {earliest_kickoff}.")
         return result
         
     except Exception as e:

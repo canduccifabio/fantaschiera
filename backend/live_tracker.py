@@ -237,18 +237,9 @@ class LiveMatchTracker:
                 return []
         return []
 
-    def get_fixtures_for_matchday(self, matchday: int = 6) -> List[Dict]:
-        if matchday == 6:
-            f_path = os.path.join(DATA_DIR, 'fixtures_giornata_6.json')
-            if os.path.exists(f_path):
-                try:
-                    with open(f_path, 'r', encoding='utf-8') as f:
-                        data = json.load(f)
-                        return data.get('fixtures', [])
-                except Exception:
-                    pass
-        elif matchday == 7:
-            f_path = os.path.join(DATA_DIR, 'fixtures_giornata_7.json')
+    def get_fixtures_for_matchday(self, matchday: Optional[int] = None) -> List[Dict]:
+        if matchday:
+            f_path = os.path.join(DATA_DIR, f'fixtures_giornata_{matchday}.json')
             if os.path.exists(f_path):
                 try:
                     with open(f_path, 'r', encoding='utf-8') as f:

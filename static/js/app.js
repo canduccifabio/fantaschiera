@@ -49,34 +49,69 @@ function showToast(message) {
 }
 
 // --- LINEUP TAB LOGIC ---
-let currentSchieraMatchday = 7;
+let currentSchieraMatchday = null;
+
+function renderSchieraMatchdaySelector(availableMatchdays, currentMatchday, selectedMatchday) {
+  const container = document.getElementById('schieraMatchdaySegments');
+  const notice = document.getElementById('schieraMatchdayNotice');
+  if (!container) return;
+
+  const mds = (availableMatchdays && availableMatchdays.length > 0) ? availableMatchdays : [6, 7];
+  const activeMd = selectedMatchday || currentMatchday || mds[mds.length - 1];
+
+  container.innerHTML = mds.map(m => {
+    const isCurrent = (m === currentMatchday);
+    const isSelected = (m === activeMd);
+    const label = isCurrent ? `${m}ª Giornata 🟢` : `${m}ª Giornata`;
+    return `<button class="segment-btn ${isSelected ? 'active' : ''}" onclick="switchSchieraMatchday(${m})">${label}</button>`;
+  }).join('');
+
+  if (notice) {
+    if (activeMd < currentMatchday) {
+      notice.innerHTML = `🏁 ${activeMd}ª Giornata (Referti & Storico)`;
+    } else {
+      notice.innerHTML = `🟢 ${activeMd}ª Giornata • Calibrazione Reattiva AI Attiva`;
+    }
+  }
+}
 
 function switchSchieraMatchday(md) {
   currentSchieraMatchday = md;
-  const btn6 = document.getElementById('btnMd6Schiera');
-  const btn7 = document.getElementById('btnMd7Schiera');
-  const notice = document.getElementById('schieraMatchdayNotice');
-  if (btn6 && btn7) {
-    if (md === 6) {
-      btn6.classList.add('active');
-      btn7.classList.remove('active');
-      if (notice) notice.innerHTML = `🏁 6ª Giornata Conclusa (Referti Ufficiali Fantacalcio)`;
-    } else {
-      btn7.classList.add('active');
-      btn6.classList.remove('active');
-      if (notice) notice.innerHTML = `🟢 7ª Giornata (In Arrivo) • Calibrazione Reattiva AI Attiva`;
-    }
-  }
   loadLineupRecommendation();
+}
+
+async function forceSyncLineups() {
+  const spin = document.getElementById('syncIconSpin');
+  if (spin) spin.style.animation = 'spin 0.8s linear infinite';
+  showToast("🔄 Risincronizzo probabili formazioni live da Fantacalcio.it...");
+  try {
+    const res = await fetch(`/api/lineup/sync-lineups`, { method: 'POST' });
+    const json = await res.json();
+    if (json.success) {
+      showToast(`✅ Formazioni aggiornate alle ${json.last_updated_human || 'adesso'}!`);
+      await loadLineupRecommendation();
+    } else {
+      showToast("Errore durante la risincronizzazione.");
+    }
+  } catch (e) {
+    console.error("forceSyncLineups error:", e);
+    showToast("Errore di connessione.");
+  } finally {
+    if (spin) spin.style.animation = 'none';
+  }
 }
 
 async function loadLineupRecommendation() {
   try {
-    const url = `/api/lineup/recommendation?formation=${encodeURIComponent(currentFormation)}&use_modifier=${useDefenseModifier}&matchday=${currentSchieraMatchday}&_t=${Date.now()}`;
+    const mdParam = currentSchieraMatchday ? `&matchday=${currentSchieraMatchday}` : '';
+    const url = `/api/lineup/recommendation?formation=${encodeURIComponent(currentFormation)}&use_modifier=${useDefenseModifier}${mdParam}&_t=${Date.now()}`;
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore recupero formazione");
     
     currentLineupData = await res.json();
+    if (!currentSchieraMatchday && currentLineupData.current_matchday) {
+      currentSchieraMatchday = currentLineupData.selected_matchday || currentLineupData.current_matchday;
+    }
     renderLineupView(currentLineupData);
   } catch (e) {
     console.error("Error loading lineup:", e);
@@ -121,6 +156,18 @@ function renderLineupView(data) {
   if (goalsBadgeEl) {
     goalsBadgeEl.innerText = `⚽ ${data.goals_expected} GOL (${data.goals_tier_text || ''})`;
   }
+
+  // Update formation last updated banner
+  const updateBannerEl = document.getElementById('formationLastUpdatedText');
+  if (updateBannerEl && data.last_updated_human) {
+    updateBannerEl.innerText = `Aggiornate ${data.last_updated_human} (Fantacalcio.it & SOS Fanta)`;
+  }
+
+  // Update dynamic matchday segmented control
+  renderSchieraMatchdaySelector(data.available_matchdays, data.current_matchday, currentSchieraMatchday);
+
+  // Populate Comparator dropdowns
+  populateComparatorDropdowns(data);
 
   // Render Pitch
   window.renderSoccerPitch(data.starters, data.recommended_formation, openPlayerModal);
@@ -273,6 +320,260 @@ function renderLineupView(data) {
       decisionsContainer.style.display = 'none';
     }
   }
+}
+
+// --- INTERACTIVE PLAYER COMPARATOR (TESTA A TESTA AI) ---
+function populateComparatorDropdowns(data) {
+  const sel1 = document.getElementById('comparatorPlayer1');
+  const sel2 = document.getElementById('comparatorPlayer2');
+  if (!sel1 || !sel2) return;
+
+  const allPlayers = [
+    ...(data.starters || []),
+    ...(data.bench || []),
+    ...(data.tribuna || [])
+  ];
+
+  if (allPlayers.length === 0) return;
+
+  const roleOrder = { 'P': 1, 'D': 2, 'C': 3, 'A': 4 };
+  allPlayers.sort((a, b) => {
+    const rA = roleOrder[a.role] || 5;
+    const rB = roleOrder[b.role] || 5;
+    if (rA !== rB) return rA - rB;
+    return (b.score || 0) - (a.score || 0);
+  });
+
+  const currentVal1 = sel1.value;
+  const currentVal2 = sel2.value;
+
+  const roleLabels = { 'P': '🧤 Portieri', 'D': '🛡️ Difensori', 'C': '⚙️ Centrocampisti', 'A': '🎯 Attaccanti' };
+  let optGroups = {};
+
+  allPlayers.forEach(p => {
+    const r = p.role || 'C';
+    if (!optGroups[r]) optGroups[r] = [];
+    const titLabel = p.titolarita_pct ? ` • ${p.titolarita_pct}% titolare` : '';
+    const oppLabel = p.opponent ? ` vs ${p.opponent}` : '';
+    optGroups[r].push(`
+      <option value="${p.name}">[${r}] ${p.name} (${p.team || ''}${oppLabel}${titLabel})</option>
+    `);
+  });
+
+  let html = `<option value="">-- Seleziona calciatore --</option>`;
+  ['P', 'D', 'C', 'A'].forEach(r => {
+    if (optGroups[r] && optGroups[r].length > 0) {
+      html += `<optgroup label="${roleLabels[r]}">${optGroups[r].join('')}</optgroup>`;
+    }
+  });
+
+  sel1.innerHTML = html;
+  sel2.innerHTML = html;
+
+  if (currentVal1) sel1.value = currentVal1;
+  if (currentVal2) sel2.value = currentVal2;
+
+  // Pre-select Dybala vs Ramos G. if available and none selected
+  if (!sel1.value && !sel2.value && allPlayers.length >= 2) {
+    const dybala = allPlayers.find(p => p.name.toLowerCase().includes('dybala'));
+    const ramos = allPlayers.find(p => p.name.toLowerCase().includes('ramos'));
+    if (dybala && ramos) {
+      sel1.value = dybala.name;
+      sel2.value = ramos.name;
+    } else {
+      sel1.value = allPlayers[0].name;
+      sel2.value = allPlayers[1].name;
+    }
+  }
+}
+
+function onComparatorSelectChange() {
+  const resContainer = document.getElementById('comparatorResultContainer');
+  if (resContainer) resContainer.style.display = 'none';
+}
+
+async function runPlayerComparison() {
+  const p1 = document.getElementById('comparatorPlayer1')?.value;
+  const p2 = document.getElementById('comparatorPlayer2')?.value;
+  const resContainer = document.getElementById('comparatorResultContainer');
+  const btn = document.getElementById('btnRunComparison');
+
+  if (!p1 || !p2) {
+    showToast("⚠️ Seleziona entrambi i calciatori da confrontare.");
+    return;
+  }
+
+  if (p1.toLowerCase().trim() === p2.toLowerCase().trim()) {
+    showToast("⚠️ Seleziona due calciatori differenti per il testa a testa.");
+    return;
+  }
+
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = `<span>⏳</span> <span>Analisi AI in corso...</span>`;
+  }
+
+  if (resContainer) {
+    resContainer.style.display = 'block';
+    resContainer.innerHTML = `
+      <div style="text-align:center; padding:24px; color:var(--text-muted);">
+        <span class="live-dot" style="margin-right:8px;"></span> Elaborazione super-intelligence e incrocio dati (Fantacalcio.it + SOS Fanta + SofaScore)...
+      </div>
+    `;
+  }
+
+  try {
+    const md = currentSchieraMatchday || 7;
+    const url = `/api/lineup/compare?player1=${encodeURIComponent(p1)}&player2=${encodeURIComponent(p2)}&matchday=${md}&_t=${Date.now()}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Errore durante la comparazione");
+    const data = await res.json();
+
+    if (!data.success) {
+      if (resContainer) {
+        resContainer.innerHTML = `<div style="padding:14px; color:#f87171; background:rgba(239,68,68,0.1); border-radius:8px;">${data.error || 'Errore nella comparazione.'}</div>`;
+      }
+      return;
+    }
+
+    renderComparatorResult(data);
+  } catch (e) {
+    console.error("Comparison error:", e);
+    if (resContainer) {
+      resContainer.innerHTML = `<div style="padding:14px; color:#f87171; background:rgba(239,68,68,0.1); border-radius:8px;">Impossibile completare il confronto. Riprova più tardi.</div>`;
+    }
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = `<span>🧠 Chiedi all'AI chi schierare</span>`;
+    }
+  }
+}
+
+function renderComparatorResult(data) {
+  const container = document.getElementById('comparatorResultContainer');
+  if (!container) return;
+
+  const pA = data.player_a;
+  const pB = data.player_b;
+  const isAWinner = data.winner === 'player_a';
+  const isBWinner = data.winner === 'player_b';
+
+  const formatPlayerCard = (p, isWinner) => {
+    const winBadge = isWinner ? `
+      <div style="background:linear-gradient(135deg, #10b981, #059669); color:#ffffff; font-weight:800; font-size:0.75rem; border-radius:6px; padding:3px 8px; margin-bottom:8px; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 8px rgba(16,185,129,0.3);">
+        <span>👑 SCELTA CONSIGLIATA</span>
+      </div>
+    ` : `
+      <div style="background:rgba(255,255,255,0.06); color:#94a3b8; font-weight:700; font-size:0.75rem; border-radius:6px; padding:3px 8px; margin-bottom:8px; display:inline-flex; align-items:center; gap:4px;">
+        <span>RISERVA / IN PANCHINA</span>
+      </div>
+    `;
+
+    const borderColor = isWinner ? 'rgba(16, 185, 129, 0.45)' : 'rgba(255,255,255,0.1)';
+    const bgColor = isWinner ? 'rgba(16, 185, 129, 0.08)' : 'rgba(255,255,255,0.02)';
+
+    return `
+      <div style="background:${bgColor}; border:1.5px solid ${borderColor}; border-radius:12px; padding:14px; position:relative;">
+        ${winBadge}
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <img src="${p.photo || '/static/icon.svg'}" onerror="this.src='/static/icon.svg'" style="width:48px; height:48px; border-radius:50%; border:2px solid ${isWinner ? '#10b981' : '#64748b'}; object-fit:cover; background:rgba(0,0,0,0.3);" />
+          <div>
+            <div style="font-weight:900; font-size:1.02rem; color:#ffffff;">${p.name}</div>
+            <div style="font-size:0.78rem; color:var(--text-muted);">${p.team_full || p.team} • Ruolo <strong>${p.role}</strong></div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; background:rgba(0,0,0,0.25); border-radius:8px; padding:8px 10px; font-size:0.8rem;">
+          <div>
+            <span style="color:var(--text-muted); font-size:0.7rem; display:block;">PUNTEGGIO AI:</span>
+            <strong style="color:${isWinner ? '#34d399' : '#f8fafc'}; font-size:0.95rem;">★ ${p.score}</strong>
+          </div>
+          <div>
+            <span style="color:var(--text-muted); font-size:0.7rem; display:block;">FANTAVOTO ATTESO:</span>
+            <strong style="color:#f59e0b; font-size:0.95rem;">${p.expected_fantavoto || '-'} pt</strong>
+          </div>
+          <div>
+            <span style="color:var(--text-muted); font-size:0.7rem; display:block;">TITOLARITÀ:</span>
+            <strong style="color:#38bdf8;">${p.titolarita_pct || 70}%</strong>
+          </div>
+          <div>
+            <span style="color:var(--text-muted); font-size:0.7rem; display:block;">PARTITA:</span>
+            <span style="font-size:0.75rem; color:#e2e8f0;">${p.is_home ? 'Casa 🏠' : 'Trasferta ✈️'} vs ${p.opponent_name || p.opponent || '-'}</span>
+          </div>
+        </div>
+      </div>
+    `;
+  };
+
+  container.innerHTML = `
+    <!-- Winner Headline Banner -->
+    <div style="background:linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(139, 92, 246, 0.2)); border:1.5px solid rgba(16, 185, 129, 0.4); border-radius:12px; padding:14px 16px; margin-bottom:14px; text-align:center;">
+      <div style="font-size:1.15rem; font-weight:900; color:#34d399; margin-bottom:4px;">
+        ${data.headline}
+      </div>
+      <div style="font-size:0.82rem; color:#cbd5e1;">
+        Scarto calcolato: <strong style="color:#ffffff;">+${data.diff_score} pt</strong> sull'indice di schierabilità • <strong style="color:#f59e0b;">+${data.diff_fantavoto}</strong> di fantavoto atteso
+      </div>
+    </div>
+
+    <!-- Side by Side Cards -->
+    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+      ${formatPlayerCard(pA, isAWinner)}
+      ${formatPlayerCard(pB, isBWinner)}
+    </div>
+
+    <!-- AI Narrative Reasoning Block -->
+    <div style="background:rgba(139, 92, 246, 0.1); border:1px solid rgba(139, 92, 246, 0.3); border-radius:12px; padding:14px 16px; margin-bottom:14px;">
+      <div style="font-size:0.88rem; font-weight:800; color:#c084fc; margin-bottom:6px; display:flex; align-items:center; gap:6px;">
+        <span>🧠 Motivazione Tattica & Analisi AI:</span>
+      </div>
+      <div style="font-size:0.85rem; color:#f1f5f9; line-height:1.55;">
+        ${data.ai_narrative}
+      </div>
+    </div>
+
+    <!-- Factor by Factor Comparative Table -->
+    <div style="background:rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px 14px;">
+      <div style="font-size:0.85rem; font-weight:800; color:#e2e8f0; margin-bottom:10px; display:flex; align-items:center; gap:6px;">
+        <span>📊 Confronto Dettagliato dei Fattori:</span>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${(data.factors || []).map(f => {
+          const aFav = (isAWinner && f.advantage === 'starter') || (!isAWinner && f.advantage === 'benched');
+          const bFav = (!isAWinner && f.advantage === 'starter') || (isAWinner && f.advantage === 'benched');
+          
+          const aVal = isAWinner ? f.starter_val : f.benched_val;
+          const bVal = isAWinner ? f.benched_val : f.starter_val;
+
+          const aBadge = aFav ? 'color:#34d399; font-weight:800; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:4px 8px;' : 'color:#cbd5e1; padding:4px 8px;';
+          const bBadge = bFav ? 'color:#34d399; font-weight:800; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3); border-radius:6px; padding:4px 8px;' : 'color:#cbd5e1; padding:4px 8px;';
+
+          return `
+            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:8px 10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; flex-wrap:wrap; gap:4px;">
+                <span style="font-size:0.8rem; font-weight:700; color:#94a3b8; display:flex; align-items:center; gap:5px;">
+                  <span>${f.icon || '📌'}</span>
+                  <span>${f.label}</span>
+                </span>
+                <span style="font-size:0.75rem; color:#a78bfa; font-weight:600;">${f.detail || ''}</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.8rem; margin-top:4px;">
+                <div style="${aBadge}">
+                  <span style="color:var(--text-muted); font-size:0.7rem; font-weight:600; display:block;">${pA.name}:</span>
+                  ${aVal}
+                </div>
+                <div style="${bBadge}">
+                  <span style="color:var(--text-muted); font-size:0.7rem; font-weight:600; display:block;">${pB.name}:</span>
+                  ${bVal}
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
 }
 
 // Copy lineup to clipboard
@@ -486,15 +787,21 @@ function renderLiveView(data) {
   }
   const notice = document.getElementById('liveMatchdayNotice');
   if (notice && data.matchday) {
-    notice.innerHTML = data.matchday === 6
-      ? `🏁 6ª Giornata (Referti & Voti Ufficiali Fantacalcio)`
-      : `🟢 7ª Giornata (In Arrivo) • Inizio Venerdì 20:45`;
+    if (data.matchday < (data.current_matchday || 7)) {
+      notice.innerHTML = `🏁 ${data.matchday}ª Giornata (Referti & Voti Ufficiali Fantacalcio)`;
+    } else {
+      notice.innerHTML = `🟢 ${data.matchday}ª Giornata (In Arrivo • Live Match Center)`;
+    }
   }
-  const btn6 = document.getElementById('btnMd6Live');
-  const btn7 = document.getElementById('btnMd7Live');
-  if (btn6 && btn7 && data.matchday) {
-    btn6.classList.toggle('active', data.matchday === 6);
-    btn7.classList.toggle('active', data.matchday === 7);
+
+  const liveSegmentsContainer = document.getElementById('liveMatchdaySegments');
+  if (liveSegmentsContainer && data.available_matchdays) {
+    liveSegmentsContainer.innerHTML = data.available_matchdays.map(m => {
+      const isCur = (m === data.current_matchday);
+      const isSel = (m === data.matchday);
+      const label = isCur ? `${m}ª Giornata 🟢` : `${m}ª Giornata`;
+      return `<button class="segment-btn ${isSel ? 'active' : ''}" onclick="switchLiveMatchday(${m})">${label}</button>`;
+    }).join('');
   }
 
   // Header status badge

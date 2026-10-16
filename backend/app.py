@@ -1,4 +1,5 @@
 import os
+import re
 from fastapi import FastAPI, Request, HTTPException, UploadFile, File
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -33,6 +34,7 @@ async def add_no_cache_headers(request: Request, call_next):
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
+DATA_DIR = os.path.join(BASE_DIR, 'data')
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
@@ -184,11 +186,31 @@ async def search_players(query: str = "", role: str = "", team: str = "", limit:
             
     return {"results": results, "total": len(results)}
 
+def get_current_and_available_matchdays():
+    fixtures_data = optimizer._load_json(FIXTURES_FILE, {})
+    current_md = fixtures_data.get('matchday')
+    if not current_md:
+        from backend.sosfanta_analyzer import sosfanta_analyzer
+        current_md = sosfanta_analyzer.get_matchday_number() or 7
+
+    available = {current_md}
+    if os.path.exists(DATA_DIR):
+        for fname in os.listdir(DATA_DIR):
+            m = re.match(r'(?:fixtures|sosfanta_preview)_giornata_(\d+)\.json', fname)
+            if m:
+                available.add(int(m.group(1)))
+    if current_md > 1:
+        available.add(current_md - 1)
+
+    return current_md, sorted(list(available))
+
 # --- Lineup Recommendation API ---
 @app.get("/api/lineup/recommendation")
 async def get_lineup_recommendation(formation: Optional[str] = None, use_modifier: Optional[bool] = None, matchday: Optional[int] = None):
     user_players = get_user_squad()
     settings = get_settings()
+    current_md, available_mds = get_current_and_available_matchdays()
+    target_md = matchday or current_md
     
     if formation == 'auto' or not formation:
         formation = None
@@ -199,17 +221,22 @@ async def get_lineup_recommendation(formation: Optional[str] = None, use_modifie
         user_players=user_players,
         preferred_formation=formation,
         use_defense_modifier=use_modifier,
-        matchday=matchday
+        matchday=target_md
     )
-    lineup_res['available_matchdays'] = [6, 7]
-    lineup_res['current_matchday'] = 7
+    fixtures_data = optimizer.get_fixtures_for_matchday(target_md)
+    lineup_res['available_matchdays'] = available_mds
+    lineup_res['current_matchday'] = current_md
+    lineup_res['selected_matchday'] = target_md
+    lineup_res['last_updated_human'] = fixtures_data.get('last_updated_human') or 'Oggi'
     return lineup_res
 
 # --- Fixtures, Injuries & Intel ---
 @app.get("/api/fixtures")
 async def get_fixtures(matchday: Optional[int] = None):
     from datetime import datetime, timedelta
-    data = optimizer.get_fixtures_for_matchday(matchday)
+    current_md, available_mds = get_current_and_available_matchdays()
+    target_md = matchday or current_md
+    data = optimizer.get_fixtures_for_matchday(target_md)
     now = datetime.now()
     for f in data.get('fixtures', []):
         kickoff_dt = None
@@ -238,8 +265,9 @@ async def get_fixtures(matchday: Optional[int] = None):
                         'is_starter': True,
                         'is_official': True
                     }
-    data['available_matchdays'] = [6, 7]
-    data['current_matchday'] = 7
+    data['available_matchdays'] = available_mds
+    data['current_matchday'] = current_md
+    data['selected_matchday'] = target_md
     return data
 
 @app.get("/api/injuries")
@@ -259,6 +287,32 @@ async def trigger_sync():
     optimizer.reload_data()
     return {"success": True, "result": res}
 
+# --- Lineup Comparator & Live Lineup Sync ---
+@app.get("/api/lineup/compare")
+async def compare_players_endpoint(player1: str, player2: str, matchday: Optional[int] = None):
+    user_players = get_user_squad()
+    current_md, _ = get_current_and_available_matchdays()
+    target_md = matchday or current_md
+    result = optimizer.compare_any_two_players(
+        player_a_name=player1,
+        player_b_name=player2,
+        user_players=user_players,
+        matchday=target_md
+    )
+    return result
+
+@app.post("/api/lineup/sync-lineups")
+async def sync_lineups_endpoint():
+    from backend.scraper import scrape_fixtures_and_lineups
+    fixtures_res = scrape_fixtures_and_lineups()
+    optimizer.reload_data()
+    return {
+        "success": True,
+        "last_updated_human": fixtures_res.get('last_updated_human', 'Oggi'),
+        "matchday": fixtures_res.get('matchday'),
+        "matchday_label": fixtures_res.get('matchday_label')
+    }
+
 # --- SOS Fanta Intelligence API ---
 from backend.sosfanta_analyzer import sosfanta_analyzer
 
@@ -266,9 +320,10 @@ class SOSFantaUrlRequest(BaseModel):
     url: str
 
 @app.get("/api/sosfanta/analysis")
-async def get_sosfanta_analysis(matchday: Optional[int] = 7):
+async def get_sosfanta_analysis(matchday: Optional[int] = None):
     user_players = get_user_squad()
-    target_md = matchday or 7
+    current_md, available_mds = get_current_and_available_matchdays()
+    target_md = matchday or current_md
     analysis = sosfanta_analyzer.analyze_entire_squad(user_players, matchday=target_md)
     sf_data = sosfanta_analyzer.get_data_for_matchday(target_md)
     return {
@@ -276,15 +331,20 @@ async def get_sosfanta_analysis(matchday: Optional[int] = 7):
         "preview_url": sf_data.get('preview_url') or sosfanta_analyzer.preview_url,
         "matchday": sosfanta_analyzer.get_matchday_label(target_md),
         "matchday_num": target_md,
+        "available_matchdays": available_mds,
+        "current_matchday": current_md,
         "is_published": sf_data.get('is_published', False),
         "results": analysis
     }
 
 @app.get("/api/sosfanta/full-article")
-def get_sosfanta_full_article(matchday: Optional[int] = 7):
+def get_sosfanta_full_article(matchday: Optional[int] = None):
     user_players = get_user_squad()
-    target_md = matchday or 7
+    current_md, available_mds = get_current_and_available_matchdays()
+    target_md = matchday or current_md
     data = sosfanta_analyzer.get_full_article_data(user_players, matchday=target_md)
+    data['available_matchdays'] = available_mds
+    data['current_matchday'] = current_md
     return {
         "success": True,
         **data
@@ -312,20 +372,22 @@ from backend.live_tracker import live_tracker
 from backend.lineup_extractor import lineup_extractor
 
 @app.get("/api/live/votes")
-async def get_live_votes(use_actual: bool = True, matchday: int = 6):
+async def get_live_votes(use_actual: bool = True, matchday: Optional[int] = None):
     user_players = get_user_squad()
     settings = get_settings()
+    current_md, available_mds = get_current_and_available_matchdays()
+    target_md = matchday if matchday is not None else current_md
     use_modifier = settings.get('defense_modifier', True)
     pref_formation = settings.get('preferred_formation', None)
     
-    # Check if actual fielded lineup is present (relevant for matchday 6)
-    actual_lineup = lineup_extractor.get_actual_lineup() if (use_actual and matchday == 6) else None
+    # Check if actual fielded lineup is present
+    actual_lineup = lineup_extractor.get_actual_lineup() if (use_actual and target_md == current_md) else None
     
     lineup_res = optimizer.optimize_lineup(
         user_players=user_players,
         preferred_formation=pref_formation,
         use_defense_modifier=use_modifier,
-        matchday=matchday
+        matchday=target_md
     )
     starters = lineup_res.get('starters', [])
     all_evaluated = lineup_res.get('starters', []) + lineup_res.get('bench', []) + lineup_res.get('tribuna', [])
@@ -333,22 +395,26 @@ async def get_live_votes(use_actual: bool = True, matchday: int = 6):
         user_players=user_players,
         starters=starters,
         actual_lineup=actual_lineup,
-        matchday=matchday,
+        matchday=target_md,
         evaluated_catalog=all_evaluated
     )
     data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
-    data['current_matchday'] = matchday
+    data['current_matchday'] = current_md
+    data['available_matchdays'] = available_mds
+    data['selected_matchday'] = target_md
     return data
 
 @app.post("/api/live/refresh")
-async def refresh_live_votes(use_actual: bool = True, matchday: int = 6):
+async def refresh_live_votes(use_actual: bool = True, matchday: Optional[int] = None):
     user_players = get_user_squad()
     settings = get_settings()
-    actual_lineup = lineup_extractor.get_actual_lineup() if (use_actual and matchday == 6) else None
+    current_md, available_mds = get_current_and_available_matchdays()
+    target_md = matchday if matchday is not None else current_md
+    actual_lineup = lineup_extractor.get_actual_lineup() if (use_actual and target_md == current_md) else None
     lineup_res = optimizer.optimize_lineup(
         user_players=user_players,
         use_defense_modifier=settings.get('defense_modifier', True),
-        matchday=matchday
+        matchday=target_md
     )
     starters = lineup_res.get('starters', [])
     all_evaluated = lineup_res.get('starters', []) + lineup_res.get('bench', []) + lineup_res.get('tribuna', [])
@@ -356,11 +422,13 @@ async def refresh_live_votes(use_actual: bool = True, matchday: int = 6):
         user_players=user_players,
         starters=starters,
         actual_lineup=actual_lineup,
-        matchday=matchday,
+        matchday=target_md,
         evaluated_catalog=all_evaluated
     )
     data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
-    data['current_matchday'] = matchday
+    data['current_matchday'] = current_md
+    data['available_matchdays'] = available_mds
+    data['selected_matchday'] = target_md
     return {"success": True, "data": data}
 
 # --- Actual Fielded Lineup & Leghe FC Screenshot API ---

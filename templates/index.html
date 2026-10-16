@@ -44,17 +44,29 @@
     <!-- ================= TAB 1: SCHIERA FORMAZIONE ================= -->
     <section id="tab-schiera" class="tab-view active">
       <!-- Matchday Selector Bar -->
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:0.75rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">📅 GIORNATA:</span>
-          <div class="segmented-control" style="margin:0;">
-            <button id="btnMd6Schiera" class="segment-btn" onclick="switchSchieraMatchday(6)">6ª Giornata (Referti)</button>
-            <button id="btnMd7Schiera" class="segment-btn active" onclick="switchSchieraMatchday(7)">7ª Giornata (In Arrivo) 🟢</button>
+          <div id="schieraMatchdaySegments" class="segmented-control" style="margin:0;">
+            <button id="btnMd6Schiera" class="segment-btn" onclick="switchSchieraMatchday(6)">6ª Giornata</button>
+            <button id="btnMd7Schiera" class="segment-btn active" onclick="switchSchieraMatchday(7)">7ª Giornata 🟢</button>
           </div>
         </div>
         <div id="schieraMatchdayNotice" style="font-size:0.75rem; color:#34d399; font-weight:700;">
-          🟢 7ª Giornata • Calibrazione Reattiva AI Attiva
+          🟢 Calibrazione Reattiva AI Attiva
         </div>
+      </div>
+
+      <!-- Formation Freshness Status Banner -->
+      <div id="formationUpdateBanner" style="display:flex; justify-content:space-between; align-items:center; background:linear-gradient(90deg, rgba(16, 185, 129, 0.12), rgba(59, 130, 246, 0.1)); border:1px solid rgba(16, 185, 129, 0.3); border-radius:10px; padding:8px 14px; margin-bottom:12px; font-size:0.8rem; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981;"></span>
+          <span style="color:#e2e8f0; font-weight:600;">Probabili Formazioni:</span>
+          <span id="formationLastUpdatedText" style="color:#34d399; font-weight:800;">Aggiornate Oggi alle 15:16 (Fantacalcio.it & SOS Fanta)</span>
+        </div>
+        <button id="btnSyncLineupsNow" onclick="forceSyncLineups()" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.18); color:#cbd5e1; border-radius:6px; padding:4px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s ease;" title="Risincronizza formazioni e statistiche live da Fantacalcio.it e SOS Fanta">
+          <span id="syncIconSpin">🔄</span> <span>Aggiorna Dati Ora</span>
+        </button>
       </div>
 
       <!-- Total Score Banner -->
@@ -128,6 +140,52 @@
       <!-- Key decisions / ballottaggi -->
       <div id="keyDecisionsContainer" class="card" style="display:none; margin-bottom:16px;">
         <!-- Populated dynamically -->
+      </div>
+
+      <!-- INTERACTIVE PLAYER COMPARATOR (TESTA A TESTA AI) -->
+      <div class="card" id="playerComparatorCard" style="margin-bottom:16px; border:1px solid rgba(139, 92, 246, 0.35); background:linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(59, 130, 246, 0.08));">
+        <div class="card-header" style="border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px; margin-bottom:12px;">
+          <div>
+            <div class="card-title" style="color:#c084fc; display:flex; align-items:center; gap:8px;">
+              <span>⚔️ Testa a Testa • Comparatore AI Formazione</span>
+              <span class="badge-status" style="background:rgba(192, 132, 252, 0.2); color:#e9d5ff; border:1px solid rgba(192, 132, 252, 0.4); font-size:0.7rem; font-weight:800;">Chi schiero tra i due?</span>
+            </div>
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:3px;">
+              Sei indeciso tra due tuoi giocatori? Selezionali per confrontarli all'istante con analisi AI, titolarità, xG/xA SofaScore e consigli SOS Fanta.
+            </div>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns: 1fr auto 1fr; gap:12px; align-items:center; margin-bottom:14px;">
+          <div>
+            <label style="font-size:0.75rem; color:#cbd5e1; font-weight:700; display:block; margin-bottom:5px;">1° GIOCATORE:</label>
+            <select id="comparatorPlayer1" class="form-select" style="width:100%; background:rgba(15,23,42,0.85); color:#f8fafc; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:9px 12px; font-size:0.85rem; font-weight:600;" onchange="onComparatorSelectChange()">
+              <option value="">Seleziona primo calciatore...</option>
+            </select>
+          </div>
+          
+          <div style="display:flex; align-items:center; justify-content:center; padding-top:18px;">
+            <span style="font-size:1.1rem; font-weight:900; color:#c084fc; background:rgba(192, 132, 252, 0.15); border:1px solid rgba(192, 132, 252, 0.35); border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 12px rgba(192,132,252,0.2);">VS</span>
+          </div>
+
+          <div>
+            <label style="font-size:0.75rem; color:#cbd5e1; font-weight:700; display:block; margin-bottom:5px;">2° GIOCATORE:</label>
+            <select id="comparatorPlayer2" class="form-select" style="width:100%; background:rgba(15,23,42,0.85); color:#f8fafc; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:9px 12px; font-size:0.85rem; font-weight:600;" onchange="onComparatorSelectChange()">
+              <option value="">Seleziona secondo calciatore...</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; gap:8px; margin-bottom:8px;">
+          <button id="btnRunComparison" class="btn btn-primary" onclick="runPlayerComparison()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; padding:9px 24px; font-weight:800; font-size:0.88rem; display:flex; align-items:center; gap:8px; box-shadow:0 4px 14px rgba(139,92,246,0.35); border-radius:8px; cursor:pointer;">
+            <span>🧠 Chiedi all'AI chi schierare</span>
+          </button>
+        </div>
+
+        <!-- Comparison Results Container -->
+        <div id="comparatorResultContainer" style="display:none; margin-top:16px;">
+          <!-- Populated dynamically via JS -->
+        </div>
       </div>
 
       <!-- REAL FIELDED LINEUP SYNC (LEGHE FC SCREENSHOT) -->
@@ -208,9 +266,9 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:0.75rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">📅 GIORNATA:</span>
-          <div class="segmented-control" style="margin:0;">
-            <button id="btnMd6Live" class="segment-btn active" onclick="switchLiveMatchday(6)">6ª Giornata (Referti & Voti)</button>
-            <button id="btnMd7Live" class="segment-btn" onclick="switchLiveMatchday(7)">7ª Giornata (In Arrivo) 🟢</button>
+          <div id="liveMatchdaySegments" class="segmented-control" style="margin:0;">
+            <button id="btnMd6Live" class="segment-btn active" onclick="switchLiveMatchday(6)">6ª Giornata</button>
+            <button id="btnMd7Live" class="segment-btn" onclick="switchLiveMatchday(7)">7ª Giornata 🟢</button>
           </div>
         </div>
         <div id="liveMatchdayNotice" style="font-size:0.75rem; color:#34d399; font-weight:700;">

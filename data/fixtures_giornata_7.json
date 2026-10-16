@@ -1,4 +1,6 @@
 {
+  "matchday": 7,
+  "matchday_label": "7ª Giornata",
   "earliest_kickoff_iso": "2026-10-16T20:45:00",
   "alert_time_iso": "2026-10-16T19:45:00",
   "fixtures": [
@@ -716,7 +718,7 @@
       ],
       "away_lineup": [
         "Martinez Jo.",
-        "Pavard",
+        "Bisseck",
         "Akanji",
         "Bastoni",
         "Luis Henrique",
@@ -890,15 +892,15 @@
           "role": "P",
           "is_starter": true
         },
-        "pavard": {
-          "name": "Pavard",
+        "bisseck": {
+          "name": "Bisseck",
           "percentage": 80,
           "role": "D",
           "is_starter": true
         },
         "akanji": {
           "name": "Akanji",
-          "percentage": 55,
+          "percentage": 80,
           "role": "D",
           "is_starter": true
         },
@@ -934,7 +936,7 @@
         },
         "dimarco": {
           "name": "Dimarco",
-          "percentage": 70,
+          "percentage": 60,
           "role": "D",
           "is_starter": true
         },
@@ -974,12 +976,6 @@
           "role": "D",
           "is_starter": false
         },
-        "bisseck": {
-          "name": "Bisseck",
-          "percentage": 60,
-          "role": "D",
-          "is_starter": false
-        },
         "diouf": {
           "name": "Diouf",
           "percentage": 60,
@@ -1006,7 +1002,7 @@
         },
         "mkhitaryan": {
           "name": "Mkhitaryan",
-          "percentage": 35,
+          "percentage": 55,
           "role": "C",
           "is_starter": false
         },
@@ -1021,7 +1017,7 @@
         "Pessina Mas. 60% Skorupski 40%",
         "Heggem 55% Casale 45%",
         "Pobega 60% El Azzouzi O. 40%",
-        "Akanji 55% Bisseck 45%",
+        "Dimarco 60% Carlos Augusto 40%",
         "Calhanoglu 55% Sucic P. 45%",
         "Thuram 60% Bonny 40%"
       ]
@@ -3259,5 +3255,6 @@
       ]
     }
   ],
-  "last_updated": "2026-10-16T15:04:35.190413"
+  "last_updated": "2026-10-16T15:25:08.264072",
+  "last_updated_human": "16 Ott, 15:25"
 }
