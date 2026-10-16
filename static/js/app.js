@@ -653,27 +653,13 @@ function setLiveFilter(filterType) {
 }
 
 let currentLiveUseActual = true;
-let currentLiveMatchday = 6;
+let currentLiveMatchday = null; // Automatically defaults to current matchday in progress
 
 function switchLiveMatchday(md) {
   currentLiveMatchday = md;
-  const btn6 = document.getElementById('btnMd6Live');
-  const btn7 = document.getElementById('btnMd7Live');
-  const notice = document.getElementById('liveMatchdayNotice');
-  if (btn6 && btn7) {
-    if (md === 6) {
-      btn6.classList.add('active');
-      btn7.classList.remove('active');
-      if (notice) notice.innerHTML = `🏁 6ª Giornata (Referti & Voti Ufficiali Fantacalcio)`;
-    } else {
-      btn7.classList.add('active');
-      btn6.classList.remove('active');
-      if (notice) notice.innerHTML = `🟢 7ª Giornata (In Arrivo) • Inizio Venerdì 20:45`;
-    }
-  }
 
-  // If switching to an upcoming round (7) and filter was 'active', reset to 'starters' so list isn't empty
-  if (md === 7 && currentLiveFilter === 'active') {
+  // If switching to an upcoming/current round and filter was 'active', reset to 'starters' so list isn't empty
+  if (currentLiveFilter === 'active') {
     currentLiveFilter = 'starters';
     document.querySelectorAll('[data-livefilter]').forEach(btn => {
       btn.classList.toggle('active', btn.getAttribute('data-livefilter') === 'starters');
@@ -701,10 +687,14 @@ async function loadLiveVotes(useActual = null) {
     container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Connessione al live match center...</div>`;
   }
   try {
-    const res = await fetch(`/api/live/votes?use_actual=${currentLiveUseActual}&matchday=${currentLiveMatchday}&_t=${Date.now()}`, { cache: 'no-store' });
+    const mdParam = currentLiveMatchday ? `&matchday=${currentLiveMatchday}` : '';
+    const res = await fetch(`/api/live/votes?use_actual=${currentLiveUseActual}${mdParam}&_t=${Date.now()}`, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore nel recupero dei voti live");
     const data = await res.json();
     currentLiveData = data;
+    if (!currentLiveMatchday && data.current_matchday) {
+      currentLiveMatchday = data.matchday || data.current_matchday;
+    }
     renderLiveView(data);
     updateLiveLineupModeIndicator(data);
   } catch (err) {
@@ -723,10 +713,14 @@ async function refreshLiveVotes(btn) {
   }
   try {
     showToast("🔄 Sincronizzo voti e formazioni live...");
-    const res = await fetch(`/api/live/refresh?use_actual=${currentLiveUseActual}&matchday=${currentLiveMatchday}&_t=${Date.now()}`, { method: 'POST', cache: 'no-store' });
+    const mdParam = currentLiveMatchday ? `&matchday=${currentLiveMatchday}` : '';
+    const res = await fetch(`/api/live/refresh?use_actual=${currentLiveUseActual}${mdParam}&_t=${Date.now()}`, { method: 'POST', cache: 'no-store' });
     const json = await res.json();
     if (json.success && json.data) {
       currentLiveData = json.data;
+      if (!currentLiveMatchday && json.data.current_matchday) {
+        currentLiveMatchday = json.data.matchday || json.data.current_matchday;
+      }
       renderLiveView(json.data);
       updateLiveLineupModeIndicator(json.data);
       loadLineupRecommendation();
