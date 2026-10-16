@@ -482,10 +482,11 @@ async def delete_actual_lineup():
 async def extract_lineup_screenshot(req: LineupScreenshotRequest):
     import base64
     user_squad = get_user_squad()
-    api_key = req.api_key or os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
+    settings = get_settings()
+    api_key = req.api_key or os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY') or settings.get('gemini_api_key')
     
     result = None
-    if req.image_base64 and api_key:
+    if req.image_base64:
         try:
             raw_b64 = req.image_base64
             mime = "image/jpeg"
@@ -496,48 +497,39 @@ async def extract_lineup_screenshot(req: LineupScreenshotRequest):
             else:
                 encoded = raw_b64
             img_bytes = base64.b64decode(encoded)
-            result = lineup_extractor.extract_from_gemini(img_bytes, mime, user_squad, api_key)
+            result = lineup_extractor.extract_lineup_from_image(img_bytes, mime, user_squad, api_key)
         except Exception as e:
-            print(f"[LineupExtract] Gemini API error: {e}")
+            print(f"[LineupExtract] Image extraction error: {e}")
             
     if not result and req.ocr_text:
         result = lineup_extractor.match_squad_from_text(req.ocr_text, user_squad)
         
-    if not result:
-        # Graceful fallback: return top squad players structured into 4-3-3
-        starters = user_squad[:11] if len(user_squad) >= 11 else user_squad
-        bench = user_squad[11:] if len(user_squad) > 11 else []
-        result = {
-            "source": "Selezione Guidata da Rosa",
-            "formation": "4-3-3",
-            "starters": starters,
-            "bench": bench,
-            "notes": "Screenshot analizzato. Verifica e conferma gli 11 titolari effettivi."
-        }
-    return {"success": True, "result": result}
+    if result and result.get('starters') and len(result['starters']) >= 5:
+        return {"success": True, "result": result}
+        
+    return {
+        "success": False,
+        "need_client_ocr": True,
+        "message": "Nessun motore OCR server disponibile o testo insufficiente. Esecuzione OCR locale nel browser..."
+    }
 
 @app.post("/api/lineup/upload-file")
 async def upload_lineup_file(file: UploadFile = File(...)):
     user_squad = get_user_squad()
-    api_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY')
+    settings = get_settings()
+    api_key = os.getenv('GEMINI_API_KEY') or os.getenv('GOOGLE_API_KEY') or settings.get('gemini_api_key')
     contents = await file.read()
     mime = file.content_type or "image/jpeg"
     
-    result = None
-    if api_key:
-        result = lineup_extractor.extract_from_gemini(contents, mime, user_squad, api_key)
+    result = lineup_extractor.extract_lineup_from_image(contents, mime, user_squad, api_key)
+    if result and result.get('starters') and len(result['starters']) >= 5:
+        return {"success": True, "result": result}
         
-    if not result:
-        starters = user_squad[:11] if len(user_squad) >= 11 else user_squad
-        bench = user_squad[11:] if len(user_squad) > 11 else []
-        result = {
-            "source": "File Screenshot Caricato",
-            "formation": "4-3-3",
-            "starters": starters,
-            "bench": bench,
-            "notes": "Screenshot caricato. Conferma gli 11 titolari della tua lega."
-        }
-    return {"success": True, "result": result}
+    return {
+        "success": False,
+        "need_client_ocr": True,
+        "message": "Impossibile estrarre la formazione con il motore server. Utilizza il caricamento diretto via app."
+    }
 
 # --- AI Self-Learning & Auto-Improvement API ---
 from backend.ai_learning import ai_learning_engine

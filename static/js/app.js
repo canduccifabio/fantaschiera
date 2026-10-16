@@ -3040,6 +3040,39 @@ async function handleClipboardPaste(event) {
   }
 }
 
+async function preprocessImageForOCR(base64Data) {
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const scale = img.width < 900 ? 2 : 1;
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      try {
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = imgData.data;
+        for (let i = 0; i < d.length; i += 4) {
+          const lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
+          const val = lum > 145 ? 255 : (lum < 75 ? 0 : lum);
+          d[i] = val;
+          d[i + 1] = val;
+          d[i + 2] = val;
+        }
+        ctx.putImageData(imgData, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } catch (err) {
+        resolve(base64Data);
+      }
+    };
+    img.onerror = () => resolve(base64Data);
+    img.src = base64Data;
+  });
+}
+
 async function processScreenshotData(base64Data, file) {
   showToast("🧠 Analisi screenshot in corso (AI Vision & OCR)...");
   
@@ -3054,6 +3087,7 @@ async function processScreenshotData(base64Data, file) {
       const json = await res.json();
       if (json.success && json.result && json.result.starters && json.result.starters.length >= 8) {
         extracted = json.result;
+        showToast(`✅ Riconosciuti ${extracted.starters.length} titolari (${extracted.formation || '4-3-3'})!`);
       }
     }
   } catch (e) {
@@ -3064,8 +3098,9 @@ async function processScreenshotData(base64Data, file) {
   if (!extracted || !extracted.starters || extracted.starters.length < 8) {
     if (window.Tesseract) {
       try {
-        showToast("🔍 Riconoscimento testo con OCR locale...");
-        const ocrRes = await Tesseract.recognize(base64Data, 'ita', {
+        showToast("🔍 Riconoscimento testo avanzato con OCR locale...");
+        const processedImage = await preprocessImageForOCR(base64Data);
+        const ocrRes = await Tesseract.recognize(processedImage, 'ita', {
           logger: m => {}
         });
         const ocrText = ocrRes.data.text || '';
@@ -3077,8 +3112,9 @@ async function processScreenshotData(base64Data, file) {
           });
           if (res2.ok) {
             const json2 = await res2.json();
-            if (json2.success && json2.result) {
+            if (json2.success && json2.result && json2.result.starters && json2.result.starters.length >= 5) {
               extracted = json2.result;
+              showToast(`✅ Riconosciuti ${extracted.starters.length} titolari via OCR!`);
             }
           }
         }
@@ -3086,6 +3122,10 @@ async function processScreenshotData(base64Data, file) {
         console.warn("Tesseract OCR fallback error:", ocrErr);
       }
     }
+  }
+
+  if (!extracted || !extracted.starters || extracted.starters.length < 5) {
+    showToast("⚠️ Screenshot analizzato: seleziona i tuoi 11 titolari effettivi.");
   }
 
   await openActualLineupModal(extracted);
@@ -3201,6 +3241,12 @@ async function handleStarterSlotChange(changedSlotIdx, newPlayerName) {
       const currentStarters = Array.from(selectElements).map(s => s.value);
       const unused = squad.find(p => !currentStarters.includes(p.name));
       if (unused) sel.value = unused.name;
+    }
+    const p = squad.find(item => item.name === sel.value);
+    const badge = sel.previousElementSibling;
+    if (p && badge && badge.classList.contains('role-badge')) {
+      badge.className = `role-badge role-${p.role}`;
+      badge.innerText = p.role;
     }
   });
 
