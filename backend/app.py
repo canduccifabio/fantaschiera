@@ -468,10 +468,23 @@ async def get_actual_lineup():
     lineup = lineup_extractor.get_actual_lineup()
     return {"success": True, "has_actual_lineup": bool(lineup), "lineup": lineup}
 
+class ReorderBenchPayload(BaseModel):
+    starters: List[Dict[str, Any]]
+
 @app.post("/api/lineup/actual")
 async def save_actual_lineup(payload: ActualLineupPayload):
-    saved = lineup_extractor.save_actual_lineup(payload.dict())
+    data = payload.dict()
+    if not data.get('bench') or len(data.get('bench', [])) < 3:
+        user_squad = get_user_squad()
+        data['bench'] = lineup_extractor.build_ai_ordered_bench(data.get('starters', []), user_squad)
+    saved = lineup_extractor.save_actual_lineup(data)
     return {"success": True, "lineup": saved}
+
+@app.post("/api/lineup/reorder-bench")
+async def api_reorder_bench(payload: ReorderBenchPayload):
+    user_squad = get_user_squad()
+    bench = lineup_extractor.build_ai_ordered_bench(payload.starters, user_squad)
+    return {"success": True, "bench": bench}
 
 @app.delete("/api/lineup/actual")
 async def delete_actual_lineup():

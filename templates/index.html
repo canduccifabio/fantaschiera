@@ -227,6 +227,15 @@
           <div id="actualLineupStartersPills" style="display:flex; flex-wrap:wrap; gap:4px; margin-top:6px;">
             <!-- Rendered via JS -->
           </div>
+          <div id="actualLineupBenchSection" style="margin-top:8px; padding-top:6px; border-top:1px dashed rgba(255,255,255,0.08); display:none;">
+            <div style="font-size:0.72rem; color:#94a3b8; font-weight:700; margin-bottom:4px; display:flex; justify-content:space-between; align-items:center;">
+              <span>🔄 Panchina AI (Ordine di Subentro):</span>
+              <span style="font-size:0.68rem; color:#34d399;">★ Copertura Ottimale</span>
+            </div>
+            <div id="actualLineupBenchPills" style="display:flex; flex-wrap:wrap; gap:4px;">
+              <!-- Rendered via JS -->
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1243,10 +1252,11 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
 
     <!-- Bench List (Panchina) -->
     <div style="margin-bottom:14px;">
-      <div style="font-size:0.75rem; color:#94a3b8; font-weight:800; text-transform:uppercase; margin-bottom:6px;">
-        🔄 Panchinari Disponibili:
+      <div style="font-size:0.75rem; color:#94a3b8; font-weight:800; text-transform:uppercase; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+        <span>🔄 Panchina Ordinata dall'AI (Ordine di Subentro):</span>
+        <span style="font-size:0.7rem; color:#34d399; font-weight:700;">★ Calcolata su Score & SOS Fanta</span>
       </div>
-      <div id="actualBenchListEditor" style="display:flex; flex-wrap:wrap; gap:6px;">
+      <div id="actualBenchListEditor" style="display:flex; flex-direction:column; gap:4px; max-height:240px; overflow-y:auto; padding-right:4px;">
         <!-- Populated via JS -->
       </div>
     </div>

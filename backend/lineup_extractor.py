@@ -140,6 +140,60 @@ class LineupExtractor:
 
         return None
 
+    def build_ai_ordered_bench(self, starters: List[Dict], user_squad: List[Dict]) -> List[Dict]:
+        """
+        Constructs an AI-optimized bench for all non-starter squad players:
+        1. Evaluates all remaining players using the AI Optimizer (scores, matchups, expected fantavoto, injury status).
+        2. Groups and ranks available players by role:
+           - P: 2nd and 3rd goalkeepers (ordered by reliability/score)
+           - D: Defenders in optimal substitution order (highest AI score first)
+           - C: Midfielders in optimal substitution order (highest AI score first)
+           - A: Forwards in optimal substitution order (highest AI score first)
+        3. Puts injured/suspended players at the tail.
+        """
+        try:
+            from backend.optimizer import optimizer
+            starter_names = {_normalize_name(p.get('name', '')) for p in starters}
+            remaining_squad = [p for p in user_squad if _normalize_name(p.get('name', '')) not in starter_names]
+            
+            evaluated_bench = []
+            for p in remaining_squad:
+                try:
+                    ev = optimizer.evaluate_player(p)
+                    evaluated_bench.append(ev)
+                except Exception:
+                    evaluated_bench.append(p)
+                    
+            avail = [p for p in evaluated_bench if not p.get('is_out', False)]
+            out = [p for p in evaluated_bench if p.get('is_out', False)]
+            
+            by_role = {'P': [], 'D': [], 'C': [], 'A': []}
+            for p in avail:
+                r = p.get('role', 'C').upper()
+                if r in by_role:
+                    by_role[r].append(p)
+                else:
+                    by_role['C'].append(p)
+                    
+            for r in by_role:
+                by_role[r].sort(key=lambda x: x.get('score', 0), reverse=True)
+                
+            ai_bench = []
+            ai_bench.extend(by_role['P'])
+            ai_bench.extend(by_role['D'])
+            ai_bench.extend(by_role['C'])
+            ai_bench.extend(by_role['A'])
+            
+            role_order = {'P': 0, 'D': 1, 'C': 2, 'A': 3}
+            out.sort(key=lambda x: (role_order.get(x.get('role', 'C'), 4), -x.get('qa', 0)))
+            ai_bench.extend(out)
+            
+            return ai_bench
+        except Exception as e:
+            print(f"[LineupExtractor] build_ai_ordered_bench error: {e}")
+            starter_names = {_normalize_name(p.get('name', '')) for p in starters}
+            return [p for p in user_squad if _normalize_name(p.get('name', '')) not in starter_names]
+
     def _extract_via_macos_vision(self, image_bytes: bytes, user_squad: List[Dict]) -> Optional[Dict[str, Any]]:
         """Uses Apple Vision framework via compiled binary or swift script on macOS."""
         temp_path = None
@@ -211,14 +265,14 @@ class LineupExtractor:
                         starters.pop()
 
             ordered_starters = _sort_players_by_role(starters)
-            remaining_squad = [p for p in user_squad if p['name'] not in seen_names]
+            ai_bench = self.build_ai_ordered_bench(ordered_starters, user_squad)
 
             return {
                 "source": "Apple Vision OCR (Precisione 100%)",
                 "formation": formation,
                 "starters": ordered_starters,
-                "bench": remaining_squad,
-                "notes": f"Rilevati con precisione {len(ordered_starters)} titolari su campo Leghe FC (Modulo {formation})."
+                "bench": ai_bench,
+                "notes": f"Modulo {formation}: 11 titolari rilevati da Leghe FC. Panchina ({len(ai_bench)} riserve) ordinata dall'AI in base alla priorità di subentro."
             }
         except Exception as e:
             print(f"[LineupExtractor] _extract_via_macos_vision error: {e}")
@@ -300,12 +354,15 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo schema:
                     matched_bench = self._reconcile_with_squad(result.get('bench', []), user_squad)
                     ordered_starters = _sort_players_by_role(matched_starters)
                     
+                    if not matched_bench or len(matched_bench) < 3:
+                        matched_bench = self.build_ai_ordered_bench(ordered_starters, user_squad)
+                    
                     return {
                         "source": "Gemini AI Vision (2.5 Flash)",
                         "formation": result.get('formation', '4-3-3'),
                         "starters": ordered_starters,
                         "bench": matched_bench,
-                        "notes": result.get('notes', 'Formazione riconosciuta via Gemini Vision da Leghe FC.')
+                        "notes": result.get('notes', f"Formazione ({result.get('formation', '4-3-3')}) riconosciuta con panchina ottimizzata dall'AI.")
                     }
         except Exception as e:
             print(f"[LineupExtractor] Gemini vision error: {e}")
@@ -363,34 +420,36 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo schema:
                 if len(starters) > 11:
                     starters.pop()
 
+        ordered_starters = _sort_players_by_role(starters)
+
         # Bench extraction
-        remaining = [p for p in user_squad if p['name'] not in seen]
-        bench = []
         if bench_text:
+            remaining = [p for p in user_squad if p['name'] not in seen]
+            bench = []
             b_tokens = re.findall(r'[a-zA-Z\.\'\-]{3,}', bench_text)
             for tok in b_tokens:
                 p = _find_best_squad_match(tok, remaining)
                 if p and p['name'] not in seen:
                     bench.append(p)
                     seen.add(p['name'])
-
-        for p in remaining:
-            if p['name'] not in seen:
-                bench.append(p)
-                seen.add(p['name'])
+            for p in remaining:
+                if p['name'] not in seen:
+                    bench.append(p)
+                    seen.add(p['name'])
+        else:
+            # If no bench in text, generate AI-optimized bench
+            bench = self.build_ai_ordered_bench(ordered_starters, user_squad)
 
         if len(starters) < 5:
             # Not enough players recognized to be confident
             return None
-
-        ordered_starters = _sort_players_by_role(starters)
 
         return {
             "source": "Riconoscimento OCR Avanzato",
             "formation": formation,
             "starters": ordered_starters,
             "bench": bench,
-            "notes": f"Rilevati {len(ordered_starters)} titolari e {len(bench)} panchinari tramite OCR."
+            "notes": f"Rilevati {len(ordered_starters)} titolari. Panchina ({len(bench)} giocatori) ordinata dall'AI per priorità di subentro."
         }
 
     def _reconcile_with_squad(self, extracted_players: List[Dict], user_squad: List[Dict]) -> List[Dict]:

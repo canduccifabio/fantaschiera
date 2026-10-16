@@ -2998,12 +2998,32 @@ function renderActualLineupCard(lineup) {
         </span>
       `).join('');
     }
+
+    const benchPills = document.getElementById('actualLineupBenchPills');
+    const benchSec = document.getElementById('actualLineupBenchSection');
+    if (benchPills && benchSec) {
+      if (lineup.bench && lineup.bench.length > 0) {
+        benchSec.style.display = 'block';
+        benchPills.innerHTML = lineup.bench.map((p, idx) => `
+          <span style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text-secondary); font-size:0.68rem; padding:2px 6px; border-radius:6px; display:inline-flex; align-items:center; gap:3px;">
+            <span style="color:var(--text-muted); font-size:0.6rem; font-weight:800;">${idx + 1}.</span>
+            <span class="role-badge role-${p.role}" style="font-size:0.55rem; padding:1px 3px;">${p.role}</span>
+            ${p.name}
+            ${(p.score !== undefined && p.score !== null && Number(p.score) > 0) ? `<span style="color:#fbbf24; font-size:0.62rem; font-weight:700;">★${Number(p.score).toFixed(1)}</span>` : ''}
+          </span>
+        `).join('');
+      } else {
+        benchSec.style.display = 'none';
+      }
+    }
   } else {
     badge.className = 'badge-status badge-secondary';
     badge.innerText = 'Nessuno screenshot attivo';
     if (detailsBanner) detailsBanner.style.display = 'none';
     if (btnView) btnView.style.display = 'none';
     if (btnClear) btnClear.style.display = 'none';
+    const benchSec = document.getElementById('actualLineupBenchSection');
+    if (benchSec) benchSec.style.display = 'none';
   }
 }
 
@@ -3216,16 +3236,103 @@ function renderActualLineupEditor(data, squad) {
     }).join('');
   }
 
+let currentModalBench = [];
+
+function renderBenchEditorList(bench) {
   const benchListEl = document.getElementById('actualBenchListEditor');
-  if (benchListEl) {
-    const starterNames = new Set(starters.map(p => p.name));
-    const bench = squad.filter(p => !starterNames.has(p.name));
-    benchListEl.innerHTML = bench.map(p => `
-      <span style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text-secondary); font-size:0.75rem; padding:3px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
-        <span class="role-badge role-${p.role}" style="font-size:0.6rem; padding:1px 4px;">${p.role}</span>
-        ${p.name}
-      </span>
-    `).join(' ');
+  if (!benchListEl) return;
+  currentModalBench = Array.isArray(bench) ? bench : [];
+
+  if (currentModalBench.length === 0) {
+    benchListEl.innerHTML = `<div style="text-align:center; padding:10px; color:var(--text-muted); font-size:0.75rem;">Caricamento panchina AI...</div>`;
+    return;
+  }
+
+  benchListEl.innerHTML = currentModalBench.map((p, idx) => {
+    const isOut = p.is_out;
+    const scoreVal = (p.score !== undefined && p.score !== null) ? Number(p.score).toFixed(1) : (p.qa || '-');
+    const badgeClass = p.badge_class || (isOut ? 'danger' : (Number(p.score) >= 70 ? 'primary' : 'info'));
+    const statusTxt = p.status || (isOut ? 'INFORTUNATO' : 'DISPONIBILE');
+    const oppStr = p.opponent_code ? `vs ${p.opponent_code}` : (p.team || '');
+
+    return `
+      <div style="display:flex; align-items:center; justify-content:space-between; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:8px; padding:6px 10px; font-size:0.78rem;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="color:var(--text-muted); font-weight:800; width:22px; font-size:0.72rem;">#${idx + 1}</span>
+          <span class="role-badge role-${p.role || 'C'}" style="font-size:0.65rem; padding:1px 5px;">${p.role || 'C'}</span>
+          <span style="font-weight:700; color:#f8fafc;">${p.name}</span>
+          <span style="color:var(--text-muted); font-size:0.72rem;">(${p.team || ''} ${oppStr})</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span class="badge-status badge-${badgeClass}" style="font-size:0.65rem; padding:1px 6px;">${statusTxt}</span>
+          <span style="color:#fbbf24; font-weight:800; font-size:0.75rem;">★ ${scoreVal}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderActualLineupEditor(data, squad) {
+  const modSelect = document.getElementById('actualLineupModuleSelect');
+  if (modSelect) modSelect.value = data.formation || '4-3-3';
+
+  const statusSource = document.getElementById('actualLineupStatusSource');
+  const statusNotes = document.getElementById('actualLineupStatusNotes');
+  if (statusSource) statusSource.innerText = `Fonte: ${data.source || 'Screenshot Leghe FC'}`;
+  if (statusNotes) statusNotes.innerText = data.notes || "Seleziona gli 11 titolari effettivi schierati in campo.";
+
+  let starters = data.starters ? [...data.starters] : [];
+  if (starters.length < 11) {
+    const existingNames = new Set(starters.map(p => p.name));
+    for (const p of squad) {
+      if (!existingNames.has(p.name)) {
+        starters.push(p);
+        existingNames.add(p.name);
+        if (starters.length === 11) break;
+      }
+    }
+  }
+
+  const startersListEl = document.getElementById('actualStartersListEditor');
+  if (startersListEl) {
+    startersListEl.innerHTML = starters.slice(0, 11).map((s, idx) => {
+      const optionsHtml = squad.map(p => `
+        <option value="${p.name}" ${p.name.toLowerCase() === s.name.toLowerCase() ? 'selected' : ''}>
+          [${p.role}] ${p.name} (${p.team})
+        </option>
+      `).join('');
+
+      return `
+        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:6px 10px;">
+          <span style="font-weight:800; font-size:0.75rem; color:var(--text-muted); width:20px;">#${idx + 1}</span>
+          <span class="role-badge role-${s.role || 'C'}" style="font-size:0.7rem; padding:2px 6px;">${s.role || 'C'}</span>
+          <select class="search-input" data-starter-slot="${idx}" style="flex:1; padding:4px 8px; font-size:0.85rem;" onchange="handleStarterSlotChange(${idx}, this.value)">
+            ${optionsHtml}
+          </select>
+        </div>
+      `;
+    }).join('');
+  }
+
+  if (data.bench && data.bench.length > 0) {
+    renderBenchEditorList(data.bench);
+  } else {
+    // Request AI bench dynamically
+    fetch('/api/lineup/reorder-bench', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ starters: starters.slice(0, 11) })
+    })
+    .then(r => r.json())
+    .then(res => {
+      if (res.success && res.bench) {
+        renderBenchEditorList(res.bench);
+      }
+    })
+    .catch(() => {
+      const starterNames = new Set(starters.map(p => p.name));
+      renderBenchEditorList(squad.filter(p => !starterNames.has(p.name)));
+    });
   }
 }
 
@@ -3250,16 +3357,24 @@ async function handleStarterSlotChange(changedSlotIdx, newPlayerName) {
     }
   });
 
-  const currentStarters = new Set(Array.from(selectElements).map(s => s.value));
-  const benchListEl = document.getElementById('actualBenchListEditor');
-  if (benchListEl) {
-    const bench = squad.filter(p => !currentStarters.has(p.name));
-    benchListEl.innerHTML = bench.map(p => `
-      <span style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); color:var(--text-secondary); font-size:0.75rem; padding:3px 8px; border-radius:6px; display:inline-flex; align-items:center; gap:4px;">
-        <span class="role-badge role-${p.role}" style="font-size:0.6rem; padding:1px 4px;">${p.role}</span>
-        ${p.name}
-      </span>
-    `).join(' ');
+  // Reorder bench dynamically via AI
+  const currentStartersList = Array.from(selectElements).map(s => {
+    return squad.find(p => p.name === s.value) || { name: s.value };
+  });
+
+  try {
+    const res = await fetch('/api/lineup/reorder-bench', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ starters: currentStartersList })
+    });
+    const data = await res.json();
+    if (data.success && data.bench) {
+      renderBenchEditorList(data.bench);
+    }
+  } catch (e) {
+    const starterNames = new Set(Array.from(selectElements).map(s => s.value));
+    renderBenchEditorList(squad.filter(p => !starterNames.has(p.name)));
   }
 }
 
@@ -3279,14 +3394,13 @@ async function saveActualLineupFromModal() {
     return squad.find(p => p.name === name) || { name: name, role: 'C', team: '' };
   });
 
-  const starterNameSet = new Set(starterNames);
-  const bench = squad.filter(p => !starterNameSet.has(p.name));
+  const benchToSave = (currentModalBench && currentModalBench.length > 0) ? currentModalBench : [];
 
   const payload = {
     formation: formation,
     starters: starters,
-    bench: bench,
-    notes: `Formazione reale confermata (${formation})`
+    bench: benchToSave,
+    notes: `Formazione reale confermata (${formation}) con panchina ordinata dall'AI`
   };
 
   try {
