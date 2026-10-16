@@ -3194,48 +3194,6 @@ function closeActualLineupModal() {
   if (dialog) dialog.close();
 }
 
-function renderActualLineupEditor(data, squad) {
-  const modSelect = document.getElementById('actualLineupModuleSelect');
-  if (modSelect) modSelect.value = data.formation || '4-3-3';
-
-  const statusSource = document.getElementById('actualLineupStatusSource');
-  const statusNotes = document.getElementById('actualLineupStatusNotes');
-  if (statusSource) statusSource.innerText = `Fonte: ${data.source || 'Screenshot Leghe FC'}`;
-  if (statusNotes) statusNotes.innerText = data.notes || "Seleziona gli 11 titolari effettivi schierati in campo.";
-
-  let starters = data.starters ? [...data.starters] : [];
-  if (starters.length < 11) {
-    const existingNames = new Set(starters.map(p => p.name));
-    for (const p of squad) {
-      if (!existingNames.has(p.name)) {
-        starters.push(p);
-        existingNames.add(p.name);
-        if (starters.length === 11) break;
-      }
-    }
-  }
-
-  const startersListEl = document.getElementById('actualStartersListEditor');
-  if (startersListEl) {
-    startersListEl.innerHTML = starters.slice(0, 11).map((s, idx) => {
-      const optionsHtml = squad.map(p => `
-        <option value="${p.name}" ${p.name.toLowerCase() === s.name.toLowerCase() ? 'selected' : ''}>
-          [${p.role}] ${p.name} (${p.team})
-        </option>
-      `).join('');
-
-      return `
-        <div style="display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:6px 10px;">
-          <span style="font-weight:800; font-size:0.75rem; color:var(--text-muted); width:20px;">#${idx + 1}</span>
-          <span class="role-badge role-${s.role || 'C'}" style="font-size:0.7rem; padding:2px 6px;">${s.role || 'C'}</span>
-          <select class="search-input" data-starter-slot="${idx}" style="flex:1; padding:4px 8px; font-size:0.85rem;" onchange="handleStarterSlotChange(${idx}, this.value)">
-            ${optionsHtml}
-          </select>
-        </div>
-      `;
-    }).join('');
-  }
-
 let currentModalBench = [];
 
 function renderBenchEditorList(bench) {
