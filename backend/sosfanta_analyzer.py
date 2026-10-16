@@ -318,7 +318,7 @@ Analizza con estrema precisione il seguente articolo con i consigli di SOS Fanta
 ISTRUZIONI CRITICHE DI ANALISI E SEPARAZIONE CLAUSOLE:
 1. SEPARAZIONE DELLE CLAUSOLE NELLE FRASI MULTIPLE: Spesso i giornalisti mettono 2-3 calciatori nella stessa frase con verdetti opposti (es. "Il più affidabile è Mangas tra i difensori, ma anche Birindelli può dire la sua da quarto slot o come copertura" -> Mangas è il più affidabile e consigliato; Birindelli è solo copertura/quarto slot; oppure "Non troppa fiducia in Ehizibue e Marcandalli, leggermente meglio Ostigard e Vasquez" -> Ehizibue è sconsigliato, Vasquez è leggermente meglio/schierabile). NON attribuire mai il giudizio di un calciatore a un altro!
 2. "SCHIERARE ASSOLUTO": Chi viene indicato con espressioni come "si mette senza se e senza ma", "si mette e basta", "va schierato", "non si può togliere", "intoccabile", "top da schierare sempre" (es. Goncalo Ramos, Wesley, Raimondo).
-3. "PROMOSSO / CERTEZZA": Chi viene definito "più di una scommessa", "ispira", "più affidabile", "grande affidabilità", "promosso", "in forma", "ottima soluzione" (es. Kvernadze, Mangas, Taylor).
+3. "PROMOSSO / CERTEZZA": Chi viene definito "più di una scommessa", "ispira", "più affidabile", "grande affidabilità", "promosso", "in forma", "ottima soluzione", "da 6,5" (garanzia modificatore di difesa), "in fascia più da bonus" / "da bonus" (es. Kvernadze, Mangas, Taylor, Belghali, Ramon, Moreira).
 4. "MASSIMA PRUDENZA / PANCHINA / RISCHIO S.V.": Chi viene indicato come "al massimo andrà in panchina", "massima prudenza", "non si correranno rischi", "la riserva deve essere sicurissima" (es. Dybala). Questi calciatori sono ad alto rischio senza voto e NON devono essere schierati titolari senza riserva sicura!
 5. "SCHIERABILE / ALTERNATIVA": Chi è "leggermente meglio", "quarto slot", "terzo slot", "da sufficienza", "da 6", "buon voto", "ci può stare" (es. Vasquez, Gallo, Jimenez).
 6. "COPERTURA CON RISERVA": Indicato solo come rincalzo con riserva a copertura voto (es. Birindelli, Colpani con copertura).
@@ -360,10 +360,11 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
         """
         Splits a compound sentence into clauses and isolates the specific clause
         that directly refers to the given player alias, preventing sentiment
-        poisoning from adjacent players in the same sentence.
+        poisoning from adjacent players while preserving decimal grades (e.g. 6,5)
+        and lists of players sharing the same verdict.
         """
-        clause_delims = r'[,;:\n]|(?:\s+(?:ma|mentre|invece|tuttavia|però)\s+)'
-        clauses = [c.strip() for c in re.split(clause_delims, sentence, flags=re.I) if c.strip()]
+        contrast_regex = r'[;:\n]|(?:,\s*(?=(?:ma|mentre|invece|tuttavia|però|leggermente meglio|più da bonus|no a|non troppa fiducia|al massimo|occhio a|da 6|da 7)\b))|(?:\s+(?:ma|mentre|invece|tuttavia|però)\s+)'
+        clauses = [c.strip() for c in re.split(contrast_regex, sentence, flags=re.I) if c.strip()]
         for c in clauses:
             if re.search(rf'\b{re.escape(alias)}\b', c, re.I):
                 return c
@@ -496,14 +497,24 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
                 'bonus_score': 9.0
             }
 
-        # Rule C: PROMOSSO / CERTEZZA (e.g. Kvernadze: "più di una scommessa e ispira", Mangas: "il più affidabile")
+        # Rule C: PROMOSSO / CERTEZZA (e.g. Kvernadze: "più di una scommessa e ispira", Mangas: "il più affidabile", Belghali: "più da bonus", Ramon: "da 6,5")
         promoted_patterns = [
             'più di una scommessa', 'ormai è più di una scommessa', 'più affidabile', 
             'il più affidabile', 'grande affidabilità', 'ispira', 'ispirano', 'promosso', 
             'promossi', 'in forma', 'ottima soluzione', 'approvato', 'da confermare', 
-            'torna da schierare', 'semaforo verde', 'stuzzica', 'stuzzicano'
+            'torna da schierare', 'semaforo verde', 'stuzzica', 'stuzzicano',
+            'più da bonus', 'in fascia più da bonus', 'in fascia da bonus', 'giocatori da bonus',
+            'giocatore da bonus', 'da bonus', 'porta bonus', 'possono portare bonus', 'può portare bonus',
+            'da 6,5', 'da 6.5', 'da 7', 'da 7,5', 'da 7.5', 'comunque convince', 'convince',
+            'perfetto per il modificatore', 'da modificatore'
         ]
         if any(w in c_lower for w in promoted_patterns) or (not has_multiple_clauses and any(w in s_lower for w in promoted_patterns)):
+            if any(b in c_lower for b in ['da bonus', 'più da bonus', 'in fascia più da bonus', 'in fascia da bonus', 'giocatori da bonus']):
+                summary = f"Consigliato da SOS Fanta per la {matchday}ª giornata: elemento da bonus proiettato in avanti, ottimo potenziale da bonus (+3/+1) da schierare."
+            elif any(b in c_lower for b in ['da 6,5', 'da 6.5', 'da 7', 'convince', 'comunque convince', 'modificatore']):
+                summary = f"Promosso da SOS Fanta per la {matchday}ª giornata con rendimento atteso da 6,5: garanzia di ottimo voto e preziosissimo per il modificatore di difesa."
+            else:
+                summary = f"Promosso a pieni voti da SOS Fanta per la {matchday}ª giornata: grande affidabilità e momento di forma positivo nel reparto."
             return {
                 'mentioned': True,
                 'is_published': True,
@@ -514,7 +525,7 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
                 'icon': '✅',
                 'quote': found_sentence,
                 'clause': target_clause,
-                'summary': f"Promosso a pieni voti da SOS Fanta per la {matchday}ª giornata: grande affidabilità e momento di forma positivo nel reparto.",
+                'summary': summary,
                 'bonus_score': 7.0
             }
 
