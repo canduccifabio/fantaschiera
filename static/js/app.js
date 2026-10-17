@@ -27,6 +27,9 @@ function switchTab(tabName) {
   if (tabName === 'schiera') {
     loadLineupRecommendation();
   } else if (tabName === 'live') {
+    if (!currentLiveMatchday && currentLiveData && currentLiveData.current_matchday) {
+      currentLiveMatchday = currentLiveData.current_matchday;
+    }
     loadLiveVotes();
   } else if (tabName === 'rosa' || tabName === 'alert') {
     loadSquad();
@@ -784,7 +787,7 @@ function renderLiveView(data) {
     if (data.matchday < (data.current_matchday || 7)) {
       notice.innerHTML = `🏁 ${data.matchday}ª Giornata (Referti & Voti Ufficiali Fantacalcio)`;
     } else {
-      notice.innerHTML = `🟢 ${data.matchday}ª Giornata (In Arrivo • Live Match Center)`;
+      notice.innerHTML = `🟢 ${data.matchday}ª Giornata (${data.matchday_label || 'In Svolgimento • Live Match Center'})`;
     }
   }
 
@@ -803,13 +806,16 @@ function renderLiveView(data) {
   if (statusBadge) {
     if (summary.is_pre_match) {
       statusBadge.className = 'badge-status badge-warning';
-      statusBadge.innerText = '⏳ In attesa del 1° match (Ven 20:45)';
+      statusBadge.innerText = '⏳ In attesa del 1° match';
     } else if (summary.live_matches > 0 || summary.live_players > 0) {
       statusBadge.className = 'badge-status badge-danger';
       statusBadge.innerHTML = '<span class="live-dot" style="margin-right:4px;"></span> LIVE in Corso 🔴';
+    } else if (summary.completed_matches > 0 && summary.upcoming_matches > 0) {
+      statusBadge.className = 'badge-status badge-warning';
+      statusBadge.innerHTML = `⚡ In Svolgimento (${summary.completed_matches}/10 concluse)`;
     } else {
       statusBadge.className = 'badge-status badge-secondary';
-      statusBadge.innerText = '🏁 Partite Concluse';
+      statusBadge.innerText = '🏁 Tutte le Partite Concluse';
     }
   }
 
@@ -826,10 +832,12 @@ function renderLiveView(data) {
   if (scoreDisp) {
     if (summary.is_pre_match) {
       scoreDisp.innerHTML = `0.0 <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
+    } else if (summary.completed_starters > 0 && summary.live_starters > 0) {
+      scoreDisp.innerHTML = `${summary.total_live_score} <span style="font-size:0.85rem; color:var(--text-muted);">pt (${summary.completed_starters} a voto, ${summary.live_starters} in campo)</span>`;
     } else if (summary.completed_starters > 0) {
       scoreDisp.innerHTML = `${summary.total_live_score} <span style="font-size:0.85rem; color:var(--text-muted);">pt (${summary.completed_starters}/11 a voto)</span>`;
     } else if (summary.live_starters > 0) {
-      scoreDisp.innerHTML = `${summary.total_live_score} <span style="font-size:0.85rem; color:#ef4444; font-weight:700;">pt (${summary.live_starters} titolare in campo)</span>`;
+      scoreDisp.innerHTML = `${summary.total_live_score} <span style="font-size:0.85rem; color:#ef4444; font-weight:700;">pt (${summary.live_starters} in campo)</span>`;
     } else {
       scoreDisp.innerHTML = `0.0 <span style="font-size:0.85rem; color:var(--text-muted);">pt</span>`;
     }
@@ -1033,11 +1041,14 @@ function renderLivePlayerCards(data) {
       }).join(' ');
     }
 
-    // Substituted icon check (Jimenez A., Dybala, etc.)
-    const pNameLow = (p.name || '').toLowerCase();
-    if (pNameLow.includes('jimenez') || pNameLow.includes('dybala') || pNameLow.includes('kvernadze') || pNameLow.includes('ramos g')) {
+    // Dynamic substitution check from verified match events
+    if (p.is_sub_out && (p.match_status === 'IN CORSO' || p.match_status === 'TERMINATA')) {
       if (!eventsHtml.includes('⬇️')) {
         eventsHtml += ` <span class="event-badge-mini" title="Sostituito a gara in corso">⬇️ Sost.</span>`;
+      }
+    } else if (p.is_sub_in && (p.match_status === 'IN CORSO' || p.match_status === 'TERMINATA')) {
+      if (!eventsHtml.includes('⬆️')) {
+        eventsHtml += ` <span class="event-badge-mini" title="Subentrato a gara in corso">⬆️ Sub.</span>`;
       }
     }
 
@@ -1072,6 +1083,10 @@ function renderLivePlayerCards(data) {
     } else if (p.match_status === 'IN CORSO') {
       fvDisp = 'LIVE';
       fvClass = 'fv-live';
+    } else if (p.match_status === 'TERMINATA') {
+      baseDisp = 's.v.';
+      fvDisp = 's.v.';
+      fvClass = 'fv-none';
     } else {
       baseDisp = 'Exp';
       const expNum = (p.expected_fantavoto !== undefined && p.expected_fantavoto !== null) ? Number(p.expected_fantavoto) : null;
@@ -2019,6 +2034,15 @@ function openPlayerModal(player) {
         }
         if (baseGradeVal) baseGradeVal.innerText = 'In corso';
         if (bonusHtml) bonusHtml.innerHTML = `<span style="color:#f87171; font-size:0.8rem;">⚡ Gara in corso (${player.match_info || ''}): pagelle ufficiali Fantacalcio.it disponibili al termine del match</span>`;
+      } else if (player.match_status === 'TERMINATA') {
+        if (fvDisp) fvDisp.innerHTML = `s.v. <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">(Atteso: ${player.expected_fantavoto || 6.5})</span>`;
+        if (deltaDisp) {
+          deltaDisp.style.display = 'inline-block';
+          deltaDisp.innerText = `⚪ Senza Voto (s.v.)`;
+          deltaDisp.className = 'badge-status badge-secondary';
+        }
+        if (baseGradeVal) baseGradeVal.innerText = 's.v.';
+        if (bonusHtml) bonusHtml.innerText = "Gara conclusa. Calciatore non impiegato o senza voto ufficiale.";
       } else {
         if (fvDisp) fvDisp.innerHTML = `-.- <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">(Atteso: ${player.expected_fantavoto || 6.5})</span>`;
         if (deltaDisp) {

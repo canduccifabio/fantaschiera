@@ -1811,5 +1811,603 @@
       "team": "UDI",
       "desc": "Ammonizione (90')"
     }
+  ],
+  "FRO_SAS": [
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "9'",
+      "player_name": "Calò",
+      "team": "FRO",
+      "desc": "Gol (9')",
+      "assist_player": ""
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "9'",
+      "player_name": "Muric",
+      "team": "SAS",
+      "desc": "Gol subito (9')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "15'",
+      "player_name": "Palmisani",
+      "team": "FRO",
+      "desc": "Gol subito (15')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "15'",
+      "player_name": "Berardi",
+      "team": "SAS",
+      "desc": "Gol (15') • Assist: Bakola",
+      "assist_player": "Bakola"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "15'",
+      "player_name": "Bakola",
+      "team": "SAS",
+      "desc": "Assist per Berardi (15')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "27'",
+      "player_name": "Raimondo",
+      "team": "FRO",
+      "desc": "Gol (27') • Assist: Calò",
+      "assist_player": "Calò"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "27'",
+      "player_name": "Calò",
+      "team": "FRO",
+      "desc": "Assist per Raimondo (27')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "27'",
+      "player_name": "Muric",
+      "team": "SAS",
+      "desc": "Gol subito (27')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "30'",
+      "player_name": "Raimondo",
+      "team": "FRO",
+      "desc": "Gol (30')",
+      "assist_player": ""
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "30'",
+      "player_name": "Muric",
+      "team": "SAS",
+      "desc": "Gol subito (30')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "37'",
+      "player_name": "Palmisani",
+      "team": "FRO",
+      "desc": "Gol subito (37')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "37'",
+      "player_name": "Thorstvedt",
+      "team": "SAS",
+      "desc": "Gol (37') • Assist: Esposito Se.",
+      "assist_player": "Esposito Se."
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "37'",
+      "player_name": "Esposito Se.",
+      "team": "SAS",
+      "desc": "Assist per Thorstvedt (37')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "57'",
+      "player_name": "Raimondo",
+      "team": "FRO",
+      "desc": "Gol (57')",
+      "assist_player": ""
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "57'",
+      "player_name": "Muric",
+      "team": "SAS",
+      "desc": "Gol subito (57')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "58'",
+      "player_name": "Bowie",
+      "team": "SAS",
+      "player_out": "Thorstvedt",
+      "desc": "Entra al posto di Thorstvedt (58')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "68'",
+      "player_name": "Obrador",
+      "team": "SAS",
+      "player_out": "Doig",
+      "desc": "Entra al posto di Doig (68')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "68'",
+      "player_name": "Lipani",
+      "team": "SAS",
+      "player_out": "Matic",
+      "desc": "Entra al posto di Matic (68')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "68'",
+      "player_name": "Dominguez B.",
+      "team": "SAS",
+      "player_out": "Esposito Se.",
+      "desc": "Entra al posto di Esposito Se. (68')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "74'",
+      "player_name": "Omar Fayed",
+      "team": "FRO",
+      "player_out": "Monterisi",
+      "desc": "Entra al posto di Monterisi (74')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "74'",
+      "player_name": "Zerbin",
+      "team": "FRO",
+      "player_out": "Kvernadze",
+      "desc": "Entra al posto di Kvernadze (74')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "80'",
+      "player_name": "Amey",
+      "team": "FRO",
+      "player_out": "Oyono A.",
+      "desc": "Entra al posto di Oyono A. (80')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "80'",
+      "player_name": "Cichella",
+      "team": "FRO",
+      "player_out": "Calò",
+      "desc": "Entra al posto di Calò (80')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "83'",
+      "player_name": "Bowie",
+      "team": "SAS",
+      "desc": "Ammonizione (83')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "83'",
+      "player_name": "Volpato",
+      "team": "SAS",
+      "player_out": "Laurientè",
+      "desc": "Entra al posto di Laurientè (83')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "90'",
+      "player_name": "Birligea",
+      "team": "FRO",
+      "player_out": "Raimondo",
+      "desc": "Entra al posto di Raimondo (90')"
+    }
+  ],
+  "VEN_NAP": [
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "49'",
+      "player_name": "Adams A.",
+      "team": "VEN",
+      "desc": "Gol (49') • Assist: Sohm",
+      "assist_player": "Sohm"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "49'",
+      "player_name": "Sohm",
+      "team": "VEN",
+      "desc": "Assist per Adams A. (49')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "49'",
+      "player_name": "Meret",
+      "team": "NAP",
+      "desc": "Gol subito (49')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "54'",
+      "player_name": "De Bruyne",
+      "team": "NAP",
+      "player_out": "Gilmour",
+      "desc": "Entra al posto di Gilmour (54')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "54'",
+      "player_name": "Santos A.",
+      "team": "NAP",
+      "player_out": "Giovane",
+      "desc": "Entra al posto di Giovane (54')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "54'",
+      "player_name": "Hojlund",
+      "team": "NAP",
+      "player_out": "Lucca",
+      "desc": "Entra al posto di Lucca (54')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "61'",
+      "player_name": "Basic",
+      "team": "VEN",
+      "desc": "Ammonizione (61')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "63'",
+      "player_name": "Rrahmani Al.",
+      "team": "VEN",
+      "player_out": "Yeboah J.",
+      "desc": "Entra al posto di Yeboah J. (63')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "63'",
+      "player_name": "Politano",
+      "team": "NAP",
+      "player_out": "Beukema",
+      "desc": "Entra al posto di Beukema (63')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "71'",
+      "player_name": "Schingtienne",
+      "team": "VEN",
+      "player_out": "Moreno M.",
+      "desc": "Entra al posto di Moreno M. (71')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "71'",
+      "player_name": "Helgason",
+      "team": "VEN",
+      "player_out": "Basic",
+      "desc": "Entra al posto di Basic (71')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "71'",
+      "player_name": "Mazzocchi",
+      "team": "VEN",
+      "player_out": "Haps",
+      "desc": "Entra al posto di Haps (71')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "80'",
+      "player_name": "Perez K.",
+      "team": "VEN",
+      "desc": "Ammonizione (80')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "82'",
+      "player_name": "Fanne",
+      "team": "VEN",
+      "player_out": "Sohm",
+      "desc": "Entra al posto di Sohm (82')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "82'",
+      "player_name": "Olivera",
+      "team": "NAP",
+      "player_out": "Spinazzola",
+      "desc": "Entra al posto di Spinazzola (82')"
+    }
+  ],
+  "BOL_INT": [
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "10'",
+      "player_name": "Pobega",
+      "team": "BOL",
+      "desc": "Gol (10') • Assist: Miranda J.",
+      "assist_player": "Miranda J."
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "10'",
+      "player_name": "Miranda J.",
+      "team": "BOL",
+      "desc": "Assist per Pobega (10')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "10'",
+      "player_name": "Martinez Jo.",
+      "team": "INT",
+      "desc": "Gol subito (10')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "30'",
+      "player_name": "Enem",
+      "team": "BOL",
+      "player_out": "Piccoli",
+      "desc": "Entra al posto di Piccoli (30')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "34'",
+      "player_name": "Theate",
+      "team": "BOL",
+      "desc": "Ammonizione (34')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "36'",
+      "player_name": "Esposito F.P.",
+      "team": "INT",
+      "desc": "Ammonizione (36')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "44'",
+      "player_name": "Skorupski",
+      "team": "BOL",
+      "desc": "Gol subito (44')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "44'",
+      "player_name": "Thuram",
+      "team": "INT",
+      "desc": "Gol (44') • Assist: Barella",
+      "assist_player": "Barella"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "44'",
+      "player_name": "Barella",
+      "team": "INT",
+      "desc": "Assist per Thuram (44')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "57'",
+      "player_name": "Pobega",
+      "team": "BOL",
+      "desc": "Ammonizione (57')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "58'",
+      "player_name": "Bonny",
+      "team": "INT",
+      "player_out": "Esposito F.P.",
+      "desc": "Entra al posto di Esposito F.P. (58')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "61'",
+      "player_name": "Thuram",
+      "team": "INT",
+      "desc": "Ammonizione (61')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "63'",
+      "player_name": "Helland",
+      "team": "BOL",
+      "player_out": "Theate",
+      "desc": "Entra al posto di Theate (63')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "69'",
+      "player_name": "Skorupski",
+      "team": "BOL",
+      "desc": "Gol subito (69')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "69'",
+      "player_name": "Diouf",
+      "team": "INT",
+      "player_out": "Luis Henrique",
+      "desc": "Entra al posto di Luis Henrique (69')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "69'",
+      "player_name": "Carlos Augusto",
+      "team": "INT",
+      "player_out": "Dimarco",
+      "desc": "Entra al posto di Dimarco (69')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "69'",
+      "player_name": "Carlos Augusto",
+      "team": "INT",
+      "desc": "Gol (69') • Assist: Zielinski",
+      "assist_player": "Zielinski"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "69'",
+      "player_name": "Zielinski",
+      "team": "INT",
+      "desc": "Assist per Carlos Augusto (69')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "71'",
+      "player_name": "Miranda J.",
+      "team": "BOL",
+      "desc": "Ammonizione (71')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "72'",
+      "player_name": "Bernardeschi",
+      "team": "BOL",
+      "desc": "Ammonizione (72')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "76'",
+      "player_name": "Moro N.",
+      "team": "BOL",
+      "player_out": "Pobega",
+      "desc": "Entra al posto di Pobega (76')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "76'",
+      "player_name": "Dovbyk",
+      "team": "BOL",
+      "player_out": "Cambiaghi",
+      "desc": "Entra al posto di Cambiaghi (76')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "79'",
+      "player_name": "Calhanoglu",
+      "team": "INT",
+      "player_out": "Zielinski",
+      "desc": "Entra al posto di Zielinski (79')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "79'",
+      "player_name": "Carlos Augusto",
+      "team": "INT",
+      "desc": "Ammonizione (79')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "79'",
+      "player_name": "Mkhitaryan",
+      "team": "INT",
+      "player_out": "Thuram",
+      "desc": "Entra al posto di Thuram (79')"
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "84'",
+      "player_name": "Skorupski",
+      "team": "BOL",
+      "desc": "Gol subito (84')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "84'",
+      "player_name": "Bonny",
+      "team": "INT",
+      "desc": "Gol (84') • Assist: Carlos Augusto",
+      "assist_player": "Carlos Augusto"
+    },
+    {
+      "type": "assist",
+      "icon": "👟",
+      "minute": "84'",
+      "player_name": "Carlos Augusto",
+      "team": "INT",
+      "desc": "Assist per Bonny (84')"
+    }
   ]
 }

@@ -18,7 +18,7 @@
       "home_lineup": [
         "Palmisani",
         "Oyono A.",
-        "Calvani",
+        "Cittadini",
         "Monterisi",
         "Bracaglia",
         "Calò",
@@ -30,13 +30,13 @@
       ],
       "away_lineup": [
         "Muric",
-        "Cinquegrano",
+        "Van Der Brempt",
         "Caleta-Car",
         "Odenthal",
         "Doig",
         "Thorstvedt",
         "Matic",
-        "Adzic",
+        "Bakola",
         "Berardi",
         "Esposito Se.",
         "Laurientè"
@@ -44,67 +44,67 @@
       "player_percentages": {
         "palmisani": {
           "name": "Palmisani",
-          "percentage": 90,
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
         "oyono a.": {
           "name": "Oyono A.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
-        "calvani": {
-          "name": "Calvani",
-          "percentage": 90,
+        "cittadini": {
+          "name": "Cittadini",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "monterisi": {
           "name": "Monterisi",
-          "percentage": 60,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "bracaglia": {
           "name": "Bracaglia",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "calò": {
           "name": "Calò",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "masini": {
           "name": "Masini",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "ghedjemis": {
           "name": "Ghedjemis",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "schmid": {
           "name": "Schmid",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "kvernadze": {
           "name": "Kvernadze",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "raimondo": {
           "name": "Raimondo",
-          "percentage": 80,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -120,8 +120,8 @@
           "role": "P",
           "is_starter": false
         },
-        "cittadini": {
-          "name": "Cittadini",
+        "calvani": {
+          "name": "Calvani",
           "percentage": 55,
           "role": "D",
           "is_starter": false
@@ -200,67 +200,67 @@
         },
         "muric": {
           "name": "Muric",
-          "percentage": 90,
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
-        "cinquegrano": {
-          "name": "Cinquegrano",
-          "percentage": 60,
+        "van der brempt": {
+          "name": "Van Der Brempt",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "caleta-car": {
           "name": "Caleta-Car",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "odenthal": {
           "name": "Odenthal",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "doig": {
           "name": "Doig",
-          "percentage": 80,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "thorstvedt": {
           "name": "Thorstvedt",
-          "percentage": 70,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "matic": {
           "name": "Matic",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
-        "adzic": {
-          "name": "Adzic",
-          "percentage": 55,
+        "bakola": {
+          "name": "Bakola",
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "berardi": {
           "name": "Berardi",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "esposito se.": {
           "name": "Esposito Se.",
-          "percentage": 65,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "laurientè": {
           "name": "Laurientè",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -276,8 +276,8 @@
           "role": "P",
           "is_starter": false
         },
-        "van der brempt": {
-          "name": "Van Der Brempt",
+        "cinquegrano": {
+          "name": "Cinquegrano",
           "percentage": 60,
           "role": "D",
           "is_starter": false
@@ -288,21 +288,21 @@
           "role": "D",
           "is_starter": false
         },
-        "walukiewicz": {
-          "name": "Walukiewicz",
-          "percentage": 30,
-          "role": "D",
-          "is_starter": false
-        },
         "candè": {
           "name": "Candè",
           "percentage": 35,
           "role": "D",
           "is_starter": false
         },
-        "bakola": {
-          "name": "Bakola",
-          "percentage": 60,
+        "walukiewicz": {
+          "name": "Walukiewicz",
+          "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "adzic": {
+          "name": "Adzic",
+          "percentage": 55,
           "role": "C",
           "is_starter": false
         },
@@ -349,12 +349,7 @@
           "is_starter": false
         }
       },
-      "ballottaggi": [
-        "Monterisi 60% Cittadini 40%",
-        "Cinquegrano 60% Van Der Brempt 40%",
-        "Adzic 55% Bakola 45%",
-        "Esposito Se. 65% Bowie 35%"
-      ]
+      "ballottaggi": []
     },
     {
       "id": 2,
@@ -369,7 +364,7 @@
       "away_formation": "3421",
       "home_lineup": [
         "Stankovic F.",
-        "Schingtienne",
+        "Moreno M.",
         "Juan Jesus",
         "Halhal",
         "Hainaut",
@@ -382,81 +377,81 @@
       ],
       "away_lineup": [
         "Meret",
-        "Di Lorenzo",
+        "Beukema",
         "Rrahmani",
-        "Marin R.",
-        "Politano",
+        "Badiashile",
+        "Di Lorenzo",
         "Gilmour",
         "Lobotka",
         "Spinazzola",
         "McTominay",
-        "Lang",
+        "Giovane",
         "Lucca"
       ],
       "player_percentages": {
         "stankovic f.": {
           "name": "Stankovic F.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
-        "schingtienne": {
-          "name": "Schingtienne",
-          "percentage": 60,
+        "moreno m.": {
+          "name": "Moreno M.",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "juan jesus": {
           "name": "Juan Jesus",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "halhal": {
           "name": "Halhal",
-          "percentage": 65,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "hainaut": {
           "name": "Hainaut",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "perez k.": {
           "name": "Perez K.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "sohm": {
           "name": "Sohm",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "basic": {
           "name": "Basic",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "haps": {
           "name": "Haps",
-          "percentage": 55,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "yeboah j.": {
           "name": "Yeboah J.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "adams a.": {
           "name": "Adams A.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -472,9 +467,9 @@
           "role": "P",
           "is_starter": false
         },
-        "moreno m.": {
-          "name": "Moreno M.",
-          "percentage": 55,
+        "schingtienne": {
+          "name": "Schingtienne",
+          "percentage": 60,
           "role": "D",
           "is_starter": false
         },
@@ -493,12 +488,6 @@
         "mazzocchi": {
           "name": "Mazzocchi",
           "percentage": 35,
-          "role": "D",
-          "is_starter": false
-        },
-        "bella-kotchap": {
-          "name": "Bella-Kotchap",
-          "percentage": 20,
           "role": "D",
           "is_starter": false
         },
@@ -552,67 +541,67 @@
         },
         "meret": {
           "name": "Meret",
-          "percentage": 90,
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
-        "di lorenzo": {
-          "name": "Di Lorenzo",
-          "percentage": 60,
+        "beukema": {
+          "name": "Beukema",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "rrahmani": {
           "name": "Rrahmani",
-          "percentage": 80,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
-        "marin r.": {
-          "name": "Marin R.",
-          "percentage": 55,
+        "badiashile": {
+          "name": "Badiashile",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
-        "politano": {
-          "name": "Politano",
-          "percentage": 90,
-          "role": "C",
+        "di lorenzo": {
+          "name": "Di Lorenzo",
+          "percentage": 100,
+          "role": "D",
           "is_starter": true
         },
         "gilmour": {
           "name": "Gilmour",
-          "percentage": 80,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "lobotka": {
           "name": "Lobotka",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "spinazzola": {
           "name": "Spinazzola",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "mctominay": {
           "name": "McTominay",
-          "percentage": 80,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
-        "lang": {
-          "name": "Lang",
-          "percentage": 80,
+        "giovane": {
+          "name": "Giovane",
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "lucca": {
           "name": "Lucca",
-          "percentage": 60,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -628,28 +617,28 @@
           "role": "P",
           "is_starter": false
         },
-        "beukema": {
-          "name": "Beukema",
-          "percentage": 40,
-          "role": "D",
-          "is_starter": false
-        },
         "marianucci": {
           "name": "Marianucci",
-          "percentage": 35,
+          "percentage": 30,
           "role": "D",
           "is_starter": false
         },
-        "badiashile": {
-          "name": "Badiashile",
-          "percentage": 50,
+        "marin r.": {
+          "name": "Marin R.",
+          "percentage": 35,
           "role": "D",
           "is_starter": false
         },
         "olivera": {
           "name": "Olivera",
-          "percentage": 50,
+          "percentage": 40,
           "role": "D",
+          "is_starter": false
+        },
+        "politano": {
+          "name": "Politano",
+          "percentage": 60,
+          "role": "C",
           "is_starter": false
         },
         "de bruyne": {
@@ -660,19 +649,19 @@
         },
         "zambo anguissa": {
           "name": "Zambo Anguissa",
-          "percentage": 55,
+          "percentage": 50,
           "role": "C",
           "is_starter": false
         },
-        "giovane": {
-          "name": "Giovane",
-          "percentage": 35,
+        "lang": {
+          "name": "Lang",
+          "percentage": 60,
           "role": "A",
           "is_starter": false
         },
         "santos a.": {
           "name": "Santos A.",
-          "percentage": 60,
+          "percentage": 55,
           "role": "A",
           "is_starter": false
         },
@@ -683,14 +672,7 @@
           "is_starter": false
         }
       },
-      "ballottaggi": [
-        "Schingtienne 60% Moreno M. 40%",
-        "Halhal 65% Bella-Kotchap 35%",
-        "Haps 55% Sagrado 45%",
-        "Di Lorenzo 60% Beukema 40%",
-        "Marin R. 55% Badiashile 45%",
-        "Lucca 60% Hojlund 40%"
-      ]
+      "ballottaggi": []
     },
     {
       "id": 3,
@@ -704,9 +686,9 @@
       "home_formation": "3421",
       "away_formation": "352",
       "home_lineup": [
-        "Pessina Mas.",
+        "Skorupski",
         "Darmian",
-        "Heggem",
+        "Casale",
         "Theate",
         "Zortea",
         "Pobega",
@@ -723,82 +705,82 @@
         "Bastoni",
         "Luis Henrique",
         "Barella",
-        "Calhanoglu",
         "Zielinski",
+        "Sucic P.",
         "Dimarco",
         "Esposito F.P.",
         "Thuram"
       ],
       "player_percentages": {
-        "pessina mas.": {
-          "name": "Pessina Mas.",
-          "percentage": 60,
+        "skorupski": {
+          "name": "Skorupski",
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
         "darmian": {
           "name": "Darmian",
-          "percentage": 85,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
-        "heggem": {
-          "name": "Heggem",
-          "percentage": 55,
+        "casale": {
+          "name": "Casale",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "theate": {
           "name": "Theate",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "zortea": {
           "name": "Zortea",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "pobega": {
           "name": "Pobega",
-          "percentage": 60,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "ferguson": {
           "name": "Ferguson",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "miranda j.": {
           "name": "Miranda J.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "bernardeschi": {
           "name": "Bernardeschi",
-          "percentage": 85,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "cambiaghi": {
           "name": "Cambiaghi",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "piccoli": {
           "name": "Piccoli",
-          "percentage": 80,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
-        "skorupski": {
-          "name": "Skorupski",
-          "percentage": 40,
+        "pessina mas.": {
+          "name": "Pessina Mas.",
+          "percentage": 5,
           "role": "P",
           "is_starter": false
         },
@@ -820,6 +802,12 @@
           "role": "D",
           "is_starter": false
         },
+        "heggem": {
+          "name": "Heggem",
+          "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
         "vitik": {
           "name": "Vitik",
           "percentage": 35,
@@ -829,12 +817,6 @@
         "de silvestri": {
           "name": "De Silvestri",
           "percentage": 30,
-          "role": "D",
-          "is_starter": false
-        },
-        "casale": {
-          "name": "Casale",
-          "percentage": 60,
           "role": "D",
           "is_starter": false
         },
@@ -888,67 +870,67 @@
         },
         "martinez jo.": {
           "name": "Martinez Jo.",
-          "percentage": 75,
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
         "bisseck": {
           "name": "Bisseck",
-          "percentage": 80,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "akanji": {
           "name": "Akanji",
-          "percentage": 80,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "bastoni": {
           "name": "Bastoni",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "luis henrique": {
           "name": "Luis Henrique",
-          "percentage": 75,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "barella": {
           "name": "Barella",
-          "percentage": 90,
-          "role": "C",
-          "is_starter": true
-        },
-        "calhanoglu": {
-          "name": "Calhanoglu",
-          "percentage": 55,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "zielinski": {
           "name": "Zielinski",
-          "percentage": 80,
+          "percentage": 100,
+          "role": "C",
+          "is_starter": true
+        },
+        "sucic p.": {
+          "name": "Sucic P.",
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "dimarco": {
           "name": "Dimarco",
-          "percentage": 60,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "esposito f.p.": {
           "name": "Esposito F.P.",
-          "percentage": 80,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "thuram": {
           "name": "Thuram",
-          "percentage": 60,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -966,7 +948,7 @@
         },
         "carlos augusto": {
           "name": "Carlos Augusto",
-          "percentage": 55,
+          "percentage": 60,
           "role": "D",
           "is_starter": false
         },
@@ -988,9 +970,9 @@
           "role": "D",
           "is_starter": false
         },
-        "sucic p.": {
-          "name": "Sucic P.",
-          "percentage": 60,
+        "calhanoglu": {
+          "name": "Calhanoglu",
+          "percentage": 55,
           "role": "C",
           "is_starter": false
         },
@@ -1013,14 +995,7 @@
           "is_starter": false
         }
       },
-      "ballottaggi": [
-        "Pessina Mas. 60% Skorupski 40%",
-        "Heggem 55% Casale 45%",
-        "Pobega 60% El Azzouzi O. 40%",
-        "Dimarco 60% Carlos Augusto 40%",
-        "Calhanoglu 55% Sucic P. 45%",
-        "Thuram 60% Bonny 40%"
-      ]
+      "ballottaggi": []
     },
     {
       "id": 4,
@@ -1035,13 +1010,13 @@
       "away_formation": "3421",
       "home_lineup": [
         "Gollini",
-        "Mancini",
-        "N'Dicka",
         "Balerdi",
+        "N'Dicka",
+        "Koulierakis",
         "Lulli",
         "De Roon",
         "Pisilli",
-        "Wesley",
+        "Rensch",
         "Soulè",
         "Mora",
         "Castro S."
@@ -1051,10 +1026,10 @@
         "Marcandalli",
         "Ostigard",
         "Vasquez",
-        "Ehizibue",
-        "Frendrup",
-        "Traorè Hj.",
         "Ellertsson",
+        "Frendrup",
+        "Wiafe",
+        "Puczka",
         "Messias",
         "El Shaarawy",
         "Osmajic"
@@ -1062,67 +1037,67 @@
       "player_percentages": {
         "gollini": {
           "name": "Gollini",
-          "percentage": 90,
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
-        "mancini": {
-          "name": "Mancini",
-          "percentage": 60,
+        "balerdi": {
+          "name": "Balerdi",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "n'dicka": {
           "name": "N'Dicka",
-          "percentage": 75,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
-        "balerdi": {
-          "name": "Balerdi",
-          "percentage": 80,
+        "koulierakis": {
+          "name": "Koulierakis",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "lulli": {
           "name": "Lulli",
-          "percentage": 60,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "de roon": {
           "name": "De Roon",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "pisilli": {
           "name": "Pisilli",
-          "percentage": 85,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
-        "wesley": {
-          "name": "Wesley",
-          "percentage": 70,
+        "rensch": {
+          "name": "Rensch",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "soulè": {
           "name": "Soulè",
-          "percentage": 60,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "mora": {
           "name": "Mora",
-          "percentage": 85,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "castro s.": {
           "name": "Castro S.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -1138,15 +1113,15 @@
           "role": "P",
           "is_starter": false
         },
-        "hermoso": {
-          "name": "Hermoso",
-          "percentage": 55,
+        "mancini": {
+          "name": "Mancini",
+          "percentage": 60,
           "role": "D",
           "is_starter": false
         },
-        "koulierakis": {
-          "name": "Koulierakis",
-          "percentage": 50,
+        "hermoso": {
+          "name": "Hermoso",
+          "percentage": 55,
           "role": "D",
           "is_starter": false
         },
@@ -1156,8 +1131,8 @@
           "role": "D",
           "is_starter": false
         },
-        "rensch": {
-          "name": "Rensch",
+        "wesley": {
+          "name": "Wesley",
           "percentage": 60,
           "role": "D",
           "is_starter": false
@@ -1174,69 +1149,75 @@
           "role": "C",
           "is_starter": false
         },
+        "arena a.": {
+          "name": "Arena A.",
+          "percentage": 25,
+          "role": "A",
+          "is_starter": false
+        },
         "bijlow": {
           "name": "Bijlow",
-          "percentage": 90,
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
         "marcandalli": {
           "name": "Marcandalli",
-          "percentage": 55,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "ostigard": {
           "name": "Ostigard",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "vasquez": {
           "name": "Vasquez",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
-          "is_starter": true
-        },
-        "ehizibue": {
-          "name": "Ehizibue",
-          "percentage": 85,
-          "role": "D",
-          "is_starter": true
-        },
-        "frendrup": {
-          "name": "Frendrup",
-          "percentage": 90,
-          "role": "C",
-          "is_starter": true
-        },
-        "traorè hj.": {
-          "name": "Traorè Hj.",
-          "percentage": 80,
-          "role": "C",
           "is_starter": true
         },
         "ellertsson": {
           "name": "Ellertsson",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
+          "is_starter": true
+        },
+        "frendrup": {
+          "name": "Frendrup",
+          "percentage": 100,
+          "role": "C",
+          "is_starter": true
+        },
+        "wiafe": {
+          "name": "Wiafe",
+          "percentage": 100,
+          "role": "C",
+          "is_starter": true
+        },
+        "puczka": {
+          "name": "Puczka",
+          "percentage": 100,
+          "role": "D",
           "is_starter": true
         },
         "messias": {
           "name": "Messias",
-          "percentage": 60,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "el shaarawy": {
           "name": "El Shaarawy",
-          "percentage": 55,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "osmajic": {
           "name": "Osmajic",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -1264,15 +1245,15 @@
           "role": "D",
           "is_starter": false
         },
-        "puczka": {
-          "name": "Puczka",
-          "percentage": 35,
+        "ehizibue": {
+          "name": "Ehizibue",
+          "percentage": 55,
           "role": "D",
           "is_starter": false
         },
         "sabelli": {
           "name": "Sabelli",
-          "percentage": 55,
+          "percentage": 40,
           "role": "D",
           "is_starter": false
         },
@@ -1280,6 +1261,12 @@
           "name": "Drameh",
           "percentage": 30,
           "role": "D",
+          "is_starter": false
+        },
+        "traorè hj.": {
+          "name": "Traorè Hj.",
+          "percentage": 60,
+          "role": "C",
           "is_starter": false
         },
         "baldanzi": {
@@ -1291,12 +1278,6 @@
         "amorim": {
           "name": "Amorim",
           "percentage": 40,
-          "role": "C",
-          "is_starter": false
-        },
-        "wiafe": {
-          "name": "Wiafe",
-          "percentage": 60,
           "role": "C",
           "is_starter": false
         },
@@ -1313,14 +1294,7 @@
           "is_starter": false
         }
       },
-      "ballottaggi": [
-        "Mancini 60% Hermoso 40%",
-        "Lulli 60% Molina N. 40%",
-        "Soulè 60% Pellegrini Lo. 40%",
-        "Marcandalli 55% Otoa 45%",
-        "Messias 60% Baldanzi 40%",
-        "El Shaarawy 55% Vitinha O. 45%"
-      ]
+      "ballottaggi": []
     },
     {
       "id": 5,
@@ -1380,7 +1354,7 @@
         },
         "ebosse": {
           "name": "Ebosse",
-          "percentage": 60,
+          "percentage": 55,
           "role": "D",
           "is_starter": true
         },
@@ -1422,7 +1396,7 @@
         },
         "davis k.": {
           "name": "Davis K.",
-          "percentage": 75,
+          "percentage": 90,
           "role": "A",
           "is_starter": true
         },
@@ -1441,6 +1415,12 @@
         "alaba": {
           "name": "Alaba",
           "percentage": 55,
+          "role": "D",
+          "is_starter": false
+        },
+        "abankwah": {
+          "name": "Abankwah",
+          "percentage": 20,
           "role": "D",
           "is_starter": false
         },
@@ -1644,7 +1624,7 @@
         }
       },
       "ballottaggi": [
-        "Ebosse 60% Alaba 40%",
+        "Ebosse 55% Alaba 45%",
         "Miller L. 55% Zarraga 45%",
         "Chakvetadze 55% Unai Gomez 45%",
         "Geubbels 60% Esteban 40%"
@@ -1671,8 +1651,8 @@
         "Fagioli",
         "Oulai",
         "Mastantuono",
-        "Gnonto",
-        "Beto"
+        "Njie",
+        "Pellegrino M."
       ],
       "away_lineup": [
         "Butez",
@@ -1696,7 +1676,7 @@
         },
         "jimenez a.": {
           "name": "Jimenez A.",
-          "percentage": 85,
+          "percentage": 90,
           "role": "D",
           "is_starter": true
         },
@@ -1714,7 +1694,7 @@
         },
         "valdepenas": {
           "name": "Valdepenas",
-          "percentage": 80,
+          "percentage": 70,
           "role": "D",
           "is_starter": true
         },
@@ -1732,24 +1712,24 @@
         },
         "oulai": {
           "name": "Oulai",
-          "percentage": 80,
+          "percentage": 70,
           "role": "C",
           "is_starter": true
         },
         "mastantuono": {
           "name": "Mastantuono",
-          "percentage": 70,
+          "percentage": 80,
           "role": "C",
           "is_starter": true
         },
-        "gnonto": {
-          "name": "Gnonto",
+        "njie": {
+          "name": "Njie",
           "percentage": 55,
-          "role": "A",
+          "role": "C",
           "is_starter": true
         },
-        "beto": {
-          "name": "Beto",
+        "pellegrino m.": {
+          "name": "Pellegrino M.",
           "percentage": 55,
           "role": "A",
           "is_starter": true
@@ -1802,14 +1782,14 @@
           "role": "C",
           "is_starter": false
         },
-        "njie": {
-          "name": "Njie",
+        "gnonto": {
+          "name": "Gnonto",
           "percentage": 60,
-          "role": "C",
+          "role": "A",
           "is_starter": false
         },
-        "pellegrino m.": {
-          "name": "Pellegrino M.",
+        "beto": {
+          "name": "Beto",
           "percentage": 60,
           "role": "A",
           "is_starter": false
@@ -1967,8 +1947,8 @@
       },
       "ballottaggi": [
         "Viery 55% Pongracic 45%",
-        "Gnonto 55% Njie 45%",
-        "Beto 55% Pellegrino M. 45%",
+        "Njie 55% Gnonto 45%",
+        "Pellegrino M. 55% Beto 45%",
         "Chalobah T. 55% Kempf 45%",
         "Da Cunha 60% Perrone 40%"
       ]
@@ -2006,7 +1986,7 @@
         "Ederson D.S.",
         "Gaetano",
         "De Ketelaere",
-        "Samardzic",
+        "Pasalic",
         "Rowe",
         "Krstovic"
       ],
@@ -2203,8 +2183,8 @@
           "role": "A",
           "is_starter": true
         },
-        "samardzic": {
-          "name": "Samardzic",
+        "pasalic": {
+          "name": "Pasalic",
           "percentage": 55,
           "role": "C",
           "is_starter": true
@@ -2229,7 +2209,7 @@
         },
         "zappacosta": {
           "name": "Zappacosta",
-          "percentage": 55,
+          "percentage": 60,
           "role": "D",
           "is_starter": false
         },
@@ -2239,15 +2219,15 @@
           "role": "D",
           "is_starter": false
         },
-        "pasalic": {
-          "name": "Pasalic",
-          "percentage": 55,
+        "samardzic": {
+          "name": "Samardzic",
+          "percentage": 60,
           "role": "C",
           "is_starter": false
         },
         "zalewski": {
           "name": "Zalewski",
-          "percentage": 55,
+          "percentage": 60,
           "role": "C",
           "is_starter": false
         },
@@ -2260,7 +2240,7 @@
       },
       "ballottaggi": [
         "Bernasconi 55% Zappacosta 45%",
-        "Samardzic 55% Pasalic 45%"
+        "Pasalic 55% Samardzic 45%"
       ]
     },
     {
@@ -2272,25 +2252,25 @@
       "date_str": "domenica 18 ottobre, 20:45",
       "datetime_iso": "2026-10-18T20:45:00",
       "stadium": "Allianz Stadium",
-      "home_formation": "4231",
+      "home_formation": "3421",
       "away_formation": "433",
       "home_lineup": [
         "Vicario",
         "Kalulu",
         "Bremer",
         "Lucumì",
-        "Celik",
+        "McKennie",
         "Douglas Luiz",
         "Sarr P.",
-        "Zhegrova",
-        "McKennie",
+        "Celik",
+        "Woltemade",
         "Gonzalez N.",
         "Kolo Muani"
       ],
       "away_lineup": [
         "Mandas",
         "Floriani Mussolini",
-        "Doekhi",
+        "Sutalo J.",
         "Provstgaard",
         "Tavares N.",
         "Frattesi",
@@ -2325,10 +2305,10 @@
           "role": "D",
           "is_starter": true
         },
-        "celik": {
-          "name": "Celik",
+        "mckennie": {
+          "name": "McKennie",
           "percentage": 60,
-          "role": "D",
+          "role": "C",
           "is_starter": true
         },
         "douglas luiz": {
@@ -2343,16 +2323,16 @@
           "role": "C",
           "is_starter": true
         },
-        "zhegrova": {
-          "name": "Zhegrova",
-          "percentage": 55,
-          "role": "C",
+        "celik": {
+          "name": "Celik",
+          "percentage": 60,
+          "role": "D",
           "is_starter": true
         },
-        "mckennie": {
-          "name": "McKennie",
+        "woltemade": {
+          "name": "Woltemade",
           "percentage": 60,
-          "role": "C",
+          "role": "A",
           "is_starter": true
         },
         "gonzalez n.": {
@@ -2409,6 +2389,18 @@
           "role": "D",
           "is_starter": false
         },
+        "koopmeiners": {
+          "name": "Koopmeiners",
+          "percentage": 50,
+          "role": "C",
+          "is_starter": false
+        },
+        "zhegrova": {
+          "name": "Zhegrova",
+          "percentage": 60,
+          "role": "C",
+          "is_starter": false
+        },
         "conceicao": {
           "name": "Conceicao",
           "percentage": 55,
@@ -2421,21 +2413,9 @@
           "role": "C",
           "is_starter": false
         },
-        "koopmeiners": {
-          "name": "Koopmeiners",
-          "percentage": 50,
-          "role": "C",
-          "is_starter": false
-        },
         "boga": {
           "name": "Boga",
-          "percentage": 15,
-          "role": "A",
-          "is_starter": false
-        },
-        "woltemade": {
-          "name": "Woltemade",
-          "percentage": 60,
+          "percentage": 40,
           "role": "A",
           "is_starter": false
         },
@@ -2451,8 +2431,8 @@
           "role": "D",
           "is_starter": true
         },
-        "doekhi": {
-          "name": "Doekhi",
+        "sutalo j.": {
+          "name": "Sutalo J.",
           "percentage": 55,
           "role": "D",
           "is_starter": true
@@ -2495,7 +2475,7 @@
         },
         "noslin": {
           "name": "Noslin",
-          "percentage": 55,
+          "percentage": 60,
           "role": "A",
           "is_starter": true
         },
@@ -2523,8 +2503,8 @@
           "role": "D",
           "is_starter": false
         },
-        "sutalo j.": {
-          "name": "Sutalo J.",
+        "doekhi": {
+          "name": "Doekhi",
           "percentage": 55,
           "role": "D",
           "is_starter": false
@@ -2538,6 +2518,12 @@
         "lazzari": {
           "name": "Lazzari",
           "percentage": 30,
+          "role": "D",
+          "is_starter": false
+        },
+        "pellegrini lu.": {
+          "name": "Pellegrini Lu.",
+          "percentage": 15,
           "role": "D",
           "is_starter": false
         },
@@ -2574,10 +2560,9 @@
       },
       "ballottaggi": [
         "Celik 60% Cambiaso 40%",
-        "Zhegrova 55% Conceicao 45%",
-        "McKennie 60% Woltemade 40%",
-        "Doekhi 55% Sutalo J. 45%",
-        "Noslin 55% Pinamonti 45%"
+        "Woltemade 60% Zhegrova 40%",
+        "Sutalo J. 55% Doekhi 45%",
+        "Noslin 60% Pinamonti 40%"
       ]
     },
     {
@@ -3255,6 +3240,6 @@
       ]
     }
   ],
-  "last_updated": "2026-10-16T16:27:58.318282",
-  "last_updated_human": "16 Ott, 16:27"
+  "last_updated": "2026-10-17T21:45:57.496257",
+  "last_updated_human": "17 Ott, 21:45"
 }

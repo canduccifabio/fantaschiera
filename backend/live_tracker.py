@@ -818,17 +818,27 @@ class LiveMatchTracker:
                 'short_time': short_time
             }
 
-    def fetch_official_votes_table(self) -> Dict[str, Dict]:
+    def fetch_official_votes_table(self, matchday: Optional[int] = None) -> Dict[str, Dict]:
         """
-        Scrapes real official votes directly from Fantacalcio.it (voti-fantacalcio-serie-a).
-        Reads real grades from span.player-grade and span.player-fanta-grade data-value attributes,
-        cards (.yellow-card, .red-card), and bonus elements (.player-bonus).
+        Scrapes real official votes directly from Fantacalcio.it.
+        If matchday is specified, queries the matchday-specific page:
+        https://www.fantacalcio.it/voti-fantacalcio-serie-a/2026-27/{matchday}
+        Falls back to https://www.fantacalcio.it/voti-fantacalcio-serie-a (current live matchday)
+        and https://www.fantacalcio.it/live-serie-a.
         """
         votes_map = {}
-        urls_to_try = [
+        urls_to_try = []
+        if matchday:
+            urls_to_try.extend([
+                f'https://www.fantacalcio.it/voti-fantacalcio-serie-a/2026-27/{matchday}',
+                f'https://www.fantacalcio.it/voti-fantacalcio-serie-a/{matchday}'
+            ])
+        urls_to_try.extend([
             'https://www.fantacalcio.it/voti-fantacalcio-serie-a',
             'https://www.fantacalcio.it/live-serie-a'
-        ]
+        ])
+
+        cache_file = os.path.join(DATA_DIR, f"live_votes_cache_giornata_{matchday}.json") if matchday else LIVE_CACHE_FILE
 
         for url in urls_to_try:
             try:
@@ -911,6 +921,8 @@ class LiveMatchTracker:
                 if votes_map:
                     print(f"[LiveTracker] Successfully scraped {len(votes_map)} player votes from {url}")
                     try:
+                        with open(cache_file, 'w', encoding='utf-8') as f:
+                            json.dump(votes_map, f, ensure_ascii=False)
                         with open(LIVE_CACHE_FILE, 'w', encoding='utf-8') as f:
                             json.dump(votes_map, f, ensure_ascii=False)
                     except Exception:
@@ -920,13 +932,17 @@ class LiveMatchTracker:
             except Exception as e:
                 print(f"[LiveTracker] Votes fetch error from {url}: {e}")
 
-        if not votes_map and os.path.exists(LIVE_CACHE_FILE):
-            try:
-                with open(LIVE_CACHE_FILE, 'r', encoding='utf-8') as f:
-                    votes_map = json.load(f)
-                print(f"[LiveTracker] Loaded {len(votes_map)} cached player votes")
-            except Exception:
-                pass
+        if not votes_map:
+            for c_path in [cache_file, LIVE_CACHE_FILE]:
+                if os.path.exists(c_path):
+                    try:
+                        with open(c_path, 'r', encoding='utf-8') as f:
+                            votes_map = json.load(f)
+                        if votes_map:
+                            print(f"[LiveTracker] Loaded {len(votes_map)} cached player votes from {os.path.basename(c_path)}")
+                            break
+                    except Exception:
+                        pass
 
         return votes_map
 
@@ -966,6 +982,14 @@ class LiveMatchTracker:
                 ass_vars = set(get_player_name_variants(ev_ass))
                 if p_vars.intersection(ass_vars) and ev not in matched:
                     matched.append(ev)
+                    continue
+            ev_out = ev.get('player_out', '')
+            if ev_out and ev.get('type') == 'sub':
+                out_vars = set(get_player_name_variants(ev_out))
+                if p_vars.intersection(out_vars) and ev not in matched:
+                    ev_copy = dict(ev)
+                    ev_copy['is_sub_out'] = True
+                    matched.append(ev_copy)
         return matched
 
     def _calculate_live_bonuses(self, p_name: str, role: str, team: str, match_data: Dict, player_events: List[Dict]) -> List[Dict]:
@@ -1122,7 +1146,7 @@ class LiveMatchTracker:
                 'mod_impact': "In attesa di referti ufficiali e voti del reparto difensivo."
             }
 
-    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None, matchday: int = 6, evaluated_catalog: Optional[List[Dict]] = None) -> Dict[str, Any]:
+    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None, matchday: Optional[int] = None, evaluated_catalog: Optional[List[Dict]] = None) -> Dict[str, Any]:
         """
         Builds the live match center comparing real/live performance vs predicted metrics.
         Follows strictly the real Serie A timetable and scrapes live scores from Fantacalcio.it.
@@ -1130,7 +1154,15 @@ class LiveMatchTracker:
         it uses those starters instead of theoretical recommendations.
         Supports matchday selection (e.g. 6 = past matchday with official votes, 7 = upcoming round).
         """
-        matchday = int(matchday) if matchday else 6
+        if matchday is None:
+            try:
+                fixtures_data = self._load_fixtures()
+                matchday = int(fixtures_data.get('matchday', 7))
+            except Exception:
+                matchday = 7
+        else:
+            matchday = int(matchday)
+
         current_fixtures = self.get_fixtures_for_matchday(matchday)
 
         try:
@@ -1141,11 +1173,8 @@ class LiveMatchTracker:
 
         live_scores = self.fetch_live_serie_a_matches()
 
-        # Official votes: for round 6 load validated grades; for round 7 only if live matches active
-        if matchday == 6:
-            official_votes = self.fetch_official_votes_table()
-        else:
-            official_votes = {}
+        # Official votes: fetch real validated grades for the requested matchday from Fantacalcio.it
+        official_votes = self.fetch_official_votes_table(matchday=matchday)
 
         effective_starters = starters or []
         is_actual_lineup_active = False
@@ -1159,7 +1188,7 @@ class LiveMatchTracker:
             try:
                 from backend.lineup_extractor import lineup_extractor
                 saved_actual = lineup_extractor.get_actual_lineup()
-                if saved_actual and saved_actual.get('starters') and matchday == 6:
+                if saved_actual and saved_actual.get('starters'):
                     effective_starters = saved_actual.get('starters', [])
                     is_actual_lineup_active = True
                     saved_actual_formation = saved_actual.get('formation', '4-3-3')
@@ -1197,24 +1226,27 @@ class LiveMatchTracker:
             m_state = self.get_fixture_state(f, now, live_scores=live_scores)
             fixture_state_by_key[m_key] = m_state
 
-            live_item = (live_scores or {}).get(m_key, {})
-            fc_events = live_item.get('events') or match_events_db.get(m_key) or MATCH_KNOWN_EVENTS.get(m_key, [])
-            espn_item = (espn_scoreboard or {}).get(m_key, {})
-            espn_events = espn_item.get('events', [])
+            if m_state.get('is_upcoming'):
+                reconciled_events_by_key[m_key] = []
+            else:
+                live_item = (live_scores or {}).get(m_key, {})
+                fc_events = live_item.get('events') or (match_events_db.get(m_key) if matchday == 6 or m_state['is_finished'] else []) or (MATCH_KNOWN_EVENTS.get(m_key, []) if matchday == 6 else [])
+                espn_item = (espn_scoreboard or {}).get(m_key, {})
+                espn_events = espn_item.get('events', [])
 
-            # Dynamic timeline fetch fallback if match is active and events missing
-            if not fc_events and (m_state['is_live'] or m_state['is_finished']) and live_item.get('detail_url'):
-                try:
-                    scraped_ev = self.scrape_match_timeline(live_item['detail_url'], f_h, f_a)
-                    if scraped_ev:
-                        fc_events = scraped_ev
-                        match_events_db[m_key] = scraped_ev
-                        with open(MATCH_EVENTS_FILE, 'w', encoding='utf-8') as _ev_f:
-                            json.dump(match_events_db, _ev_f, ensure_ascii=False, indent=2)
-                except Exception as _e:
-                    print(f"[LiveTracker] Note: dynamic timeline fetch failed: {_e}")
+                # Dynamic timeline fetch fallback if match is active and events missing
+                if not fc_events and (m_state['is_live'] or m_state['is_finished']) and live_item.get('detail_url'):
+                    try:
+                        scraped_ev = self.scrape_match_timeline(live_item['detail_url'], f_h, f_a)
+                        if scraped_ev:
+                            fc_events = scraped_ev
+                            match_events_db[m_key] = scraped_ev
+                            with open(MATCH_EVENTS_FILE, 'w', encoding='utf-8') as _ev_f:
+                                json.dump(match_events_db, _ev_f, ensure_ascii=False, indent=2)
+                    except Exception as _e:
+                        print(f"[LiveTracker] Note: dynamic timeline fetch failed: {_e}")
 
-            reconciled_events_by_key[m_key] = self.reconcile_match_events(m_key, fc_events, espn_events)
+                reconciled_events_by_key[m_key] = self.reconcile_match_events(m_key, fc_events, espn_events)
 
         evaluated_players = []
         starters_real_sum = 0.0
@@ -1266,10 +1298,22 @@ class LiveMatchTracker:
             official = self.find_player_vote(p_name, official_votes)
             is_live_grade = False
 
+            # Substitution status (only applicable if match has started or finished)
+            is_sub_out = False
+            is_sub_in = False
+            if (match_data.get('is_live') or match_data.get('is_finished')) and player_events:
+                p_vars = set(get_player_name_variants(p_name))
+                for ev in player_events:
+                    if ev.get('type') == 'sub':
+                        ev_out = ev.get('player_out', '')
+                        if ev.get('is_sub_out') or (ev_out and p_vars.intersection(set(get_player_name_variants(ev_out)))):
+                            is_sub_out = True
+                        ev_p = ev.get('player_name', '')
+                        if not ev.get('is_sub_out') and (ev_p and p_vars.intersection(set(get_player_name_variants(ev_p)))):
+                            is_sub_in = True
+
             if match_data['is_finished']:
                 completed_players_count += 1
-                if is_starter:
-                    starters_played_count += 1
                 status_text = 'TERMINATA'
                 status_badge = 'FINALE 🏁'
                 status_class = 'badge-secondary'
@@ -1278,12 +1322,16 @@ class LiveMatchTracker:
                     base_grade = official['base_vote']
                     real_fv = official['fantavoto']
                     bonus_list = official.get('bonuses', [])
+                    if is_starter:
+                        starters_played_count += 1
                 elif player_events:
                     # Player participated in events, compute from verified timeline
                     live_b = self._calculate_live_bonuses(p_name, role, team, match_data, player_events)
                     base_grade = 6.0
                     real_fv = round(base_grade + sum(b['val'] for b in live_b), 1)
                     bonus_list = live_b
+                    if is_starter:
+                        starters_played_count += 1
                 else:
                     # Match finished but player was not voted (s.v. / panchina non entrata)
                     base_grade = None
@@ -1346,6 +1394,11 @@ class LiveMatchTracker:
                 delta_badge = f"Live {real_fv or 6.0} pt"
                 delta_class = 'badge-danger'
                 verdict = f'IN CAMPO 🔴 ({real_fv or 6.0})'
+            elif match_data['is_finished']:
+                delta = 0.0
+                delta_badge = "s.v."
+                delta_class = 'badge-secondary'
+                verdict = 'SENZA VOTO ⚪'
             else:
                 delta = 0.0
                 delta_badge = "In attesa"
@@ -1370,6 +1423,8 @@ class LiveMatchTracker:
                 ai_review = f"Partita conclusa ({match_data.get('score')}): voto base {base_grade}, fantavoto ufficiale {real_fv} pt ({bonus_desc})."
             elif match_data['is_live']:
                 ai_review = f"In campo in {match_data.get('score')} ({match_data.get('min')}). Pagelle ufficiali Fantacalcio.it in aggiornamento."
+            elif match_data['is_finished']:
+                ai_review = f"Partita conclusa ({match_data.get('score', '')}). Calciatore non a voto o senza voto ufficiale (s.v.)."
             else:
                 tit_pct = p.get('titolarita_fonti') or p.get('titolarita') or 85
                 match_name = match_data.get('score', '')
@@ -1385,6 +1440,8 @@ class LiveMatchTracker:
             evaluated_players.append({
                 **p,
                 'is_starter': is_starter,
+                'is_sub_out': is_sub_out,
+                'is_sub_in': is_sub_in,
                 'match_info': match_data.get('score', ''),
                 'match_min': match_data.get('min', ''),
                 'match_status': status_text,
@@ -1431,6 +1488,11 @@ class LiveMatchTracker:
         elif len(def_grades_for_mod) > 0:
             mod_tier = f"Parziale: {len(def_grades_for_mod)} difensori a voto"
 
+        # Match counts across the 10 fixtures of Serie A
+        completed_matches = sum(1 for f in current_fixtures if self.get_fixture_state(f, now, live_scores=live_scores)['status'] == 'TERMINATA')
+        live_matches = sum(1 for f in current_fixtures if self.get_fixture_state(f, now, live_scores=live_scores)['status'] == 'IN CORSO')
+        upcoming_matches = sum(1 for f in current_fixtures if self.get_fixture_state(f, now, live_scores=live_scores)['status'] == 'DA GIOCARE')
+
         # Realistic projections and score calculations
         total_expected_team_score = round(starters_expected_sum + 1.0, 1)
         
@@ -1446,9 +1508,10 @@ class LiveMatchTracker:
 
         remaining_starters_exp = sum(p['expected_fantavoto'] for p in starters_yet_to_play)
         
-        active_mod = mod_bonus if len(def_grades_for_mod) >= 3 and gk_grade_for_mod is not None else 1.0
+        active_mod = mod_bonus if len(def_grades_for_mod) >= 3 and gk_grade_for_mod is not None else 0.0
         projected_team_score = round(voted_starters_sum + live_starters_sum + remaining_starters_exp + active_mod, 1)
-        is_pre_match = (len(starters_final_vote) == 0 and len(starters_in_game) == 0)
+        tot_active = len(starters_final_vote) + len(starters_in_game)
+        is_pre_match = (tot_active == 0 and completed_matches == 0 and live_matches == 0)
 
         if is_pre_match:
             total_live_team_score = 0.0
@@ -1457,7 +1520,7 @@ class LiveMatchTracker:
             team_delta_class = "badge-secondary"
             goals = 0
             tier_desc = "In attesa del fischio d'inizio"
-        elif len(starters_final_vote) == 0:
+        elif len(starters_final_vote) == 0 and len(starters_in_game) > 0:
             # Matches are LIVE in progress, partial grades in real time
             total_live_team_score = round(live_starters_sum, 1)
             live_delta = round(live_starters_sum - live_starters_exp, 1)
@@ -1477,12 +1540,11 @@ class LiveMatchTracker:
                 goals = 4
             tier_desc = f"Proiezione: {goals} Gol ({projected_team_score} pt stimati • {live_names} in campo)"
         else:
-            # At least one player has completed with official grade
+            # At least one player has completed with official grade or matchday is underway
             total_live_team_score = round(voted_starters_sum + live_starters_sum + (mod_bonus if len(def_grades_for_mod) >= 3 else 0.0), 1)
             delta_on_voted = round((voted_starters_sum + live_starters_sum) - (voted_starters_exp + live_starters_exp), 1)
             team_delta = delta_on_voted
             sign = '+' if delta_on_voted >= 0 else ''
-            tot_active = len(starters_final_vote) + len(starters_in_game)
             team_delta_formatted = f"{sign}{delta_on_voted} pt ({tot_active}/11 a voto)"
             team_delta_class = 'badge-success' if delta_on_voted >= 0 else 'badge-info'
             
@@ -1501,11 +1563,6 @@ class LiveMatchTracker:
             else:
                 goals = 4
                 tier_desc = f"Proiezione: 4+ Gol ⚽⚽⚽⚽ ({projected_team_score} pt)"
-
-        # Match counts across the 10 fixtures of Serie A
-        completed_matches = sum(1 for f in current_fixtures if self.get_fixture_state(f, now, live_scores=live_scores)['status'] == 'TERMINATA')
-        live_matches = sum(1 for f in current_fixtures if self.get_fixture_state(f, now, live_scores=live_scores)['status'] == 'IN CORSO')
-        upcoming_matches = sum(1 for f in current_fixtures if self.get_fixture_state(f, now, live_scores=live_scores)['status'] == 'DA GIOCARE')
 
         # Build 10 Serie A Matches list for Live Center
         all_matches = []
@@ -1607,51 +1664,48 @@ class LiveMatchTracker:
                     "📅 **Passaggio Giornata**: Puoi ora visualizzare e pianificare la 7ª Giornata nelle tab Schiera, Probabili Formazioni e Live tramite il selettore dedicato."
                 ]
             }
-        elif is_pre_match:
-            all_matches_title = f"⚽ Calendario & Diretta {matchday}ª Giornata • Serie A Live"
-            players_title = f"Proiezioni & Monitoraggio {matchday}ª Giornata • I Tuoi Calciatori"
-            matchday_label = f"{matchday}ª Giornata (In Arrivo)"
-            ai_retrospective = {
-                'title': f"Live Match Center • {matchday}ª Giornata (In Arrivo)",
-                'accuracy_rating': "Modello Calibrato • Nuovi Pesi Reattivi Attivi",
-                'is_pre_match': True,
-                'highlights': [
-                    f"⏳ **In Attesa del Fischio d'Inizio**: La {matchday}ª Giornata scatterà venerdì 16 ottobre alle 20:45 con Frosinone-Sassuolo.",
-                    "🛡️ **Doppia Fonte Operativa (Fantacalcio + ESPN)**: Il Live Tracker monitora in parallelo le API di Fantacalcio.it ed ESPN Scoreboard per rilevare istantaneamente gol, assist, cartellini e cambi.",
-                    "🛡️ **Assetto Tattico & Pesi Ricalibrati**: Dopo i -13.5 pt del turno precedente, il modello ha calibrato i parametri difensivi e d'attacco per massimizzare la precisione.",
-                    "🔄 **Aggiornamenti Continui**: Le probabili formazioni e i consigli si aggiornano automaticamente man mano che arrivano le conferenze stampa ufficiali.",
-                    "🔴 **Live Match Center**: Durante le gare del weekend potrai seguire voti provvisori, bonus e modificatore difesa in tempo reale con doppio check di convalida."
-                ]
-            }
-        elif live_matches > 0:
-            all_matches_title = f"⚽ Diretta Partite {matchday}ª Giornata • Serie A Live"
-            players_title = f"Pagelle & Voti Live {matchday}ª Giornata • I Tuoi Calciatori"
-            matchday_label = f"{matchday}ª Giornata (Live)"
-            active_m = [m for m in all_matches if m.get('is_live')]
-            score_desc = active_m[0]['score_formatted'] if active_m else "In corso"
-            ai_retrospective = {
-                'title': f"Live Match Center • {live_matches} gara in corso ({score_desc})",
-                'accuracy_rating': "Live Tracker Attivo",
-                'is_pre_match': False,
-                'highlights': [
-                    f"🔴 **Aggiornamento Live Diretta**: {score_desc}. I tuoi calciatori in campo e le statistiche sono monitorati in tempo reale.",
-                    "🛡️ **Doppia Fonte Live (Fantacalcio + ESPN)**: Eventi di gara verificati in tempo reale su doppia fonte con calcolo dinamico del fantavoto e modificatore difesa.",
-                    "🛡️ **Modificatore Difesa Live**: Calcolo in tempo reale della media voto provvisoria del reparto difensivo.",
-                    "🎯 **Tridente Offensivo**: Attaccanti pronti a convertire il potenziale xG nei rispettivi match.",
-                    "💡 **Auto-Apprendimento Modello**: A fine turno, l'algoritmo applicherà l'auto-calibrazione reattiva basata sugli scostamenti effettivi."
-                ]
-            }
-        else:
-            all_matches_title = f"⚽ Risultati {matchday}ª Giornata • Serie A"
-            players_title = f"Pagelle & Voti Reali {matchday}ª Giornata • I Tuoi Calciatori"
+        elif completed_matches == len(all_matches) and len(all_matches) > 0:
+            all_matches_title = f"⚽ Risultati & Tabellini {matchday}ª Giornata • Serie A"
+            players_title = f"Pagelle & Voti Ufficiali {matchday}ª Giornata • I Tuoi Calciatori"
             matchday_label = f"{matchday}ª Giornata (Terminata)"
             ai_retrospective = {
                 'title': f"Referto Conclusivo {matchday}ª Giornata • Gare Terminate",
-                'accuracy_rating': "88.6% Precisione • Serie A",
+                'accuracy_rating': "100% Referti Ufficiali • Serie A",
                 'is_pre_match': False,
                 'highlights': [
                     f"🏁 **{matchday}ª Giornata Conclusa**: I 10 incontri di Serie A sono terminati.",
                     "🧠 **Auto-Adattamento AI**: Calibrazione automatica attiva in base ai risultati conseguiti."
+                ]
+            }
+        elif live_matches > 0 or (completed_matches > 0 and upcoming_matches > 0):
+            all_matches_title = f"⚽ Match Center {matchday}ª Giornata • Serie A Live"
+            players_title = f"Pagelle & Voti Live {matchday}ª Giornata • I Tuoi Calciatori"
+            matchday_label = f"{matchday}ª Giornata (In Svolgimento)"
+            active_m = [m for m in all_matches if m.get('is_live')]
+            score_desc = active_m[0]['score_formatted'] if active_m else f"{completed_matches} gare concluse"
+            ai_retrospective = {
+                'title': f"Live Match Center • {matchday}ª Giornata in svolgimento ({score_desc})",
+                'accuracy_rating': "Live Tracker & Voti Attivi",
+                'is_pre_match': False,
+                'highlights': [
+                    f"🔴 **Aggiornamento Giornata in Corso**: {completed_matches} gare concluse, {live_matches} in diretta, {upcoming_matches} da giocare.",
+                    "🛡️ **Doppia Fonte Live (Fantacalcio + ESPN)**: Monitoraggio in tempo reale di voti ufficiali, eventi di gara e modificatore difesa.",
+                    "⚡ **Voti Reali Acquisiti**: I calciatori delle gare concluse mostrano il fantavoto ufficiale dei referti di Fantacalcio.it.",
+                    "🎯 **Proiezioni Dinamiche**: Punteggio provvisorio calcolato istante per istante sui titolari a voto e in campo."
+                ]
+            }
+        else:
+            all_matches_title = f"⚽ Calendario & Diretta {matchday}ª Giornata • Serie A"
+            players_title = f"Proiezioni & Monitoraggio {matchday}ª Giornata • I Tuoi Calciatori"
+            matchday_label = f"{matchday}ª Giornata (In Arrivo)"
+            ai_retrospective = {
+                'title': f"Live Match Center • {matchday}ª Giornata (In Arrivo)",
+                'accuracy_rating': "Modello Calibrato • Pesi Ottimizzati Attivi",
+                'is_pre_match': True,
+                'highlights': [
+                    f"⏳ **In Attesa del Calcio d'Inizio**: La {matchday}ª Giornata sta per iniziare.",
+                    "🛡️ **Doppia Fonte Operativa (Fantacalcio + ESPN)**: Il Live Tracker monitora le API di Fantacalcio.it ed ESPN per rilevare voti, gol, cartellini e cambi.",
+                    "🔄 **Aggiornamenti Continui**: Formazioni e voti in costante aggiornamento."
                 ]
             }
 
@@ -1695,9 +1749,9 @@ class LiveMatchTracker:
                 'completed_players': completed_players_count,
                 'live_players': live_players_count,
                 'upcoming_players': upcoming_players_count,
-                'completed_starters': starters_played_count,
-                'live_starters': starters_live_count,
-                'upcoming_starters': starters_upcoming_count,
+                'completed_starters': len(starters_final_vote),
+                'live_starters': len(starters_in_game),
+                'upcoming_starters': len(starters_yet_to_play),
                 'completed_matches': completed_matches,
                 'live_matches': live_matches,
                 'upcoming_matches': upcoming_matches,
