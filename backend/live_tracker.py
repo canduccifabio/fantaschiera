@@ -1165,7 +1165,153 @@ class LiveMatchTracker:
                 'mod_impact': "In attesa di referti ufficiali e voti del reparto difensivo."
             }
 
-    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None, matchday: Optional[int] = None, evaluated_catalog: Optional[List[Dict]] = None) -> Dict[str, Any]:
+    def apply_bench_substitutions(self, evaluated_players: List[Dict], effective_bench: List[Dict]) -> List[Dict]:
+        """
+        Applies official Fantacalcio substitution rules (pure role-by-role coverage):
+        When a starter receives Senza Voto (S.V.) in a finished match, the first
+        eligible bench player of that same role (in bench priority order) replaces them.
+        Updates effective grades, defense modifier eligibility, and team score contribution.
+        """
+        bench_order_map = {}
+        for idx, bp in enumerate(effective_bench or []):
+            b_name = bp.get('name', '').lower().strip()
+            b_norm = re.sub(r'[^a-z0-9]', '', b_name)
+            if b_name and b_name not in bench_order_map:
+                bench_order_map[b_name] = idx
+            if b_norm and b_norm not in bench_order_map:
+                bench_order_map[b_norm] = idx
+
+        role_order = {'P': 0, 'D': 1, 'C': 2, 'A': 3}
+
+        # Bench candidates sorted by bench priority
+        bench_candidates = [p for p in evaluated_players if not p['is_starter']]
+        bench_candidates.sort(key=lambda p: (
+            bench_order_map.get(p.get('name', '').lower().strip(),
+            bench_order_map.get(re.sub(r'[^a-z0-9]', '', p.get('name', '').lower()), 999)),
+            role_order.get(p.get('role', 'C'), 4),
+            -(p.get('real_fantavoto') or p.get('expected_fantavoto') or 0.0)
+        ))
+
+        # Starters needing substitution (match finished with s.v. / real_fantavoto is None)
+        starters_needing_sub = [
+            p for p in evaluated_players
+            if p['is_starter'] and p.get('match_status') == 'TERMINATA' and p.get('real_fantavoto') is None
+        ]
+
+        max_subs = 5
+        subs_applied = []
+        used_bench_names = set()
+
+        for s in starters_needing_sub:
+            if len(subs_applied) >= max_subs:
+                break
+
+            s_role = s.get('role')
+            eligible_sub = None
+            for b in bench_candidates:
+                b_name_key = b.get('name', '').lower().strip()
+                if b.get('role') != s_role or b_name_key in used_bench_names:
+                    continue
+
+                # Can this bench player enter?
+                # 1. If match finished: must have a real vote (not S.V.)
+                # 2. If live or upcoming: eligible as in-progress or scheduled replacement
+                if b.get('match_status') == 'TERMINATA':
+                    if b.get('real_fantavoto') is not None:
+                        eligible_sub = b
+                        break
+                    else:
+                        continue
+                elif b.get('match_status') in ('IN CORSO', 'DA GIOCARE'):
+                    eligible_sub = b
+                    break
+
+            if eligible_sub:
+                used_bench_names.add(eligible_sub.get('name', '').lower().strip())
+
+                s['has_substitute'] = True
+                s['substituted_by'] = eligible_sub.get('name')
+                s['substitute_player'] = {
+                    'name': eligible_sub.get('name'),
+                    'role': eligible_sub.get('role'),
+                    'team': eligible_sub.get('team'),
+                    'photo': eligible_sub.get('photo', ''),
+                    'base_grade': eligible_sub.get('base_grade'),
+                    'real_fantavoto': eligible_sub.get('real_fantavoto'),
+                    'expected_fantavoto': eligible_sub.get('expected_fantavoto'),
+                    'match_status': eligible_sub.get('match_status'),
+                    'match_info': eligible_sub.get('match_info'),
+                    'is_live_grade': eligible_sub.get('is_live_grade', False),
+                    'bonus_malus': eligible_sub.get('bonus_malus', [])
+                }
+                s['effective_base_grade'] = eligible_sub.get('base_grade')
+                s['effective_fantavoto'] = eligible_sub.get('real_fantavoto')
+                s['effective_match_status'] = eligible_sub.get('match_status')
+                s['effective_is_live'] = (eligible_sub.get('match_status') == 'IN CORSO')
+
+                # Update delta for starter based on effective fantavoto
+                if s['effective_fantavoto'] is not None:
+                    eff_fv = s['effective_fantavoto']
+                    exp_fv = s.get('expected_fantavoto') or 6.0
+                    delta = round(eff_fv - exp_fv, 2)
+                    s['delta'] = delta
+                    s['delta_formatted'] = f"{'+' if delta >= 0 else ''}{delta} pt"
+                    s['delta_class'] = 'badge-success' if delta >= 0 else ('badge-info' if delta >= -1.0 else 'badge-warning')
+                    s['verdict'] = f"SUB {eligible_sub.get('name').upper()} 🔄 ({eff_fv})"
+                elif eligible_sub.get('match_status') == 'IN CORSO':
+                    s['delta_formatted'] = f"Live ({eligible_sub.get('name')})"
+                    s['delta_class'] = 'badge-danger'
+                    s['verdict'] = f"SUB IN CAMPO 🔴 ({eligible_sub.get('name')})"
+                else:
+                    s['delta_formatted'] = f"Sub: {eligible_sub.get('name')}"
+                    s['delta_class'] = 'badge-secondary'
+                    s['verdict'] = f"COPERTURA 🔄 ({eligible_sub.get('name')})"
+
+                # Set review text
+                if eligible_sub.get('real_fantavoto') is not None:
+                    b_desc = ", ".join([bm['label'] for bm in eligible_sub.get('bonus_malus', [])]) if eligible_sub.get('bonus_malus') else "nessun bonus/malus"
+                    sub_info = f"fantavoto {eligible_sub.get('real_fantavoto')} pt (voto base {eligible_sub.get('base_grade')}, {b_desc})"
+                elif eligible_sub.get('match_status') == 'IN CORSO':
+                    sub_info = f"partita in corso ({eligible_sub.get('match_info')})"
+                else:
+                    sub_info = f"partita in programma ({eligible_sub.get('match_info')})"
+
+                s['ai_review'] = (
+                    f"Partita conclusa ({s.get('match_info', '')}): calciatore senza voto (s.v.). "
+                    f"🔄 Sostituzione panchina: entra {eligible_sub.get('name')} ({s_role}) con {sub_info}."
+                )
+
+                # Update AI analysis object if present for modal
+                if isinstance(s.get('ai_analysis'), dict):
+                    s['ai_analysis']['title'] = f"🔄 Sostituzione Regolamentare • Entra {eligible_sub.get('name')}"
+                    s['ai_analysis']['summary'] = s['ai_review']
+                    s['ai_analysis']['fantacalcio_breakdown'] = (
+                        f"Senza Voto (s.v.) ➔ Coperto da panchina: entra {eligible_sub.get('name')} "
+                        f"({s_role}, fantavoto: {eligible_sub.get('real_fantavoto') if eligible_sub.get('real_fantavoto') is not None else eligible_sub.get('match_status')})"
+                    )
+
+                # Mark bench player
+                eligible_sub['is_used_as_sub'] = True
+                eligible_sub['subbed_for'] = s.get('name')
+                eligible_sub['sub_for'] = s.get('name')
+                eligible_sub['sub_badge'] = f"🔄 Entrato per {s.get('name')}"
+                eligible_sub['ai_review'] = (
+                    f"{eligible_sub.get('ai_review', '')} "
+                    f"🔄 Subentrato negli 11 titolari al posto di {s.get('name')} (s.v.)."
+                ).strip()
+
+                subs_applied.append({
+                    'starter': s.get('name'),
+                    'substitute': eligible_sub.get('name'),
+                    'role': s_role,
+                    'sub_fantavoto': eligible_sub.get('real_fantavoto'),
+                    'sub_base_grade': eligible_sub.get('base_grade'),
+                    'sub_status': eligible_sub.get('match_status')
+                })
+
+        return subs_applied
+
+    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None, matchday: Optional[int] = None, evaluated_catalog: Optional[List[Dict]] = None, bench: Optional[List[Dict]] = None) -> Dict[str, Any]:
         """
         Builds the live match center comparing real/live performance vs predicted metrics.
         Follows strictly the real Serie A timetable and scrapes live scores from Fantacalcio.it.
@@ -1196,11 +1342,14 @@ class LiveMatchTracker:
         official_votes = self.fetch_official_votes_table(matchday=matchday)
 
         effective_starters = starters or []
+        effective_bench = bench or []
         is_actual_lineup_active = False
         saved_actual_formation = None
 
         if actual_lineup and actual_lineup.get('starters'):
             effective_starters = actual_lineup.get('starters', [])
+            if actual_lineup.get('bench'):
+                effective_bench = actual_lineup.get('bench', [])
             is_actual_lineup_active = True
             saved_actual_formation = actual_lineup.get('formation', '4-3-3')
         else:
@@ -1209,6 +1358,8 @@ class LiveMatchTracker:
                 saved_actual = lineup_extractor.get_actual_lineup()
                 if saved_actual and saved_actual.get('starters'):
                     effective_starters = saved_actual.get('starters', [])
+                    if saved_actual.get('bench'):
+                        effective_bench = saved_actual.get('bench', [])
                     is_actual_lineup_active = True
                     saved_actual_formation = saved_actual.get('formation', '4-3-3')
             except Exception:
@@ -1440,13 +1591,6 @@ class LiveMatchTracker:
                 delta_class = 'badge-secondary'
                 verdict = 'DA GIOCARE ⏳'
 
-            # Feed defence modifier
-            if is_starter and base_grade is not None:
-                if role == 'P':
-                    gk_grade_for_mod = base_grade
-                elif role == 'D':
-                    def_grades_for_mod.append(base_grade)
-
             if is_starter:
                 starters_expected_sum += exp_fv
                 if real_fv is not None:
@@ -1506,7 +1650,26 @@ class LiveMatchTracker:
                 'verification_badge': '✅ Doppia Fonte (Fantacalcio + ESPN)' if player_events else 'Fantacalcio.it'
             })
 
-        # Calculate Real Defense Modifier
+        # Apply official Fantacalcio bench substitution rules (pure role-by-role coverage)
+        applied_subs = self.apply_bench_substitutions(evaluated_players, effective_bench)
+
+        # Calculate Real Defense Modifier (including bench coverage for S.V. defenders)
+        def_grades_for_mod = []
+        gk_grade_for_mod = None
+
+        for p in evaluated_players:
+            if not p['is_starter']:
+                continue
+            eff_base = p.get('base_grade')
+            if eff_base is None and p.get('has_substitute'):
+                eff_base = p.get('effective_base_grade')
+
+            if eff_base is not None:
+                if p['role'] == 'P':
+                    gk_grade_for_mod = eff_base
+                elif p['role'] == 'D':
+                    def_grades_for_mod.append(eff_base)
+
         mod_bonus = 0.0
         mod_avg = 0.0
         mod_tier = "In attesa dei referti difensivi"
@@ -1533,20 +1696,48 @@ class LiveMatchTracker:
         live_matches = sum(1 for f in current_fixtures if self.get_fixture_state(f, now, live_scores=live_scores)['status'] == 'IN CORSO')
         upcoming_matches = sum(1 for f in current_fixtures if self.get_fixture_state(f, now, live_scores=live_scores)['status'] == 'DA GIOCARE')
 
-        # Realistic projections and score calculations
+        # Realistic projections and score calculations (considering bench replacements)
         total_expected_team_score = round(starters_expected_sum + 1.0, 1)
         
-        starters_final_vote = [p for p in evaluated_players if p['is_starter'] and p['real_fantavoto'] is not None and not p.get('is_live_grade')]
-        starters_in_game = [p for p in evaluated_players if p['is_starter'] and p['match_status'] == 'IN CORSO']
-        starters_yet_to_play = [p for p in evaluated_players if p['is_starter'] and p['match_status'] == 'DA GIOCARE']
+        starters_final_vote = []
+        starters_in_game = []
+        starters_yet_to_play = []
 
-        voted_starters_sum = sum(p['real_fantavoto'] for p in starters_final_vote)
+        for p in evaluated_players:
+            if not p['is_starter']:
+                continue
+
+            if p['real_fantavoto'] is not None and not p.get('is_live_grade'):
+                starters_final_vote.append(p)
+            elif p.get('has_substitute'):
+                sub_status = p.get('effective_match_status')
+                if sub_status == 'TERMINATA' and p.get('effective_fantavoto') is not None:
+                    starters_final_vote.append(p)
+                elif sub_status == 'IN CORSO':
+                    starters_in_game.append(p)
+                elif sub_status == 'DA GIOCARE':
+                    starters_yet_to_play.append(p)
+            elif p['match_status'] == 'IN CORSO':
+                starters_in_game.append(p)
+            elif p['match_status'] == 'DA GIOCARE':
+                starters_yet_to_play.append(p)
+
+        voted_starters_sum = sum(
+            (p['effective_fantavoto'] if (p.get('has_substitute') and p.get('effective_fantavoto') is not None) else p['real_fantavoto'])
+            for p in starters_final_vote
+        )
         voted_starters_exp = sum(p['expected_fantavoto'] for p in starters_final_vote)
         
-        live_starters_sum = sum(p.get('real_fantavoto', 0) for p in starters_in_game)
-        live_starters_exp = sum(p.get('expected_fantavoto', 0) for p in starters_in_game)
+        live_starters_sum = sum(
+            (p.get('effective_fantavoto') or 0.0 if p.get('has_substitute') else p.get('real_fantavoto', 0.0))
+            for p in starters_in_game
+        )
+        live_starters_exp = sum(p.get('expected_fantavoto', 0.0) for p in starters_in_game)
 
-        remaining_starters_exp = sum(p['expected_fantavoto'] for p in starters_yet_to_play)
+        remaining_starters_exp = sum(
+            ((p.get('substitute_player') or {}).get('expected_fantavoto') or p['expected_fantavoto']) if p.get('has_substitute') else p['expected_fantavoto']
+            for p in starters_yet_to_play
+        )
         
         active_mod = mod_bonus if len(def_grades_for_mod) >= 3 and gk_grade_for_mod is not None else 0.0
         projected_team_score = round(voted_starters_sum + live_starters_sum + remaining_starters_exp + active_mod, 1)
@@ -1797,10 +1988,17 @@ class LiveMatchTracker:
                     "🔄 **Aggiornamenti Continui**: Formazioni e voti in costante aggiornamento."
                 ]
             }
+        if applied_subs and ai_retrospective and ai_retrospective.get('highlights'):
+            sub_strs = [f"{s['substitute']} ({s.get('sub_fantavoto') if s.get('sub_fantavoto') is not None else s.get('sub_status')} pt) al posto di {s['starter']} (s.v.)" for s in applied_subs]
+            ai_retrospective['highlights'].insert(1, f"🔄 **Copertura Panchina Attivata**: Subentrato {', '.join(sub_strs)} per garantire 11 titolari a voto.")
 
-        # Sort evaluated players: starters first, then by role (P, D, C, A) and real/expected FV
+        # Sort evaluated players: starters first, then by role (P, D, C, A) and effective/real FV
         role_order = {'P': 0, 'D': 1, 'C': 2, 'A': 3}
-        evaluated_players.sort(key=lambda x: (not x['is_starter'], role_order.get(x['role'], 4), -(x['real_fantavoto'] or x['expected_fantavoto'])))
+        evaluated_players.sort(key=lambda x: (
+            not x['is_starter'],
+            role_order.get(x['role'], 4),
+            -(x.get('effective_fantavoto') if (x.get('has_substitute') and x.get('effective_fantavoto') is not None) else (x['real_fantavoto'] or x['expected_fantavoto'] or 0.0))
+        ))
 
         # Autonomous AI Self-Calibration:
         try:
@@ -1817,6 +2015,7 @@ class LiveMatchTracker:
             'players_title': players_title,
             'is_actual_lineup': is_actual_lineup_active,
             'actual_formation': saved_actual_formation,
+            'substitutions': applied_subs,
             'summary': {
                 'matchday': matchday,
                 'matchday_label': matchday_label,
@@ -1844,6 +2043,7 @@ class LiveMatchTracker:
                 'completed_matches': completed_matches,
                 'live_matches': live_matches,
                 'upcoming_matches': upcoming_matches,
+                'substitutions_applied': applied_subs,
                 'accuracy_pct': 88.6,
                 'cross_check_active': True,
                 'data_sources': ['Fantacalcio.it (Voti & Live)', 'ESPN Serie A Scoreboard API (Timeline & Eventi)'],

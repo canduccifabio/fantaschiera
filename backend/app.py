@@ -407,10 +407,12 @@ async def get_live_votes(use_actual: bool = True, matchday: Optional[int] = None
         matchday=target_md
     )
     starters = lineup_res.get('starters', [])
+    bench = lineup_res.get('bench', [])
     all_evaluated = lineup_res.get('starters', []) + lineup_res.get('bench', []) + lineup_res.get('tribuna', [])
     data = live_tracker.get_live_data(
         user_players=user_players,
         starters=starters,
+        bench=bench,
         actual_lineup=actual_lineup,
         matchday=target_md,
         evaluated_catalog=all_evaluated
@@ -434,10 +436,12 @@ async def refresh_live_votes(use_actual: bool = True, matchday: Optional[int] = 
         matchday=target_md
     )
     starters = lineup_res.get('starters', [])
+    bench = lineup_res.get('bench', [])
     all_evaluated = lineup_res.get('starters', []) + lineup_res.get('bench', []) + lineup_res.get('tribuna', [])
     data = live_tracker.get_live_data(
         user_players=user_players,
         starters=starters,
+        bench=bench,
         actual_lineup=actual_lineup,
         matchday=target_md,
         evaluated_catalog=all_evaluated
@@ -576,7 +580,7 @@ async def trigger_ai_learning():
     settings = get_settings()
     actual_lineup = lineup_extractor.get_actual_lineup()
     lineup_res = optimizer.optimize_lineup(user_players=user_players, use_defense_modifier=settings.get('defense_modifier', True))
-    live_data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), actual_lineup=actual_lineup)
+    live_data = live_tracker.get_live_data(user_players=user_players, starters=lineup_res.get('starters', []), bench=lineup_res.get('bench', []), actual_lineup=actual_lineup)
     
     recalibration_result = ai_learning_engine.run_recalibration(live_data.get('players', []))
     optimizer.reload_data()

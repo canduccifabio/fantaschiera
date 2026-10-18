@@ -1029,7 +1029,8 @@ function renderLivePlayerCards(data) {
 
   function renderSingleRow(p) {
     let rowClass = p.is_starter ? 'row-starter' : 'row-bench';
-    if (p.is_live_grade || p.match_status === 'IN CORSO') rowClass += ' row-live';
+    if (p.is_live_grade || p.match_status === 'IN CORSO' || p.effective_is_live) rowClass += ' row-live';
+    if (p.has_substitute) rowClass += ' row-substituted';
 
     // Event badges mini
     let eventsHtml = '';
@@ -1052,9 +1053,24 @@ function renderLivePlayerCards(data) {
       }
     }
 
-    // Subtitle line (match info & time)
+    // Fantacalcio Bench Substitution badges
+    if (p.has_substitute && p.substitute_player) {
+      eventsHtml += ` <span class="event-badge-mini" style="background:rgba(16, 185, 129, 0.2); color:#34d399; border:1px solid rgba(16, 185, 129, 0.4);" title="Sostituito da panchina: entra ${p.substituted_by}">🔄 Sub: ${p.substituted_by}</span>`;
+    } else if (p.is_used_as_sub && p.subbed_for) {
+      eventsHtml += ` <span class="event-badge-mini" style="background:rgba(59, 130, 246, 0.2); color:#60a5fa; border:1px solid rgba(59, 130, 246, 0.4);" title="Subentrato negli 11 per ${p.subbed_for}">🔄 In campo per ${p.subbed_for}</span>`;
+    }
+
+    // Subtitle line (match info & time & substitution note)
     let subLineHtml = '';
-    if (p.match_status === 'IN CORSO') {
+    if (p.has_substitute && p.substitute_player) {
+      const sub = p.substitute_player;
+      const subScore = p.effective_fantavoto !== null && p.effective_fantavoto !== undefined 
+        ? `${p.effective_fantavoto} pt` 
+        : (sub.match_status === 'IN CORSO' ? 'LIVE' : 'in attesa');
+      subLineHtml = `<span>${p.match_info || ''}</span> • <span style="color:#34d399; font-weight:800;">🔄 Sub: ${sub.name} (${subScore})</span>`;
+    } else if (p.is_used_as_sub && p.subbed_for) {
+      subLineHtml = `<span>${p.match_info || ''}</span> • <span style="color:#60a5fa; font-weight:800;">🔄 Entrato per ${p.subbed_for}</span>`;
+    } else if (p.match_status === 'IN CORSO') {
       subLineHtml = `<span style="color:#ef4444; font-weight:800;"><span class="live-dot" style="width:6px; height:6px; display:inline-block; margin-right:3px;"></span>LIVE ${p.match_min || '1°T'}</span> • ${p.match_info || ''}`;
     } else if (p.match_status === 'TERMINATA') {
       subLineHtml = `<span>${p.match_info || ''}</span> • <span style="color:#94a3b8;">Finale 🏁</span>`;
@@ -1067,7 +1083,26 @@ function renderLivePlayerCards(data) {
     let fvDisp = '-';
     let fvClass = 'fv-none';
 
-    if (p.real_fantavoto !== null && p.real_fantavoto !== undefined) {
+    if (p.has_substitute && p.substitute_player) {
+      // Starter had S.V. and was covered by bench substitute
+      const sub = p.substitute_player;
+      if (p.effective_fantavoto !== null && p.effective_fantavoto !== undefined) {
+        baseDisp = `<span style="font-size:0.6rem; color:#94a3b8; text-decoration:line-through;">s.v.</span> ➔ ${sub.name}`;
+        fvDisp = p.effective_fantavoto;
+        if (p.effective_fantavoto >= 6.5) fvClass = 'fv-good';
+        else if (p.effective_fantavoto === 6.0) fvClass = 'fv-avg';
+        else if (p.effective_fantavoto >= 5.0) fvClass = 'fv-warn';
+        else fvClass = 'fv-bad';
+      } else if (sub.match_status === 'IN CORSO') {
+        baseDisp = `s.v. ➔ ${sub.name}`;
+        fvDisp = 'LIVE';
+        fvClass = 'fv-live';
+      } else {
+        baseDisp = `s.v. ➔ ${sub.name}`;
+        fvDisp = '⏳';
+        fvClass = 'fv-none';
+      }
+    } else if (p.real_fantavoto !== null && p.real_fantavoto !== undefined) {
       fvDisp = p.real_fantavoto;
       if (p.is_live_grade) {
         fvClass = 'fv-live';
@@ -1957,7 +1992,13 @@ function openPlayerModal(player) {
   document.getElementById('modalPlayerScore').innerText = `★ ${Math.round(player.score || 0)}`;
   document.getElementById('modalPlayerExpectedFV').innerText = `${player.expected_fantavoto || 6.5} pt`;
   let titText = `${player.titolarita_pct || player.titolarita_fonti || 70}%`;
-  if (player.match_status === 'TERMINATA' || player.match_status === 'IN CORSO') {
+  if (player.has_substitute && player.substitute_player) {
+    const sub = player.substitute_player;
+    const subScore = player.effective_fantavoto !== null ? `${player.effective_fantavoto} pt` : sub.match_status;
+    titText = `S.V. ➔ Sostituito da ${sub.name} (${subScore}) 🔄`;
+  } else if (player.is_used_as_sub && player.subbed_for) {
+    titText = `Panchina ➔ Entrato negli 11 per ${player.subbed_for} 🔄`;
+  } else if (player.match_status === 'TERMINATA' || player.match_status === 'IN CORSO') {
     if (player.is_sub_in) {
       titText = 'Subentrato a gara in corso ⬆️';
     } else if (player.is_sub_out) {
@@ -2049,14 +2090,34 @@ function openPlayerModal(player) {
         if (baseGradeVal) baseGradeVal.innerText = 'In corso';
         if (bonusHtml) bonusHtml.innerHTML = `<span style="color:#f87171; font-size:0.8rem;">⚡ Gara in corso (${player.match_info || ''}): pagelle ufficiali Fantacalcio.it disponibili al termine del match</span>`;
       } else if (player.match_status === 'TERMINATA') {
-        if (fvDisp) fvDisp.innerHTML = `s.v. <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">(Atteso: ${player.expected_fantavoto || 6.5})</span>`;
-        if (deltaDisp) {
-          deltaDisp.style.display = 'inline-block';
-          deltaDisp.innerText = `⚪ Senza Voto (s.v.)`;
-          deltaDisp.className = 'badge-status badge-secondary';
+        if (player.has_substitute && player.substitute_player) {
+          const sub = player.substitute_player;
+          const effFV = player.effective_fantavoto !== null ? player.effective_fantavoto : '-';
+          if (fvDisp) fvDisp.innerHTML = `<span style="color:#10b981; font-weight:900;">${effFV}</span> <span style="font-size:0.8rem; font-weight:700; color:#34d399;">(Sub: ${player.substituted_by})</span> <span style="font-size:0.75rem; color:#94a3b8; margin-left:6px; text-decoration:line-through;">s.v.</span>`;
+          if (deltaDisp) {
+            deltaDisp.style.display = 'inline-block';
+            deltaDisp.innerText = `🔄 Sostituzione panchina: entra ${player.substituted_by} (${player.effective_fantavoto !== null ? '+' + player.effective_fantavoto + ' pt' : sub.match_status})`;
+            deltaDisp.className = 'badge-status badge-success';
+          }
+          if (baseGradeVal) baseGradeVal.innerText = `${player.effective_base_grade !== null ? player.effective_base_grade : 's.v.'}`;
+          if (bonusHtml) {
+            const subBonuses = sub.bonus_malus || [];
+            if (subBonuses.length > 0) {
+              bonusHtml.innerHTML = `<span style="color:#34d399; font-weight:700;">Bonus panchinaro (${player.substituted_by}):</span> ` + subBonuses.map(b => `<span class="bonus-pill ${b.val < 0 ? 'malus' : ''}">${b.icon} ${b.label} (${b.val > 0 ? '+' : ''}${b.val})</span>`).join(' ');
+            } else {
+              bonusHtml.innerText = `Subentrato da panchina (${player.substituted_by}): nessun bonus/malus`;
+            }
+          }
+        } else {
+          if (fvDisp) fvDisp.innerHTML = `s.v. <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">(Atteso: ${player.expected_fantavoto || 6.5})</span>`;
+          if (deltaDisp) {
+            deltaDisp.style.display = 'inline-block';
+            deltaDisp.innerText = `⚪ Senza Voto (s.v.)`;
+            deltaDisp.className = 'badge-status badge-secondary';
+          }
+          if (baseGradeVal) baseGradeVal.innerText = 's.v.';
+          if (bonusHtml) bonusHtml.innerText = "Gara conclusa. Calciatore non impiegato o senza voto ufficiale.";
         }
-        if (baseGradeVal) baseGradeVal.innerText = 's.v.';
-        if (bonusHtml) bonusHtml.innerText = "Gara conclusa. Calciatore non impiegato o senza voto ufficiale.";
       } else {
         if (fvDisp) fvDisp.innerHTML = `-.- <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">(Atteso: ${player.expected_fantavoto || 6.5})</span>`;
         if (deltaDisp) {
