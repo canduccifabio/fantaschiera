@@ -2409,5 +2409,153 @@
       "team": "INT",
       "desc": "Assist per Bonny (84')"
     }
+  ],
+  "ROM_GEN": [
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "43'",
+      "player_name": "Soulè",
+      "team": "ROM",
+      "desc": "Ammonizione (43')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "50'",
+      "player_name": "Castro S.",
+      "team": "ROM",
+      "desc": "Gol (50')",
+      "assist_player": ""
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "50'",
+      "player_name": "Bijlow",
+      "team": "GEN",
+      "desc": "Gol subito (50')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "52'",
+      "player_name": "Vasquez",
+      "team": "GEN",
+      "desc": "Ammonizione (52')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "63'",
+      "player_name": "Hermoso",
+      "team": "ROM",
+      "player_out": "Koulierakis",
+      "desc": "Entra al posto di Koulierakis (63')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "63'",
+      "player_name": "Pellegrini Lo.",
+      "team": "ROM",
+      "player_out": "Mora",
+      "desc": "Entra al posto di Mora (63')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "65'",
+      "player_name": "Vitinha O.",
+      "team": "GEN",
+      "player_out": "El Shaarawy",
+      "desc": "Entra al posto di El Shaarawy (65')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "66'",
+      "player_name": "Ostigard",
+      "team": "GEN",
+      "desc": "Ammonizione (66')"
+    },
+    {
+      "type": "goal",
+      "icon": "⚽",
+      "minute": "69'",
+      "player_name": "Lulli",
+      "team": "ROM",
+      "desc": "Gol (69')",
+      "assist_player": ""
+    },
+    {
+      "type": "conceded",
+      "icon": "🧤",
+      "minute": "69'",
+      "player_name": "Bijlow",
+      "team": "GEN",
+      "desc": "Gol subito (69')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "77'",
+      "player_name": "Pisilli",
+      "team": "ROM",
+      "desc": "Ammonizione (77')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "78'",
+      "player_name": "Wesley",
+      "team": "ROM",
+      "player_out": "Lulli",
+      "desc": "Entra al posto di Lulli (78')"
+    },
+    {
+      "type": "card",
+      "icon": "🟨",
+      "minute": "81'",
+      "player_name": "Ellertsson",
+      "team": "GEN",
+      "desc": "Ammonizione (81')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "83'",
+      "player_name": "Amorim",
+      "team": "GEN",
+      "player_out": "Frendrup",
+      "desc": "Entra al posto di Frendrup (83')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "83'",
+      "player_name": "Robinho Junior",
+      "team": "GEN",
+      "player_out": "Messias",
+      "desc": "Entra al posto di Messias (83')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "88'",
+      "player_name": "Di Nunzio",
+      "team": "ROM",
+      "player_out": "Pisilli",
+      "desc": "Entra al posto di Pisilli (88')"
+    },
+    {
+      "type": "sub",
+      "icon": "⇄",
+      "minute": "88'",
+      "player_name": "Ghilardi",
+      "team": "ROM",
+      "player_out": "Rensch",
+      "desc": "Entra al posto di Rensch (88')"
+    }
   ]
 }

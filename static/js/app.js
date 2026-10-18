@@ -1174,12 +1174,13 @@ function renderLiveMatches(matches) {
     let myPlayersHtml = '';
     if (m.my_players && m.my_players.length > 0) {
       const tags = m.my_players.map(p => {
-        const starterBadge = p.is_starter ? 'TITOLARE' : 'PANCHINA';
+        const fantaLabel = p.fanta_status || (p.is_starter ? 'Schierato' : 'Panchina');
+        const pitchLabel = p.serie_a_status ? ` • <span style="opacity:0.85; font-size:0.68rem; font-weight:600;">${p.serie_a_status}</span>` : '';
         const badgeColor = p.is_starter ? 'rgba(16, 185, 129, 0.25)' : 'rgba(148, 163, 184, 0.15)';
         const textColor = p.is_starter ? '#34d399' : '#94a3b8';
         return `
           <span style="display:inline-flex; align-items:center; gap:4px; background:${badgeColor}; color:${textColor}; padding:2px 8px; border-radius:6px; font-size:0.75rem; font-weight:700;">
-            ⭐ ${p.name} (${p.role}) • <span style="font-size:0.7rem; font-weight:800; text-transform:uppercase;">${starterBadge}</span>
+            ⭐ ${p.name} (${p.role}) • <span style="font-size:0.7rem; font-weight:800; text-transform:uppercase;">${fantaLabel}</span>${pitchLabel}
           </span>
         `;
       }).join(' ');
@@ -1955,8 +1956,21 @@ function openPlayerModal(player) {
   document.getElementById('modalPlayerTeam').innerText = `${player.team_full || player.team} • Ruolo ${player.role}`;
   document.getElementById('modalPlayerScore').innerText = `★ ${Math.round(player.score || 0)}`;
   document.getElementById('modalPlayerExpectedFV').innerText = `${player.expected_fantavoto || 6.5} pt`;
-  const isOfficialTit = player.is_official || player.titolarita_pct === 100;
-  document.getElementById('modalPlayerTitolarita').innerText = isOfficialTit ? '100% (Titolare Ufficiale ✅)' : `${player.titolarita_pct || player.titolarita_fonti || 70}%`;
+  let titText = `${player.titolarita_pct || player.titolarita_fonti || 70}%`;
+  if (player.match_status === 'TERMINATA' || player.match_status === 'IN CORSO') {
+    if (player.is_sub_in) {
+      titText = 'Subentrato a gara in corso ⬆️';
+    } else if (player.is_sub_out) {
+      titText = 'Titolare (sostituito ⬇️)';
+    } else if (player.base_grade !== null && player.base_grade !== undefined) {
+      titText = 'Titolare in campo ✅';
+    } else if (player.match_status === 'TERMINATA') {
+      titText = 'Senza Voto / Non impiegato ⚪';
+    }
+  } else if (player.titolarita_pct === 100) {
+    titText = '100% (Titolare Ufficiale ✅)';
+  }
+  document.getElementById('modalPlayerTitolarita').innerText = titText;
   document.getElementById('modalPlayerMatch').innerText = player.match_info || "Prossimo turno";
   document.getElementById('modalPlayerQA').innerText = player.qa || '-';
   document.getElementById('modalPlayerFVM').innerText = player.fvm || '-';

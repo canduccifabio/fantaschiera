@@ -860,16 +860,27 @@ class LiveMatchTracker:
 
                     try:
                         pg_raw = str(pg.get('data-value', '')).strip()
-                        has_sep_pg = (',' in pg_raw or '.' in pg_raw)
-                        base_val = float(pg_raw.replace(',', '.'))
-                        if not has_sep_pg and base_val > 10.0:
-                            base_val = round(base_val / 10.0, 1)
-
                         fv_raw = str(pfg.get('data-value', '') if pfg else pg_raw).strip()
-                        has_sep_fv = (',' in fv_raw or '.' in fv_raw)
-                        fv_val = float(fv_raw.replace(',', '.'))
-                        if not has_sep_fv and fv_val >= 25.0:
-                            fv_val = round(fv_val / 10.0, 1)
+
+                        # In Fantacalcio.it internal system:
+                        # "55" and "56" are internal codes for S.V. (Senza Voto)! "0" is unrated.
+                        # True decimal grades always contain a comma (e.g. "5,5", "6,5", "7,5").
+                        is_sv = (pg_raw in ('55', '56', '0', 'sv', 's.v.', '-', '') or
+                                 fv_raw in ('55', '56', '0', 'sv', 's.v.', '-', ''))
+
+                        if is_sv:
+                            base_val = None
+                            fv_val = None
+                        else:
+                            has_sep_pg = (',' in pg_raw or '.' in pg_raw)
+                            base_val = float(pg_raw.replace(',', '.'))
+                            if not has_sep_pg and base_val > 10.0:
+                                base_val = round(base_val / 10.0, 1)
+
+                            has_sep_fv = (',' in fv_raw or '.' in fv_raw)
+                            fv_val = float(fv_raw.replace(',', '.'))
+                            if not has_sep_fv and fv_val >= 25.0:
+                                fv_val = round(fv_val / 10.0, 1)
                     except Exception:
                         continue
 
@@ -903,15 +914,23 @@ class LiveMatchTracker:
                             elif 'Player of the match' in title:
                                 bonuses.append({'icon': '⭐', 'val': 0.0, 'label': 'Player of the Match'})
 
+                    # Detect official table substitution icons
+                    is_table_sub_in = bool(tr.select_one('img[title*="Subentrato"], img[alt*="subentrato"], .player-icon[title*="Subentrato"]'))
+                    is_table_sub_out = bool(tr.select_one('img[title*="Sostituito"], img[alt*="sostituito"], .player-icon[title*="Sostituito"]'))
+
                     # Cross-verify and reconcile fantavoto with base vote + sum of bonuses
-                    calc_fv = round(base_val + sum(b['val'] for b in bonuses), 1)
-                    if abs(fv_val - calc_fv) > 0.4:
-                        fv_val = calc_fv
+                    if not is_sv and base_val is not None:
+                        calc_fv = round(base_val + sum(b['val'] for b in bonuses), 1)
+                        if fv_val is not None and abs(fv_val - calc_fv) > 0.4:
+                            fv_val = calc_fv
 
                     item = {
                         'raw_name': raw_name,
                         'base_vote': base_val,
                         'fantavoto': fv_val,
+                        'is_sv': is_sv,
+                        'is_sub_in': is_table_sub_in,
+                        'is_sub_out': is_table_sub_out,
                         'bonuses': bonuses,
                         'is_official': True
                     }
@@ -1312,13 +1331,24 @@ class LiveMatchTracker:
                         if not ev.get('is_sub_out') and (ev_p and p_vars.intersection(set(get_player_name_variants(ev_p)))):
                             is_sub_in = True
 
+            if official:
+                if official.get('is_sub_in'):
+                    is_sub_in = True
+                if official.get('is_sub_out'):
+                    is_sub_out = True
+
             if match_data['is_finished']:
                 completed_players_count += 1
                 status_text = 'TERMINATA'
                 status_badge = 'FINALE 🏁'
                 status_class = 'badge-secondary'
                 
-                if official:
+                if official and (official.get('is_sv') or official.get('base_vote') is None):
+                    # Official Senza Voto (S.V.) - player did not get a vote
+                    base_grade = None
+                    real_fv = None
+                    bonus_list = official.get('bonuses', [])
+                elif official and official.get('base_vote') is not None:
                     base_grade = official['base_vote']
                     real_fv = official['fantavoto']
                     bonus_list = official.get('bonuses', [])
@@ -1346,7 +1376,12 @@ class LiveMatchTracker:
                 status_badge = match_data['status_badge']
                 status_class = 'badge-danger'
                 
-                if official:
+                if official and (official.get('is_sv') or official.get('base_vote') is None):
+                    base_grade = None
+                    real_fv = None
+                    bonus_list = official.get('bonuses', [])
+                    is_live_grade = False
+                elif official and official.get('base_vote') is not None:
                     base_grade = official['base_vote']
                     real_fv = official['fantavoto']
                     bonus_list = official.get('bonuses', [])
@@ -1424,7 +1459,12 @@ class LiveMatchTracker:
             elif match_data['is_live']:
                 ai_review = f"In campo in {match_data.get('score')} ({match_data.get('min')}). Pagelle ufficiali Fantacalcio.it in aggiornamento."
             elif match_data['is_finished']:
-                ai_review = f"Partita conclusa ({match_data.get('score', '')}). Calciatore non a voto o senza voto ufficiale (s.v.)."
+                if is_sub_in:
+                    ai_review = f"Partita conclusa ({match_data.get('score', '')}). Calciatore subentrato a gara in corso, senza voto ufficiale (s.v.)."
+                elif is_sub_out:
+                    ai_review = f"Partita conclusa ({match_data.get('score', '')}). Calciatore sostituito, senza voto ufficiale (s.v.)."
+                else:
+                    ai_review = f"Partita conclusa ({match_data.get('score', '')}). Calciatore non a voto o senza voto ufficiale (s.v.)."
             else:
                 tit_pct = p.get('titolarita_fonti') or p.get('titolarita') or 85
                 match_name = match_data.get('score', '')
@@ -1611,13 +1651,62 @@ class LiveMatchTracker:
             involved_my_players = []
             for p in (user_players_by_team.get(f_h_code, []) + user_players_by_team.get(f_a_code, [])):
                 p_starter = p.get('id', p.get('name', '')).lower() in starter_ids or p.get('name', '').lower() in starter_ids
+                p_vars = set(get_player_name_variants(p.get('name', '')))
+
+                sub_min = None
+                sub_type = None
+                for ev in match_events:
+                    if ev.get('type') == 'sub':
+                        p_out = ev.get('player_out', '')
+                        p_in = ev.get('player_name', '')
+                        if p_out and p_vars.intersection(set(get_player_name_variants(p_out))):
+                            sub_min = ev.get('minute')
+                            sub_type = 'out'
+                        elif p_in and p_vars.intersection(set(get_player_name_variants(p_in))):
+                            sub_min = ev.get('minute')
+                            sub_type = 'in'
+
+                off_p = self.find_player_vote(p.get('name', ''), official_votes)
+                if not sub_type and off_p:
+                    if off_p.get('is_sub_in'):
+                        sub_type = 'in'
+                    elif off_p.get('is_sub_out'):
+                        sub_type = 'out'
+
+                sub_min_clean = str(sub_min).strip().rstrip("'") if sub_min else ""
+
+                if m_state['is_finished']:
+                    if sub_type == 'in':
+                        serie_a_status = f"Sub. {sub_min_clean}'" if sub_min_clean else "Subentrato"
+                    elif sub_type == 'out':
+                        serie_a_status = f"Uscito {sub_min_clean}'" if sub_min_clean else "Sostituito"
+                    elif off_p and off_p.get('is_sv'):
+                        serie_a_status = "S.V."
+                    elif off_p and off_p.get('base_vote') is not None:
+                        serie_a_status = "In campo 90'"
+                    else:
+                        serie_a_status = "Non a voto"
+                elif m_state['is_live']:
+                    if sub_type == 'in':
+                        serie_a_status = f"In campo (Sub. {sub_min_clean}')" if sub_min_clean else "In campo (Sub)"
+                    elif sub_type == 'out':
+                        serie_a_status = f"Uscito ({sub_min_clean}')" if sub_min_clean else "Uscito"
+                    else:
+                        serie_a_status = "In campo"
+                else:
+                    serie_a_status = "In attesa"
+
+                fanta_status = "Schierato" if p_starter else "Panchina"
+
                 involved_my_players.append({
                     'name': p.get('name'),
                     'role': p.get('role'),
                     'team': p.get('team'),
                     'photo': p.get('photo', ''),
                     'is_starter': p_starter,
-                    'status_label': 'Titolare' if p_starter else 'Panchina',
+                    'fanta_status': fanta_status,
+                    'serie_a_status': serie_a_status,
+                    'status_label': fanta_status,
                     'titolarita': '100% (Ufficiale)' if (m_state['is_live'] or m_state['is_finished']) else 'Stimato'
                 })
 
