@@ -1,4 +1,11 @@
 {
+  "dybala": {
+    "name": "Dybala",
+    "team": "Roma",
+    "type": "Infortunati",
+    "reason": "L'attaccante argentino alle prese con un risentimento muscolare ai flessori: non convocato per la trasferta contro il Napoli.",
+    "is_out": true
+  },
   "kossounou": {
     "name": "Kossounou",
     "team": "Juventus",

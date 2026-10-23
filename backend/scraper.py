@@ -156,8 +156,16 @@ def scrape_injuries():
                     }
                     i += 2
                     continue
-                i += 1
-                
+        if os.path.exists(INJURIES_FILE):
+            try:
+                with open(INJURIES_FILE, 'r', encoding='utf-8') as f:
+                    old_inj = json.load(f)
+                    for k, v in old_inj.items():
+                        if k not in injuries_map and v.get('is_out'):
+                            injuries_map[k] = v
+            except Exception:
+                pass
+
         with open(INJURIES_FILE, 'w', encoding='utf-8') as f:
             json.dump(injuries_map, f, ensure_ascii=False, indent=2)
         print(f"[Scraper] Saved {len(injuries_map)} injury records to {INJURIES_FILE}")
