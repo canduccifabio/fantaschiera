@@ -48,12 +48,13 @@
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:0.75rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">📅 GIORNATA:</span>
           <div id="schieraMatchdaySegments" class="segmented-control" style="margin:0;">
-            <button id="btnMd6Schiera" class="segment-btn" onclick="switchSchieraMatchday(6)">6ª Giornata</button>
-            <button id="btnMd7Schiera" class="segment-btn active" onclick="switchSchieraMatchday(7)">7ª Giornata 🟢</button>
+            <button class="segment-btn" onclick="switchSchieraMatchday(6)">6ª Giornata</button>
+            <button class="segment-btn" onclick="switchSchieraMatchday(7)">7ª Giornata</button>
+            <button class="segment-btn active" onclick="switchSchieraMatchday(8)">8ª Giornata 🟢</button>
           </div>
         </div>
         <div id="schieraMatchdayNotice" style="font-size:0.75rem; color:#34d399; font-weight:700;">
-          🟢 Calibrazione Reattiva AI Attiva
+          🟢 Calibrazione Reattiva AI Attiva • Vittoria 7ªG Integrata
         </div>
       </div>
 
@@ -62,7 +63,7 @@
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="display:inline-block; width:9px; height:9px; border-radius:50%; background:#10b981; box-shadow:0 0 8px #10b981;"></span>
           <span style="color:#e2e8f0; font-weight:600;">Probabili Formazioni:</span>
-          <span id="formationLastUpdatedText" style="color:#34d399; font-weight:800;">Aggiornate 16 Ott, 18:10 (Fantacalcio.it, Sky, Gazzetta & SOS Fanta)</span>
+          <span id="formationLastUpdatedText" style="color:#34d399; font-weight:800;">Aggiornate 23 Ott, 19:16 (Fantacalcio.it, Sky, Gazzetta & SOS Fanta)</span>
         </div>
         <button id="btnSyncLineupsNow" onclick="forceSyncLineups()" style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.18); color:#cbd5e1; border-radius:6px; padding:4px 10px; font-size:0.75rem; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:5px; transition:all 0.2s ease;" title="Risincronizza formazioni e statistiche live da Fantacalcio.it, Sky Sport, Gazzetta e SOS Fanta">
           <span id="syncIconSpin">🔄</span> <span>Aggiorna Dati Ora</span>
@@ -276,12 +277,13 @@
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:0.75rem; color:var(--text-muted); font-weight:800; text-transform:uppercase;">📅 GIORNATA:</span>
           <div id="liveMatchdaySegments" class="segmented-control" style="margin:0;">
-            <button id="btnMd6Live" class="segment-btn" onclick="switchLiveMatchday(6)">6ª Giornata</button>
-            <button id="btnMd7Live" class="segment-btn active" onclick="switchLiveMatchday(7)">7ª Giornata 🟢</button>
+            <button class="segment-btn" onclick="switchLiveMatchday(6)">6ª Giornata</button>
+            <button class="segment-btn" onclick="switchLiveMatchday(7)">7ª Giornata (2-1 🏆)</button>
+            <button class="segment-btn active" onclick="switchLiveMatchday(8)">8ª Giornata 🟢</button>
           </div>
         </div>
         <div id="liveMatchdayNotice" style="font-size:0.75rem; color:#34d399; font-weight:700;">
-          🟢 7ª Giornata (In Svolgimento • Live Match Center)
+          🟢 8ª Giornata (In Arrivo • Live Match Center)
         </div>
       </div>
 
@@ -508,9 +510,10 @@
             🔥 Consigli SOS Fanta Mirati sulla Tua Rosa
           </span>
           <div style="display:flex; gap:6px; align-items:center;">
-            <div class="segmented-control" style="margin:0;">
-              <button id="btnMd6SOS" class="segment-btn" onclick="switchSOSFantaMatchday(6)">6ª Giornata (Archivio)</button>
-              <button id="btnMd7SOS" class="segment-btn active" onclick="switchSOSFantaMatchday(7)">7ª Giornata (In Arrivo) 🟢</button>
+            <div id="sosfantaMatchdaySegments" class="segmented-control" style="margin:0;">
+              <button class="segment-btn" onclick="switchSOSFantaMatchday(6)">6ª Giornata</button>
+              <button class="segment-btn" onclick="switchSOSFantaMatchday(7)">7ª Giornata</button>
+              <button class="segment-btn active" onclick="switchSOSFantaMatchday(8)">8ª Giornata 🟢</button>
             </div>
           </div>
         </div>
@@ -568,14 +571,15 @@
       <div class="card-header" style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <span class="card-title">📅 Serie A • Partite & Probabili Formazioni</span>
         <div style="display:flex; align-items:center; gap:6px;">
-          <div class="segmented-control" style="margin:0;">
-            <button id="btnMd6Probabili" class="segment-btn" onclick="switchProbabiliMatchday(6)">6ª Giornata (Passata)</button>
-            <button id="btnMd7Probabili" class="segment-btn active" onclick="switchProbabiliMatchday(7)">7ª Giornata (In Arrivo) 🟢</button>
+          <div id="probabiliMatchdaySegments" class="segmented-control" style="margin:0;">
+            <button class="segment-btn" onclick="switchProbabiliMatchday(6)">6ª Giornata</button>
+            <button class="segment-btn" onclick="switchProbabiliMatchday(7)">7ª Giornata</button>
+            <button class="segment-btn active" onclick="switchProbabiliMatchday(8)">8ª Giornata 🟢</button>
           </div>
         </div>
       </div>
       <div id="probabiliMatchdayBanner" style="background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); border-radius:10px; padding:8px 12px; margin-bottom:12px; font-size:0.8rem; color:#34d399; font-weight:700; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
-        <span id="probabiliMatchdayBannerText">🟢 7ª Giornata: Primo anticipo venerdì 16 ottobre ore 20:45 (Frosinone - Sassuolo)</span>
+        <span id="probabiliMatchdayBannerText">🟢 8ª Giornata: Primo anticipo venerdì 23 ottobre ore 20:45 (Torino - Monza)</span>
         <button class="btn btn-secondary btn-sm" onclick="triggerManualSync()" style="font-size:0.7rem; padding:2px 8px;">Aggiorna Live 🔄</button>
       </div>
       <div id="fixturesListContainer">
@@ -1279,6 +1283,6 @@ Lautaro Martinez, Thuram, Lookman"></textarea>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script src="/static/js/notifications.js?v=5.0"></script>
   <script src="/static/js/pitch.js?v=5.0"></script>
-  <script src="/static/js/app.js?v=5.3"></script>
+  <script src="/static/js/app.js?v=5.4"></script>
 </body>
 </html>

@@ -184,11 +184,35 @@ async def search_players(query: str = "", role: str = "", team: str = "", limit:
     return {"results": results, "total": len(results)}
 
 def get_current_and_available_matchdays():
+    from datetime import datetime, timedelta
     fixtures_data = optimizer._load_json(FIXTURES_FILE, {})
     current_md = fixtures_data.get('matchday')
+    
+    # Check if cached fixtures are from a finished round (kickoff > 3 days ago)
+    now = get_rome_now()
+    earliest_iso = fixtures_data.get('earliest_kickoff_iso')
+    needs_refresh = False
+    if earliest_iso:
+        try:
+            kickoff_dt = datetime.fromisoformat(earliest_iso)
+            if now > kickoff_dt + timedelta(days=3):
+                needs_refresh = True
+        except Exception:
+            pass
+
+    if needs_refresh or not current_md:
+        try:
+            from backend.scraper import scrape_fixtures_and_lineups
+            fresh = scrape_fixtures_and_lineups()
+            if fresh and fresh.get('matchday'):
+                fixtures_data = fresh
+                current_md = fresh.get('matchday')
+        except Exception as e:
+            print(f"[app] Note: could not auto-refresh fixtures: {e}")
+
     if not current_md:
         from backend.sosfanta_analyzer import sosfanta_analyzer
-        current_md = sosfanta_analyzer.get_matchday_number() or 7
+        current_md = sosfanta_analyzer.get_matchday_number() or 8
 
     available = {current_md}
     if os.path.exists(DATA_DIR):
@@ -198,6 +222,8 @@ def get_current_and_available_matchdays():
                 available.add(int(m.group(1)))
     if current_md > 1:
         available.add(current_md - 1)
+        if current_md > 2:
+            available.add(current_md - 2)
 
     return current_md, sorted(list(available))
 
@@ -559,8 +585,8 @@ async def get_ai_learning_status():
     }
 
 @app.get("/api/ai/recalibration-preview")
-async def get_ai_recalibration_preview():
-    return ai_learning_engine.get_recalibration_preview()
+async def get_ai_recalibration_preview(matchday: Optional[int] = None):
+    return ai_learning_engine.get_recalibration_preview(matchday=matchday)
 
 @app.post("/api/ai/apply-recalibration")
 async def apply_ai_recalibration(req: ApplyRecalibrationRequest):

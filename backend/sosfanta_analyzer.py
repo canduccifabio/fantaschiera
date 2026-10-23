@@ -9,7 +9,7 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
 CACHE_FILE = os.path.join(DATA_DIR, 'sosfanta_preview.json')
 LLM_CACHE_PREFIX = os.path.join(DATA_DIR, 'sosfanta_llm_cache_giornata_')
 
-DEFAULT_PREVIEW_URL = 'https://www.sosfanta.com/chi-schierare-fantacalcio/preview-7a-giornata-seriea-campionato-fantacalcio-tutti-consigli-chi-schierare/'
+DEFAULT_PREVIEW_URL = 'https://www.sosfanta.com/chi-schierare-fantacalcio/preview-8a-giornata-seriea-campionato-fantacalcio-tutti-consigli-chi-schierare/'
 CATEGORY_URL = 'https://www.sosfanta.com/chi-schierare-fantacalcio/'
 
 HEADERS = {
@@ -50,7 +50,11 @@ class SOSFantaAnalyzer:
         self.scraped_data = self._load_cache()
         self._matchday_cache: Dict[int, Dict[str, Any]] = {}
         if self.scraped_data and self.scraped_data.get('preview_url'):
-            self.preview_url = self.scraped_data['preview_url']
+            cached_url = self.scraped_data['preview_url']
+            cached_md = self.get_matchday_number(cached_url)
+            init_md = self.get_matchday_number(self.preview_url)
+            if cached_md >= init_md:
+                self.preview_url = cached_url
 
     def _load_cache(self) -> Dict[str, Any]:
         if os.path.exists(CACHE_FILE):
@@ -94,7 +98,7 @@ class SOSFantaAnalyzer:
                         return int(f_data['matchday'])
             except Exception:
                 pass
-        return 7
+        return 8
 
     def get_matchday_label(self, matchday: Optional[int] = None) -> str:
         """Returns human readable matchday label (e.g. '7ª Giornata')."""
@@ -370,11 +374,12 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
                 return c
         return sentence
 
-    def analyze_player(self, player_name: str, team: str, matchday: int = 7) -> Dict[str, Any]:
+    def analyze_player(self, player_name: str, team: str, matchday: Optional[int] = None) -> Dict[str, Any]:
         """
         Analyzes a specific player against the SOSFanta preview article for the requested matchday.
         Employs Gemini LLM cache first, followed by clause-aware syntactic NLP parsing.
         """
+        matchday = int(matchday) if matchday else self.get_matchday_number()
         data = self.get_data_for_matchday(matchday)
         if not data.get('is_published', True) or not data.get('combined_text'):
             return {
@@ -606,8 +611,9 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
             'bonus_score': 1.0
         }
 
-    def analyze_entire_squad(self, user_players: List[Dict[str, Any]], matchday: int = 7) -> List[Dict[str, Any]]:
+    def analyze_entire_squad(self, user_players: List[Dict[str, Any]], matchday: Optional[int] = None) -> List[Dict[str, Any]]:
         """Returns targeted SOSFanta advice for each player in user's squad for the specified matchday."""
+        matchday = int(matchday) if matchday else self.get_matchday_number()
         results = []
         for p in user_players:
             analysis = self.analyze_player(p['name'], p.get('team', ''), matchday=matchday)
@@ -640,8 +646,9 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
         results.sort(key=lambda x: priority_map.get(x['sosfanta']['category'], 12))
         return results
 
-    def get_full_article_data(self, user_players: Optional[List[Dict[str, Any]]] = None, matchday: int = 7) -> Dict[str, Any]:
+    def get_full_article_data(self, user_players: Optional[List[Dict[str, Any]]] = None, matchday: Optional[int] = None) -> Dict[str, Any]:
         """Returns full article text and slides with user player highlights for requested matchday."""
+        matchday = int(matchday) if matchday else self.get_matchday_number()
         data = self.get_data_for_matchday(matchday)
         if not data.get('is_published', True) or not data.get('slides'):
             return {

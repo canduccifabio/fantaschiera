@@ -1583,24 +1583,25 @@ async function resetSquadToDefault() {
 }
 
 // --- FIXTURES TAB ---
-let currentProbabiliMatchday = 7;
+let currentProbabiliMatchday = null;
+
+function renderProbabiliMatchdaySelector(availableMatchdays, currentMatchday, selectedMatchday) {
+  const container = document.getElementById('probabiliMatchdaySegments');
+  if (!container) return;
+
+  const mds = (availableMatchdays && availableMatchdays.length > 0) ? availableMatchdays : [6, 7, 8];
+  const activeMd = selectedMatchday || currentMatchday || mds[mds.length - 1];
+
+  container.innerHTML = mds.map(m => {
+    const isCurrent = (m === currentMatchday);
+    const isSelected = (m === activeMd);
+    const label = isCurrent ? `${m}ª Giornata 🟢` : `${m}ª Giornata`;
+    return `<button class="segment-btn ${isSelected ? 'active' : ''}" onclick="switchProbabiliMatchday(${m})">${label}</button>`;
+  }).join('');
+}
 
 function switchProbabiliMatchday(md) {
   currentProbabiliMatchday = md;
-  const btn6 = document.getElementById('btnMd6Probabili');
-  const btn7 = document.getElementById('btnMd7Probabili');
-  const banner = document.getElementById('probabiliMatchdayBannerText');
-  if (btn6 && btn7) {
-    if (md === 6) {
-      btn6.classList.add('active');
-      btn7.classList.remove('active');
-      if (banner) banner.innerText = `🏁 6ª Giornata (Passata / Referti Ufficiali Fantacalcio)`;
-    } else {
-      btn7.classList.add('active');
-      btn6.classList.remove('active');
-      if (banner) banner.innerText = `🟢 7ª Giornata: Primo anticipo venerdì 16 ottobre ore 20:45 (Frosinone - Sassuolo)`;
-    }
-  }
   loadFixtures();
 }
 
@@ -1613,9 +1614,29 @@ async function loadFixtures() {
         if (sqRes.ok) currentSquadData = await sqRes.json();
       } catch (e) {}
     }
-    const res = await fetch(`/api/fixtures?matchday=${currentProbabiliMatchday}&_t=${Date.now()}`, { cache: 'no-store' });
+    const mdParam = currentProbabiliMatchday ? `&matchday=${currentProbabiliMatchday}` : '';
+    const res = await fetch(`/api/fixtures?_t=${Date.now()}${mdParam}`, { cache: 'no-store' });
     if (!res.ok) throw new Error("Errore recupero calendario");
     const data = await res.json();
+
+    if (!currentProbabiliMatchday) {
+      currentProbabiliMatchday = data.selected_matchday || data.current_matchday || 8;
+    }
+
+    renderProbabiliMatchdaySelector(data.available_matchdays, data.current_matchday, currentProbabiliMatchday);
+
+    const banner = document.getElementById('probabiliMatchdayBannerText');
+    if (banner) {
+      const activeMd = currentProbabiliMatchday || data.current_matchday;
+      if (activeMd < data.current_matchday) {
+        banner.innerHTML = `🏁 ${activeMd}ª Giornata (Passata / Referti Ufficiali Fantacalcio)`;
+      } else {
+        const firstF = (data.fixtures && data.fixtures.length > 0) ? data.fixtures[0] : null;
+        const kickStr = firstF ? `Primo anticipo ${firstF.date_str} (${firstF.home_team} - ${firstF.away_team})` : 'Turno in programma';
+        banner.innerHTML = `🟢 ${activeMd}ª Giornata: ${kickStr}`;
+      }
+    }
+
     renderFixturesView(data.fixtures || []);
   } catch (e) {
     showToast("Errore caricamento calendario.");
@@ -2481,16 +2502,25 @@ async function loadTunnelInfo() {
 // --- SOS FANTA INTELLIGENCE TAB ---
 let fullArticleDataCache = {};
 let activeMatchFilter = 'all';
-let currentSOSFantaMatchday = 7;
+let currentSOSFantaMatchday = null;
+
+function renderSOSFantaMatchdaySelector(availableMatchdays, currentMatchday, selectedMatchday) {
+  const container = document.getElementById('sosfantaMatchdaySegments');
+  if (!container) return;
+
+  const mds = (availableMatchdays && availableMatchdays.length > 0) ? availableMatchdays : [6, 7, 8];
+  const activeMd = selectedMatchday || currentMatchday || mds[mds.length - 1];
+
+  container.innerHTML = mds.map(m => {
+    const isCurrent = (m === currentMatchday);
+    const isSelected = (m === activeMd);
+    const label = isCurrent ? `${m}ª Giornata 🟢` : `${m}ª Giornata`;
+    return `<button class="segment-btn ${isSelected ? 'active' : ''}" onclick="switchSOSFantaMatchday(${m})">${label}</button>`;
+  }).join('');
+}
 
 function switchSOSFantaMatchday(md) {
   currentSOSFantaMatchday = md;
-  const btn6 = document.getElementById('btnMd6SOS');
-  const btn7 = document.getElementById('btnMd7SOS');
-  if (btn6 && btn7) {
-    btn6.classList.toggle('active', md === 6);
-    btn7.classList.toggle('active', md === 7);
-  }
   loadSOSFantaAnalysis();
 }
 
@@ -2498,14 +2528,21 @@ async function loadSOSFantaAnalysis() {
   const container = document.getElementById('sosfantaCardsContainer');
   const statsContainer = document.getElementById('sosfantaStatsContainer');
   const btnFullArticle = document.getElementById('btnOpenSOSArticle');
-  if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);">Analisi preview SOS Fanta ${currentSOSFantaMatchday}ª Giornata in corso...</div>`;
+  if (container) container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-muted);"><span class="live-dot" style="margin-right:8px;"></span>Analisi preview SOS Fanta in corso...</div>`;
 
   try {
-    const res = await fetch(`/api/sosfanta/analysis?matchday=${currentSOSFantaMatchday}`);
+    const mdParam = currentSOSFantaMatchday ? `?matchday=${currentSOSFantaMatchday}` : '';
+    const res = await fetch(`/api/sosfanta/analysis${mdParam}`);
     if (!res.ok) throw new Error("Errore recupero SOS Fanta");
     const data = await res.json();
     const results = data.results || [];
     const isPublished = data.is_published !== false;
+
+    if (!currentSOSFantaMatchday) {
+      currentSOSFantaMatchday = data.matchday_num || data.current_matchday || 8;
+    }
+
+    renderSOSFantaMatchdaySelector(data.available_matchdays, data.current_matchday, currentSOSFantaMatchday);
 
     // Update matchday badge and url input
     const badge = document.getElementById('sosfantaMatchdayBadge');
@@ -2522,29 +2559,26 @@ async function loadSOSFantaAnalysis() {
       if (statsContainer) {
         statsContainer.innerHTML = `
           <div class="counter-box" style="grid-column: 1 / -1; padding:14px; background:rgba(245, 158, 11, 0.08); border:1px solid rgba(245, 158, 11, 0.25); border-radius:12px;">
-            <div style="font-weight:800; color:#fbbf24; font-size:0.95rem; margin-bottom:4px;">⏳ Preview 7ª Giornata non ancora pubblicata da SOS Fanta</div>
+            <div style="font-weight:800; color:#fbbf24; font-size:0.95rem; margin-bottom:4px;">⏳ Preview ${currentSOSFantaMatchday}ª Giornata non ancora pubblicata da SOS Fanta</div>
             <div style="font-size:0.8rem; color:#fde68a; line-height:1.5;">
-              La redazione di SOS Fanta pubblica l'articolo integrale delle 10 partite <strong>24-48 ore prima del primo anticipo</strong> (previsto per giovedì 15 o venerdì 16 ottobre).
-              Il sistema scansiona la fonte ogni 15 minuti e collegherà automaticamente tutti i consigli non appena disponibili online.
+              La redazione di SOS Fanta pubblica l'articolo integrale delle 10 partite <strong>24-48 ore prima del primo anticipo</strong>.
+              Il sistema scansiona la fonte periodicamente e collegherà automaticamente tutti i consigli non appena disponibili online.
             </div>
           </div>
         `;
       }
       if (btnFullArticle) {
         btnFullArticle.style.opacity = '0.7';
-        btnFullArticle.innerText = `⏳ Estratto Completo 7ª Giornata (In Arrivo)`;
+        btnFullArticle.innerText = `⏳ Estratto Completo ${currentSOSFantaMatchday}ª Giornata (In Arrivo)`;
       }
       if (container) {
         container.innerHTML = `
           <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:20px; text-align:center;">
             <div style="font-size:2rem; margin-bottom:8px;">⏳</div>
-            <div style="font-weight:800; font-size:1rem; color:#ffffff; margin-bottom:6px;">Preview 7ª Giornata in Arrivo</div>
+            <div style="font-weight:800; font-size:1rem; color:#ffffff; margin-bottom:6px;">Preview ${currentSOSFantaMatchday}ª Giornata in Arrivo</div>
             <div style="font-size:0.84rem; color:var(--text-secondary); max-width:480px; margin:0 auto 16px; line-height:1.6;">
-              Nessun consiglio obsoleto della 6ª Giornata viene mostrato per la 7ª Giornata per garantire la massima correttezza della formazione. Puoi consultare l'archivio ufficiale della 6ª Giornata premendo il pulsante in alto.
+              I consigli per questo turno non sono ancora stati pubblicati online da SOS Fanta. Puoi consultare l'archivio dei turni precedenti selezionando la giornata in alto.
             </div>
-            <button class="btn btn-secondary btn-sm" onclick="switchSOSFantaMatchday(6)">
-              📂 Visualizza Archivio Consigli 6ª Giornata
-            </button>
           </div>
         `;
       }

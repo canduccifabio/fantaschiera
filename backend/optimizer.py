@@ -1020,8 +1020,8 @@ class LineupOptimizer:
 
         return {
             'recommended_formation': best_module,
-            'matchday': fixtures_data.get('matchday', 7),
-            'matchday_label': fixtures_data.get('matchday_label', '7ª Giornata (Attuale / In Arrivo)'),
+            'matchday': fixtures_data.get('matchday', target_md),
+            'matchday_label': fixtures_data.get('matchday_label', f"{target_md}ª Giornata (Attuale / In Arrivo)"),
             'is_past_matchday': fixtures_data.get('is_past', False),
             'total_expected_score': best_details.get('total_expected_points', 72.0),
             'base_expected_score': best_details.get('base_expected_fv', 70.0),
