@@ -308,6 +308,13 @@ class LineupOptimizer:
             consensus_data['consensus_percentage'] = min(consensus_data.get('consensus_percentage', 80), 25)
             consensus_data['consensus_level'] = 'RISCHIO PANCHINA / S.V.'
             consensus_data['summary'] = 'SOS Fanta: al massimo in panchina, massima prudenza e riserva sicurissima (rischio s.v.).'
+        elif sf_cat == 'SCHIERARE ASSOLUTO' and is_starter and not (is_official or is_live or is_finished):
+            calibrated_titolarita = max(calibrated_titolarita, 85)
+            consensus_data['consensus_percentage'] = max(consensus_data.get('consensus_percentage', 50), 85)
+        elif sf_cat in ['PROMOSSO / CERTEZZA', 'PROMOSSO'] and is_starter and not (is_official or is_live or is_finished):
+            calibrated_titolarita = max(calibrated_titolarita, 75)
+            consensus_data['consensus_percentage'] = max(consensus_data.get('consensus_percentage', 50), 75)
+
         # Dynamic weights optimized by the continuous AI learning engine
         learned_w = ai_learning_engine.get_weights()
         tit_max_w = learned_w.get('titolarita_max_weight', 35.0)
@@ -342,6 +349,11 @@ class LineupOptimizer:
 
         # C) Advanced Threat & Metrics Factor (0 - 25 pt) calibrated across all roles
         pure_base = metrics_data.get('pure_base_grade', 6.20)
+        sf_quote_clause = (sf_analysis.get('clause', '') + ' ' + sf_analysis.get('quote', '')).lower()
+        if 'da 6,5' in sf_quote_clause or 'da 6.5' in sf_quote_clause:
+            pure_base = max(pure_base, 6.45)
+        elif 'da 6' in sf_quote_clause:
+            pure_base = max(pure_base, 6.10)
         threat_score = metrics_data.get('threat_score', 3.0)
         npxg_val = metrics_data.get('npxg', metrics_data.get('xg', 0.0))
         sca_val = metrics_data.get('sca', 1.0)

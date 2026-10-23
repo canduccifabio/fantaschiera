@@ -17,22 +17,22 @@ HEADERS = {
 }
 
 PLAYER_ALIASES_MAP = {
-    'ramos g.': ['goncalo ramos', 'ramos', 'gonçalo ramos'],
+    'wesley': ['wesley', 'welsey'],
+    'ramos g.': ['goncalo ramos', 'ramos', 'gonçalo ramos', 'goncalo'],
     'dybala': ['dybala', 'paulo dybala'],
     'jimenez a.': ['jimenez', 'alex jimenez'],
-    'taylor k.': ['taylor', 'k. taylor'],
+    'taylor k.': ['taylor', 'k. taylor', 'kenneth taylor', 'l\'olandese'],
     'vasquez': ['vasquez', 'johan vasquez'],
-    'frendrup': ['frendrup'],
+    'frendrup': ['frendrup', 'morten frendrup'],
     'moreira': ['moreira', 'diego moreira'],
-    'belghali': ['belghali'],
-    'mangas': ['mangas'],
+    'belghali': ['belghali', 'ali belghali'],
+    'mangas': ['mangas', 'ricardo mangas'],
     'gallo': ['gallo', 'antonino gallo'],
     'cacciamani': ['cacciamani'],
-    'fitz-jim': ['fitz-jim', 'fitz jim'],
+    'fitz-jim': ['fitz-jim', 'fitz jim', 'fitz'],
     'kvernadze': ['kvernadze'],
     'ghedjemis': ['ghedjemis'],
     'ramon': ['ramon', 'jacobo ramon'],
-    'wesley': ['wesley'],
     'maignan': ['maignan', 'mike maignan'],
     'mandas': ['mandas', 'christos mandas'],
     'motta': ['motta'],
@@ -367,7 +367,7 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
         poisoning from adjacent players while preserving decimal grades (e.g. 6,5)
         and lists of players sharing the same verdict.
         """
-        contrast_regex = r'[;:\n]|(?:,\s*(?=(?:ma|mentre|invece|tuttavia|però|leggermente meglio|più da bonus|no a|non troppa fiducia|al massimo|occhio a|da 6|da 7)\b))|(?:\s+(?:ma|mentre|invece|tuttavia|però)\s+)'
+        contrast_regex = r'[;\n]|(?:,\s*(?=(?:ma|mentre|invece|tuttavia|però|leggermente meglio|più da bonus|no a|non troppa fiducia|al massimo|occhio a|da 6|da 7)\b))|(?:\s+(?:ma|mentre|tuttavia|però)\s+)'
         clauses = [c.strip() for c in re.split(contrast_regex, sentence, flags=re.I) if c.strip()]
         for c in clauses:
             if re.search(rf'\b{re.escape(alias)}\b', c, re.I):
@@ -408,9 +408,9 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
         if llm_cache:
             for k, val in llm_cache.items():
                 k_norm = k.lower().strip()
-                if k_norm == norm_name or any(a.lower() in k_norm or k_norm in a.lower() for a in aliases):
+                if k_norm == norm_name or any(a.lower() == k_norm or k_norm in a.lower() for a in aliases):
                     return {
-                        'mentioned': True,
+                        'mentioned': val.get('mentioned', True),
                         'is_published': True,
                         'matchday': matchday,
                         'matchday_label': f"{matchday}ª Giornata",
@@ -462,10 +462,12 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
         # Rule A: MASSIMA PRUDENZA / PANCHINA / RISCHIO S.V. (Critical priority alert)
         bench_sv_patterns = [
             'al massimo andrà in panchina', 'al massimo in panchina', 'massima prudenza', 
-            'non si correranno rischi', 'non correranno rischi', 'riserva deve essere sicurissima', 
+            'non si correranno rischi', 'non correranno rischi', 'non si vogliono correre rischi',
+            'non vogliamo correre rischi', 'siamo più sulla panchina', 'più sulla panchina che sulla titolarità',
+            'più sulla panchina', 'riserva deve essere sicurissima', 
             'riserva sicurissima', 'difficilmente a voto', 'rischio s.v.', 'non rischiate'
         ]
-        if any(w in c_lower for w in bench_sv_patterns) or (not has_multiple_clauses and any(w in s_lower for w in bench_sv_patterns)):
+        if any(w in c_lower for w in bench_sv_patterns) or any(w in s_lower for w in ['non si vogliono correre rischi', 'più sulla panchina che sulla titolarità', 'al massimo andrà in panchina']):
             return {
                 'mentioned': True,
                 'is_published': True,
@@ -485,7 +487,9 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
             'si mette senza se e senza ma', 'senza se e senza ma', 'si mette e basta', 
             'si schiera e basta', 'va schierato', 'non si può togliere', 'intoccabile', 
             'top e si schiera sempre', 'si schiera sempre', 'da mettere senza se e senza ma', 
-            'assolutamente da mettere', 'non si discute', 'da mettere assolutamente'
+            'assolutamente da mettere', 'non si discute', 'da mettere assolutamente',
+            'senza pensarci due volte', 'si mette senza pensarci', 'non si può tenere fuori',
+            'impossibile tenere fuori', 'ancora meglio se lo avete', 'ancora meglio', 'una garanzia'
         ]
         if any(w in c_lower for w in must_start_patterns) or (not has_multiple_clauses and any(w in s_lower for w in must_start_patterns)):
             return {
@@ -507,14 +511,22 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
             'più di una scommessa', 'ormai è più di una scommessa', 'più affidabile', 
             'il più affidabile', 'grande affidabilità', 'ispira', 'ispirano', 'promosso', 
             'promossi', 'in forma', 'ottima soluzione', 'approvato', 'da confermare', 
-            'torna da schierare', 'semaforo verde', 'stuzzica', 'stuzzicano',
+            'torna da schierare', 'semaforo verde', 'semaforo è verde', 'il semaforo è verde',
+            'semaforo verdissimo', 'stuzzica', 'stuzzicano', 'spicca sempre', 'spicca',
+            'può fare male', 'fare male su quella fascia',
             'più da bonus', 'in fascia più da bonus', 'in fascia da bonus', 'giocatori da bonus',
             'giocatore da bonus', 'da bonus', 'porta bonus', 'possono portare bonus', 'può portare bonus',
+            'può portare il primo bonus', 'dopo grandi prestazioni', 'difficile da tenere fuori',
+            'difficile tenerlo fuori', 'dategli fiducia da titolare', 'basta avere una riserva per metterlo titolare',
+            'si mette con una riserva per sicurezza', 'si mette con una riserva', 'si mette con riserva',
             'da 6,5', 'da 6.5', 'da 7', 'da 7,5', 'da 7.5', 'comunque convince', 'convince',
             'perfetto per il modificatore', 'da modificatore'
         ]
-        if any(w in c_lower for w in promoted_patterns) or (not has_multiple_clauses and any(w in s_lower for w in promoted_patterns)):
-            if any(b in c_lower for b in ['da bonus', 'più da bonus', 'in fascia più da bonus', 'in fascia da bonus', 'giocatori da bonus']):
+        # Check if current player is the comparative inferior in "X ispira più di Y"
+        is_comparative_loser = bool(re.search(rf'ispira\s+(?:di\s+)?più\s+di\s+{re.escape(matched_alias)}', c_lower) or re.search(rf'più\s+di\s+{re.escape(matched_alias)}', c_lower))
+
+        if (any(w in c_lower for w in promoted_patterns) or (not has_multiple_clauses and any(w in s_lower for w in promoted_patterns))) and not is_comparative_loser:
+            if any(b in c_lower for b in ['da bonus', 'più da bonus', 'in fascia più da bonus', 'in fascia da bonus', 'giocatori da bonus', 'primo bonus']):
                 summary = f"Consigliato da SOS Fanta per la {matchday}ª giornata: elemento da bonus proiettato in avanti, ottimo potenziale da bonus (+3/+1) da schierare."
             elif any(b in c_lower for b in ['da 6,5', 'da 6.5', 'da 7', 'convince', 'comunque convince', 'modificatore']):
                 summary = f"Promosso da SOS Fanta per la {matchday}ª giornata con rendimento atteso da 6,5: garanzia di ottimo voto e preziosissimo per il modificatore di difesa."
@@ -537,7 +549,8 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
         # Rule D: COPERTURA CON RISERVA (Target clause check only so Mangas is never poisoned by Birindelli)
         coverage_patterns = [
             'come copertura', 'solo come copertura', 'basta avere una copertura', 
-            'solo con copertura', 'da copertura', 'copertura sicura'
+            'solo con copertura', 'da copertura', 'copertura sicura', 'più come coperture',
+            'più come riserve', 'come copertura al massimo', 'da copertura al massimo'
         ]
         if any(w in c_lower for w in coverage_patterns) or (not has_multiple_clauses and any(w in s_lower for w in coverage_patterns)):
             return {
@@ -556,8 +569,9 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
 
         # Rule E: SCONSIGLIATO / EVITARE (e.g. Ehizibue, Frendrup: "Non troppa fiducia", "no a")
         avoid_patterns = [
-            'non troppa fiducia', 'poca fiducia', 'evitare', 'no a', 'non ispirano', 
-            'potete trovare di meglio', 'trovare di meglio', 'pericolo'
+            'non troppa fiducia', 'poca fiducia', 'evitare', 'si può evitare', 'si può evitare in blocco',
+            'no a', 'non ispirano', 'potete trovare di meglio', 'trovare di meglio', 'pericolo',
+            'meno peggio', 'potete fare altre scelte'
         ]
         if any(w in c_lower for w in avoid_patterns) or (not has_multiple_clauses and any(w in s_lower for w in avoid_patterns)):
             return {
@@ -579,9 +593,9 @@ Restituisci ESCLUSIVAMENTE un oggetto JSON valido con questo formato:
             'leggermente meglio', 'meglio di', 'quarto slot', 'terzo slot', 'da 6', 
             'da sufficienza', 'buon voto', 'schierabile', 'schierabili', 'ci può stare', 
             'si possono mettere', 'si può mettere', 'si può schierare', 'può dire la sua', 
-            'intriga', 'chance'
+            'intriga', 'chance', 'a seguire'
         ]
-        if any(w in c_lower for w in playable_patterns) or (not has_multiple_clauses and any(w in s_lower for w in playable_patterns)):
+        if any(w in c_lower for w in playable_patterns) or is_comparative_loser or (not has_multiple_clauses and any(w in s_lower for w in playable_patterns)):
             return {
                 'mentioned': True,
                 'is_published': True,

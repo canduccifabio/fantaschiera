@@ -1,0 +1,137 @@
+{
+  "Wesley": {
+    "category": "SCHIERARE ASSOLUTO",
+    "badge": "success",
+    "icon": "🌟",
+    "quote": "Convince il blocco difensivo di Gasperini... Welsey si mette senza pensarci due volte, per Molina anche qui dipende dagli altri difensori.",
+    "clause": "Welsey si mette senza pensarci due volte",
+    "summary": "Consigliatissimo da SOS Fanta per l'8ª giornata: si mette senza pensarci due volte anche a Napoli, piena fiducia da titolare inamovibile.",
+    "bonus_score": 9.0
+  },
+  "Ramon": {
+    "category": "SCHIERARE ASSOLUTO",
+    "badge": "success",
+    "icon": "🌟",
+    "quote": "Kempf una garanzia in difesa, Ramon ancora meglio se lo avete; soliti ballottaggi per i terzini, si possono schierare tutti a patto di avere coperture sicure.",
+    "clause": "Kempf una garanzia in difesa, Ramon ancora meglio se lo avete",
+    "summary": "Consigliatissimo da SOS Fanta per l'8ª giornata: indicato 'ancora meglio' di Kempf (definito garanzia), rendimento top e voto prezioso per il modificatore.",
+    "bonus_score": 8.5
+  },
+  "Belghali": {
+    "category": "PROMOSSO / CERTEZZA",
+    "badge": "success",
+    "icon": "✅",
+    "quote": "Dei difensori Belghali è quello più da bonus, anche perché gioca a tutta fascia.",
+    "clause": "Dei difensori Belghali è quello più da bonus, anche perché gioca a tutta fascia.",
+    "summary": "Promosso a pieni voti da SOS Fanta per l'8ª giornata: è il difensore più da bonus del Torino, spinta continua e alto potenziale offensivo.",
+    "bonus_score": 7.5
+  },
+  "Mangas": {
+    "category": "PROMOSSO / CERTEZZA",
+    "badge": "success",
+    "icon": "✅",
+    "quote": "Spicca sempre Mangas tra i difensori, può fare male su quella fascia: si può schierare. Più come riserve invece Birindelli e i tre centrali difensivi.",
+    "clause": "Spicca sempre Mangas tra i difensori, può fare male su quella fascia: si può schierare.",
+    "summary": "Consigliato da SOS Fanta per l'8ª giornata: spicca nel reparto difensivo del Monza e può fare male con le sue discese, promosso titolare.",
+    "bonus_score": 7.0
+  },
+  "Moreira": {
+    "category": "PROMOSSO / CERTEZZA",
+    "badge": "success",
+    "icon": "✅",
+    "quote": "Impossibile tenere fuori Rabiot visto il momento, ma anche per Pulisic e Moreira il semaforo è verde.",
+    "clause": "ma anche per Pulisic e Moreira il semaforo è verde.",
+    "summary": "Promosso da SOS Fanta per l'8ª giornata: semaforo verde pieno per la trasferta di Udine, momento positivo e rifinitura da sfruttare.",
+    "bonus_score": 7.5
+  },
+  "Kvernadze": {
+    "category": "PROMOSSO / CERTEZZA",
+    "badge": "success",
+    "icon": "✅",
+    "quote": "Kvernadze ispira di più di Ghedjemis per chiudere il capitolo attaccanti.",
+    "clause": "Kvernadze ispira di più di Ghedjemis per chiudere il capitolo attaccanti.",
+    "summary": "Consigliato da SOS Fanta per l'8ª giornata: ispira più di Ghedjemis ed è la prima scelta nel reparto avanzato del Frosinone.",
+    "bonus_score": 7.0
+  },
+  "Ramos G.": {
+    "category": "PROMOSSO / CERTEZZA",
+    "badge": "primary",
+    "icon": "👍",
+    "quote": "Goncalo Ramos è già tornato in gruppo e vuole essere titolare, al fantacalcio si mette con una riserva per sicurezza.",
+    "clause": "al fantacalcio si mette con una riserva per sicurezza.",
+    "summary": "Consigliato da SOS Fanta per l'8ª giornata: tornato in gruppo e determinato a incidere, al fantacalcio si mette titolare con copertura.",
+    "bonus_score": 5.5
+  },
+  "Taylor K.": {
+    "category": "PROMOSSO / CERTEZZA",
+    "badge": "primary",
+    "icon": "⭐",
+    "quote": "Taylor dopo grandi prestazioni può portare il primo bonus (non è stato al 100% in settimana, ma è recuperato e basta avere una riserva per metterlo titolare)... ma l'olandese è difficile da tenere fuori per questa partita.",
+    "clause": "Taylor dopo grandi prestazioni può portare il primo bonus (basta avere una riserva per metterlo titolare), difficile da tenere fuori",
+    "summary": "Idea a sorpresa da bonus per l'8ª giornata: difficile da tenere fuori dopo grandi prestazioni, recuperato e pronto a portare il primo bonus.",
+    "bonus_score": 6.0
+  },
+  "Vasquez": {
+    "category": "SCHIERABILE / ALTERNATIVA",
+    "badge": "primary",
+    "icon": "👍",
+    "quote": "Puczka possibile opzione a sinistra ma per il fanta avete sicuramente di meglio, tra i difensori Ostigard il più affidabile e a seguire Vasquez. Marcandalli come copertura al massimo.",
+    "clause": "tra i difensori Ostigard il più affidabile e a seguire Vasquez.",
+    "summary": "Schierabile per l'8ª giornata: affidabile nella sfida interna con il Venezia, gerarchicamente a seguire rispetto a Ostigard.",
+    "bonus_score": 4.0
+  },
+  "Frendrup": {
+    "category": "SCHIERABILE / ALTERNATIVA",
+    "badge": "primary",
+    "icon": "👍",
+    "quote": "Da 6 Frendrup ed Ellertsson, possibili bonus invece possono arrivare da El Shaarawy, Baldanzi e Messias: potete farci più di un pensierino se li avete.",
+    "clause": "Da 6 Frendrup ed Ellertsson",
+    "summary": "Schierabile per l'8ª giornata: garanzia di rendimento da sufficienza pulita (da 6), equilibratore di reparto senza particolari pretese di bonus.",
+    "bonus_score": 3.0
+  },
+  "Ghedjemis": {
+    "category": "SCHIERABILE / ALTERNATIVA",
+    "badge": "secondary",
+    "icon": "👍",
+    "quote": "Kvernadze ispira di più di Ghedjemis per chiudere il capitolo attaccanti.",
+    "clause": "Kvernadze ispira di più di Ghedjemis",
+    "summary": "Schierabile come alternativa d'attacco per l'8ª giornata: meno prioritario rispetto a Kvernadze nelle gerarchie di SOS Fanta.",
+    "bonus_score": 3.0
+  },
+  "Gallo": {
+    "category": "COPERTURA CON RISERVA",
+    "badge": "secondary",
+    "icon": "🛡️",
+    "quote": "Tiago Gabriel si può schierare anche con la Juve; più come coperture invece Gaspar, Gallo e Veiga vista la partita.",
+    "clause": "più come coperture invece Gaspar, Gallo e Veiga vista la partita.",
+    "summary": "Indicato da SOS Fanta per l'8ª giornata soprattutto come copertura di reparto da quarto slot vista la gara proibitiva con la Juventus.",
+    "bonus_score": 0.5
+  },
+  "Cacciamani": {
+    "category": "SCONSIGLIATO / EVITARE",
+    "badge": "warning",
+    "icon": "⚠️",
+    "quote": "Interessanti sia Mandragora che Braganca, più di Cacciamani in questo momento.",
+    "clause": "Interessanti sia Mandragora che Braganca, più di Cacciamani in questo momento.",
+    "summary": "SOS Fanta invita alla cautela per l'8ª giornata: in questo momento i compagni di reparto sono ritenuti più affidabili e pronti al bonus.",
+    "bonus_score": -2.0
+  },
+  "Jimenez A.": {
+    "category": "SCONSIGLIATO / EVITARE",
+    "badge": "danger",
+    "icon": "⚠️",
+    "quote": "Si può evitare in blocco la difesa della Fiorentina, il 'meno peggio' è Jimenez se così possiamo definirlo. Ma può comunque soffrire da quel lato, con Dimarco e Carlos Augusto.",
+    "clause": "Si può evitare in blocco la difesa della Fiorentina, il 'meno peggio' è Jimenez",
+    "summary": "Sconsigliato da SOS Fanta per l'8ª giornata: difesa della Fiorentina da evitare in blocco a San Siro, alto rischio malus contro Dimarco e Carlos Augusto.",
+    "bonus_score": -8.0
+  },
+  "Zaniolo": {
+    "category": "MASSIMA PRUDENZA / PANCHINA / RISCHIO S.V.",
+    "badge": "danger",
+    "icon": "🚨",
+    "quote": "Non si vogliono correre rischi con Zaniolo, siamo più sulla panchina che sulla titolarità: se volete schierarlo titolare, la riserva deve essere sicurissima.",
+    "clause": "Non si vogliono correre rischi con Zaniolo, siamo più sulla panchina che sulla titolarità: riserva deve essere sicurissima.",
+    "summary": "Allerta SOS Fanta per l'8ª giornata: orientato verso la panchina per non correre rischi. Rischio s.v. elevato: schierare solo con riserva sicurissima al 100%.",
+    "bonus_score": -15.0
+  }
+}
