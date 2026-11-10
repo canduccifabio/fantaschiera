@@ -30,8 +30,8 @@
       ],
       "away_lineup": [
         "Tornqvist",
-        "Kouadio",
         "Goglichidze",
+        "Lucchesi",
         "Carboni A.",
         "Birindelli",
         "Akinsanmiro",
@@ -44,67 +44,67 @@
       "player_percentages": {
         "perri": {
           "name": "Perri",
-          "percentage": 90,
+          "percentage": 100,
           "role": "P",
           "is_starter": true
         },
         "comuzzo": {
           "name": "Comuzzo",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "ismajli": {
           "name": "Ismajli",
-          "percentage": 80,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "coco": {
           "name": "Coco",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "belghali": {
           "name": "Belghali",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "mandragora": {
           "name": "Mandragora",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "fitz-jim": {
           "name": "Fitz-Jim",
-          "percentage": 80,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "cacciamani": {
           "name": "Cacciamani",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "vlasic": {
           "name": "Vlasic",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "adams c.": {
           "name": "Adams C.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "simeone": {
           "name": "Simeone",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -188,67 +188,67 @@
         },
         "tornqvist": {
           "name": "Tornqvist",
-          "percentage": 90,
+          "percentage": 100,
           "role": "P",
-          "is_starter": true
-        },
-        "kouadio": {
-          "name": "Kouadio",
-          "percentage": 90,
-          "role": "D",
           "is_starter": true
         },
         "goglichidze": {
           "name": "Goglichidze",
-          "percentage": 85,
+          "percentage": 100,
+          "role": "D",
+          "is_starter": true
+        },
+        "lucchesi": {
+          "name": "Lucchesi",
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "carboni a.": {
           "name": "Carboni A.",
-          "percentage": 75,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "birindelli": {
           "name": "Birindelli",
-          "percentage": 90,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "akinsanmiro": {
           "name": "Akinsanmiro",
-          "percentage": 90,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "foe ondoa": {
           "name": "Foe Ondoa",
-          "percentage": 60,
+          "percentage": 100,
           "role": "C",
           "is_starter": true
         },
         "mangas": {
           "name": "Mangas",
-          "percentage": 55,
+          "percentage": 100,
           "role": "D",
           "is_starter": true
         },
         "mota": {
           "name": "Mota",
-          "percentage": 60,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "robinson j.": {
           "name": "Robinson J.",
-          "percentage": 80,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
         "varela g.": {
           "name": "Varela G.",
-          "percentage": 90,
+          "percentage": 100,
           "role": "A",
           "is_starter": true
         },
@@ -264,15 +264,15 @@
           "role": "P",
           "is_starter": false
         },
-        "lucchesi": {
-          "name": "Lucchesi",
-          "percentage": 40,
+        "kouadio": {
+          "name": "Kouadio",
+          "percentage": 60,
           "role": "D",
           "is_starter": false
         },
         "bakoune": {
           "name": "Bakoune",
-          "percentage": 50,
+          "percentage": 35,
           "role": "D",
           "is_starter": false
         },
@@ -343,11 +343,7 @@
           "is_starter": false
         }
       },
-      "ballottaggi": [
-        "Mangas 55% Bakoune 45%",
-        "Foe Ondoa 60% Folorunsho 40%",
-        "Mota 60% Cutrone 40%"
-      ]
+      "ballottaggi": []
     },
     {
       "id": 2,
@@ -3237,6 +3233,6 @@
       ]
     }
   ],
-  "last_updated": "2026-10-23T19:55:38.621537",
-  "last_updated_human": "23 Ott, 19:55"
+  "last_updated": "2026-10-23T20:06:00.212801",
+  "last_updated_human": "23 Ott, 20:06"
 }

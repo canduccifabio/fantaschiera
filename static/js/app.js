@@ -59,21 +59,28 @@ function renderSchieraMatchdaySelector(availableMatchdays, currentMatchday, sele
   const notice = document.getElementById('schieraMatchdayNotice');
   if (!container) return;
 
-  const mds = (availableMatchdays && availableMatchdays.length > 0) ? availableMatchdays : [6, 7];
-  const activeMd = selectedMatchday || currentMatchday || mds[mds.length - 1];
+  const current = currentMatchday || 12;
+  let mds = (availableMatchdays && availableMatchdays.length > 0)
+    ? availableMatchdays
+    : [Math.max(1, current - 1), current, Math.min(38, current + 1)];
+  mds = mds.filter(m => m >= current - 1 && m <= current + 1);
+  if (mds.length === 0) mds = [Math.max(1, current - 1), current, Math.min(38, current + 1)];
+  const activeMd = selectedMatchday || current;
 
   container.innerHTML = mds.map(m => {
-    const isCurrent = (m === currentMatchday);
+    const isCurrent = (m === current);
     const isSelected = (m === activeMd);
     const label = isCurrent ? `${m}ª Giornata 🟢` : `${m}ª Giornata`;
     return `<button class="segment-btn ${isSelected ? 'active' : ''}" onclick="switchSchieraMatchday(${m})">${label}</button>`;
   }).join('');
 
   if (notice) {
-    if (activeMd < currentMatchday) {
+    if (activeMd < current) {
       notice.innerHTML = `🏁 ${activeMd}ª Giornata (Referti & Storico)`;
-    } else {
+    } else if (activeMd === current) {
       notice.innerHTML = `🟢 ${activeMd}ª Giornata • Calibrazione Reattiva AI Attiva`;
+    } else {
+      notice.innerHTML = `⏳ ${activeMd}ª Giornata • Proiezione Turno Futuro`;
     }
   }
 }
@@ -792,10 +799,18 @@ function renderLiveView(data) {
   }
 
   const liveSegmentsContainer = document.getElementById('liveMatchdaySegments');
-  if (liveSegmentsContainer && data.available_matchdays) {
-    liveSegmentsContainer.innerHTML = data.available_matchdays.map(m => {
-      const isCur = (m === data.current_matchday);
-      const isSel = (m === data.matchday);
+  if (liveSegmentsContainer) {
+    const curMd = data.current_matchday || 12;
+    let mds = (data.available_matchdays && data.available_matchdays.length > 0)
+      ? data.available_matchdays
+      : [Math.max(1, curMd - 1), curMd, Math.min(38, curMd + 1)];
+    mds = mds.filter(m => m >= curMd - 1 && m <= curMd + 1);
+    if (mds.length === 0) mds = [Math.max(1, curMd - 1), curMd, Math.min(38, curMd + 1)];
+    const activeMd = data.matchday || curMd;
+
+    liveSegmentsContainer.innerHTML = mds.map(m => {
+      const isCur = (m === curMd);
+      const isSel = (m === activeMd);
       const label = isCur ? `${m}ª Giornata 🟢` : `${m}ª Giornata`;
       return `<button class="segment-btn ${isSel ? 'active' : ''}" onclick="switchLiveMatchday(${m})">${label}</button>`;
     }).join('');
@@ -1589,11 +1604,16 @@ function renderProbabiliMatchdaySelector(availableMatchdays, currentMatchday, se
   const container = document.getElementById('probabiliMatchdaySegments');
   if (!container) return;
 
-  const mds = (availableMatchdays && availableMatchdays.length > 0) ? availableMatchdays : [6, 7, 8];
-  const activeMd = selectedMatchday || currentMatchday || mds[mds.length - 1];
+  const current = currentMatchday || 12;
+  let mds = (availableMatchdays && availableMatchdays.length > 0)
+    ? availableMatchdays
+    : [Math.max(1, current - 1), current, Math.min(38, current + 1)];
+  mds = mds.filter(m => m >= current - 1 && m <= current + 1);
+  if (mds.length === 0) mds = [Math.max(1, current - 1), current, Math.min(38, current + 1)];
+  const activeMd = selectedMatchday || current;
 
   container.innerHTML = mds.map(m => {
-    const isCurrent = (m === currentMatchday);
+    const isCurrent = (m === current);
     const isSelected = (m === activeMd);
     const label = isCurrent ? `${m}ª Giornata 🟢` : `${m}ª Giornata`;
     return `<button class="segment-btn ${isSelected ? 'active' : ''}" onclick="switchProbabiliMatchday(${m})">${label}</button>`;
@@ -2508,11 +2528,16 @@ function renderSOSFantaMatchdaySelector(availableMatchdays, currentMatchday, sel
   const container = document.getElementById('sosfantaMatchdaySegments');
   if (!container) return;
 
-  const mds = (availableMatchdays && availableMatchdays.length > 0) ? availableMatchdays : [6, 7, 8];
-  const activeMd = selectedMatchday || currentMatchday || mds[mds.length - 1];
+  const current = currentMatchday || 12;
+  let mds = (availableMatchdays && availableMatchdays.length > 0)
+    ? availableMatchdays
+    : [Math.max(1, current - 1), current, Math.min(38, current + 1)];
+  mds = mds.filter(m => m >= current - 1 && m <= current + 1);
+  if (mds.length === 0) mds = [Math.max(1, current - 1), current, Math.min(38, current + 1)];
+  const activeMd = selectedMatchday || current;
 
   container.innerHTML = mds.map(m => {
-    const isCurrent = (m === currentMatchday);
+    const isCurrent = (m === current);
     const isSelected = (m === activeMd);
     const label = isCurrent ? `${m}ª Giornata 🟢` : `${m}ª Giornata`;
     return `<button class="segment-btn ${isSelected ? 'active' : ''}" onclick="switchSOSFantaMatchday(${m})">${label}</button>`;

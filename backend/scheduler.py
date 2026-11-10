@@ -31,10 +31,9 @@ class AlertManager:
         
     def start(self):
         if not self.scheduler.running:
-            now = datetime.now()
-            self.scheduler.add_job(self.check_alert_status, 'interval', minutes=2, id='check_alert_job', next_run_time=now)
-            self.scheduler.add_job(self.check_sosfanta_update, 'interval', minutes=30, id='check_sosfanta_job', next_run_time=now)
-            self.scheduler.add_job(self.check_fixtures_update, 'interval', minutes=60, id='check_fixtures_job', next_run_time=now)
+            self.scheduler.add_job(self.check_alert_status, 'interval', minutes=2, id='check_alert_job')
+            self.scheduler.add_job(self.check_sosfanta_update, 'interval', minutes=30, id='check_sosfanta_job')
+            self.scheduler.add_job(self.check_fixtures_update, 'interval', minutes=60, id='check_fixtures_job')
             self.scheduler.add_job(self.check_ai_auto_learning, 'interval', minutes=15, id='check_ai_learning_job')
             self.scheduler.start()
             print("[AlertManager] Background scheduler started with SOS Fanta auto-sync, fixtures updates and AI auto-learning.")

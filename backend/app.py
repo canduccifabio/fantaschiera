@@ -35,9 +35,13 @@ DATA_DIR = os.path.join(BASE_DIR, 'data')
 
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
-@app.get("/health")
+@app.api_route("/health", methods=["GET", "HEAD"])
 async def health_check():
-    return {"status": "ok", "app": "FantaSchiera AI"}
+    return JSONResponse(content={"status": "ok", "app": "FantaSchiera AI"})
+
+@app.api_route("/ping", methods=["GET", "HEAD"])
+async def ping_check():
+    return JSONResponse(content={"status": "pong", "app": "FantaSchiera AI"})
 
 # Initialize engines
 optimizer = LineupOptimizer()
@@ -183,7 +187,10 @@ async def search_players(query: str = "", role: str = "", team: str = "", limit:
             
     return {"results": results, "total": len(results)}
 
+_last_fixtures_refresh = None
+
 def get_current_and_available_matchdays():
+    global _last_fixtures_refresh
     from datetime import datetime, timedelta
     fixtures_data = optimizer._load_json(FIXTURES_FILE, {})
     current_md = fixtures_data.get('matchday')
@@ -200,7 +207,9 @@ def get_current_and_available_matchdays():
         except Exception:
             pass
 
-    if needs_refresh or not current_md:
+    # Debounce auto-refresh to at most once every 30 minutes to never block requests or overwhelm Render
+    if (needs_refresh or not current_md) and (_last_fixtures_refresh is None or now - _last_fixtures_refresh > timedelta(minutes=30)):
+        _last_fixtures_refresh = now
         try:
             from backend.scraper import scrape_fixtures_and_lineups
             fresh = scrape_fixtures_and_lineups()
@@ -212,20 +221,17 @@ def get_current_and_available_matchdays():
 
     if not current_md:
         from backend.sosfanta_analyzer import sosfanta_analyzer
-        current_md = sosfanta_analyzer.get_matchday_number() or 8
+        current_md = sosfanta_analyzer.get_matchday_number() or 12
 
-    available = {current_md}
-    if os.path.exists(DATA_DIR):
-        for fname in os.listdir(DATA_DIR):
-            m = re.match(r'(?:fixtures|sosfanta_preview)_giornata_(\d+)\.json', fname)
-            if m:
-                available.add(int(m.group(1)))
+    # Strictly 3 matchdays: previous, current, next (always [current-1, current, current+1])
+    available = []
     if current_md > 1:
-        available.add(current_md - 1)
-        if current_md > 2:
-            available.add(current_md - 2)
+        available.append(current_md - 1)
+    available.append(current_md)
+    if current_md < 38:
+        available.append(current_md + 1)
 
-    return current_md, sorted(list(available))
+    return current_md, available
 
 # --- Lineup Recommendation API ---
 @app.get("/api/lineup/recommendation")

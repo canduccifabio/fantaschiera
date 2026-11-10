@@ -71,32 +71,31 @@ class LineupOptimizer:
     def get_fixtures_for_matchday(self, matchday: Optional[int] = None) -> Dict:
         """Returns fixtures data dynamically for any matchday."""
         now = datetime.now()
+        current_data = self._load_json(FIXTURES_FILE, {'fixtures': []})
+        current_md = current_data.get('matchday', 12)
+        target_md = int(matchday) if matchday else current_md
+
         # 1. If specific matchday requested, check specific file first
-        if matchday:
-            f_path = os.path.join(DATA_DIR, f'fixtures_giornata_{matchday}.json')
-            if os.path.exists(f_path):
-                data = self._load_json(f_path, {'fixtures': []})
-                earliest = data.get('earliest_kickoff_iso')
-                is_past = False
-                if earliest:
-                    try:
-                        is_past = datetime.fromisoformat(earliest) < (now - timedelta(days=4))
-                    except Exception:
-                        pass
-                data['matchday'] = matchday
-                data['matchday_label'] = f"{matchday}ª Giornata ({'Referti' if is_past else 'In Arrivo'})"
-                data['is_past'] = is_past
-                return data
+        f_path = os.path.join(DATA_DIR, f'fixtures_giornata_{target_md}.json')
+        if os.path.exists(f_path):
+            data = self._load_json(f_path, {'fixtures': []})
+            earliest = data.get('earliest_kickoff_iso')
+            is_past = data.get('is_past', False)
+            if earliest and not is_past:
+                try:
+                    is_past = datetime.fromisoformat(earliest) < (now - timedelta(days=4))
+                except Exception:
+                    pass
+            data['matchday'] = target_md
+            data['matchday_label'] = f"{target_md}ª Giornata ({'Referti' if is_past else ('Attuale' if target_md == current_md else 'In Arrivo')})"
+            data['is_past'] = is_past
+            return data
 
         # 2. Default: current fixtures cache
-        data = self._load_json(FIXTURES_FILE, {'fixtures': []})
-        current_md = data.get('matchday')
-        if not current_md:
-            from backend.sosfanta_analyzer import sosfanta_analyzer
-            current_md = sosfanta_analyzer.get_matchday_number() or 7
-        data['matchday'] = current_md
-        data['matchday_label'] = f"{current_md}ª Giornata (Attuale / In Arrivo)"
-        data['is_past'] = False
+        data = dict(current_data)
+        data['matchday'] = target_md
+        data['matchday_label'] = f"{target_md}ª Giornata ({'Attuale' if target_md == current_md else ('Referti' if target_md < current_md else 'In Arrivo')})"
+        data['is_past'] = (target_md < current_md)
         return data
 
     def find_player_match(self, player_team: str, fixtures_list: Optional[List[Dict]] = None) -> Tuple[Dict, bool]:

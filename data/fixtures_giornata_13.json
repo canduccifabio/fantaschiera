@@ -1,0 +1,97 @@
+{
+  "matchday": 13,
+  "matchday_label": "13ª Giornata (Turno Futuro)",
+  "is_past": false,
+  "fixtures": [
+    {
+      "id": 1,
+      "home_team": "Venezia",
+      "home_code": "VEN",
+      "away_team": "Bologna",
+      "away_code": "BOL",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 2,
+      "home_team": "Frosinone",
+      "home_code": "FRO",
+      "away_team": "Parma",
+      "away_code": "PAR",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 3,
+      "home_team": "Torino",
+      "home_code": "TOR",
+      "away_team": "Lazio",
+      "away_code": "LAZ",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 4,
+      "home_team": "Inter",
+      "home_code": "INT",
+      "away_team": "Genoa",
+      "away_code": "GEN",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 5,
+      "home_team": "Udinese",
+      "home_code": "UDI",
+      "away_team": "Fiorentina",
+      "away_code": "FIO",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 6,
+      "home_team": "Sassuolo",
+      "home_code": "SAS",
+      "away_team": "Napoli",
+      "away_code": "NAP",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 7,
+      "home_team": "Roma",
+      "home_code": "ROM",
+      "away_team": "Monza",
+      "away_code": "MON",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 8,
+      "home_team": "Como",
+      "home_code": "COM",
+      "away_team": "Juventus",
+      "away_code": "JUV",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 9,
+      "home_team": "Lecce",
+      "home_code": "LEC",
+      "away_team": "Atalanta",
+      "away_code": "ATA",
+      "date_str": "In programma",
+      "is_upcoming": true
+    },
+    {
+      "id": 10,
+      "home_team": "Cagliari",
+      "home_code": "CAG",
+      "away_team": "Milan",
+      "away_code": "MIL",
+      "date_str": "In programma",
+      "is_upcoming": true
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "matchday": 11,
+  "matchday_label": "11ª Giornata (Referti & Conclusa)",
+  "is_past": true,
+  "earliest_kickoff_iso": "2026-11-07T15:00:00",
+  "alert_time_iso": "2026-11-07T14:00:00",
+  "last_updated_human": "Conclusa (Referti Ufficiali)",
+  "fixtures": [
+    {
+      "id": 1,
+      "home_team": "Venezia",
+      "home_code": "VEN",
+      "away_team": "Udinese",
+      "away_code": "UDI",
+      "score": "2-1",
+      "is_finished": true
+    },
+    {
+      "id": 2,
+      "home_team": "Cagliari",
+      "home_code": "CAG",
+      "away_team": "Frosinone",
+      "away_code": "FRO",
+      "score": "1-0",
+      "is_finished": true
+    },
+    {
+      "id": 3,
+      "home_team": "Torino",
+      "home_code": "TOR",
+      "away_team": "Lecce",
+      "away_code": "LEC",
+      "score": "1-1",
+      "is_finished": true
+    },
+    {
+      "id": 4,
+      "home_team": "Parma",
+      "home_code": "PAR",
+      "away_team": "Bologna",
+      "away_code": "BOL",
+      "score": "1-2",
+      "is_finished": true
+    },
+    {
+      "id": 5,
+      "home_team": "Roma",
+      "home_code": "ROM",
+      "away_team": "Sassuolo",
+      "away_code": "SAS",
+      "score": "3-0",
+      "is_finished": true
+    },
+    {
+      "id": 6,
+      "home_team": "Napoli",
+      "home_code": "NAP",
+      "away_team": "Lazio",
+      "away_code": "LAZ",
+      "score": "1-1",
+      "is_finished": true
+    },
+    {
+      "id": 7,
+      "home_team": "Genoa",
+      "home_code": "GEN",
+      "away_team": "Milan",
+      "away_code": "MIL",
+      "score": "1-2",
+      "is_finished": true
+    },
+    {
+      "id": 8,
+      "home_team": "Monza",
+      "home_code": "MON",
+      "away_team": "Atalanta",
+      "away_code": "ATA",
+      "score": "0-1",
+      "is_finished": true
+    },
+    {
+      "id": 9,
+      "home_team": "Inter",
+      "home_code": "INT",
+      "away_team": "Como",
+      "away_code": "COM",
+      "score": "2-0",
+      "is_finished": true
+    },
+    {
+      "id": 10,
+      "home_team": "Fiorentina",
+      "home_code": "FIO",
+      "away_team": "Juventus",
+      "away_code": "JUV",
+      "score": "2-2",
+      "is_finished": true
+    }
+  ]
+}
