@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import time
 import urllib.request
 from typing import List, Dict, Any, Optional
 from bs4 import BeautifulSoup
@@ -67,18 +68,23 @@ class SOSFantaAnalyzer:
 
     @staticmethod
     def auto_discover_latest_preview_url() -> Optional[str]:
-        """Discovers the latest matchday preview article from SOSFanta category page."""
+        """Discovers the latest matchday preview article from SOSFanta category page (highest matchday number)."""
         try:
             req = urllib.request.Request(CATEGORY_URL, headers=HEADERS)
             html = urllib.request.urlopen(req, timeout=10).read().decode('utf-8', errors='ignore')
             soup = BeautifulSoup(html, 'html.parser')
+            best_md = -1
+            best_url = None
             for a in soup.find_all('a', href=True):
                 href = a['href']
-                if re.search(r'preview-\d+a-giornata', href, re.I):
-                    if href.startswith('http'):
-                        return href.rstrip('/') + '/'
-                    elif href.startswith('/'):
-                        return f"https://www.sosfanta.com{href}".rstrip('/') + '/'
+                m = re.search(r'preview-(\d+)a-giornata', href, re.I)
+                if m:
+                    md_num = int(m.group(1))
+                    full_url = href.rstrip('/') + '/' if href.startswith('http') else f"https://www.sosfanta.com{href}".rstrip('/') + '/'
+                    if md_num > best_md:
+                        best_md = md_num
+                        best_url = full_url
+            return best_url
         except Exception as e:
             print(f"[SOSFanta] Auto-discovery error: {e}")
         return None
@@ -109,10 +115,12 @@ class SOSFantaAnalyzer:
         """Returns scraped preview data for a specific matchday, isolating rounds cleanly."""
         matchday = int(matchday) if matchday else self.get_matchday_number()
 
-        if matchday in self._matchday_cache:
-            return self._matchday_cache[matchday]
+        # 0. Return published in-memory cache immediately
+        cached = self._matchday_cache.get(matchday)
+        if cached and cached.get('is_published') and cached.get('slides'):
+            return cached
 
-        # 1. Check matchday-specific archive file
+        # 1. Check matchday-specific archive file on disk (may have been updated by background scheduler)
         md_file = os.path.join(DATA_DIR, f'sosfanta_preview_giornata_{matchday}.json')
         if os.path.exists(md_file):
             try:
@@ -133,6 +141,11 @@ class SOSFantaAnalyzer:
             self._matchday_cache[matchday] = self.scraped_data
             return self.scraped_data
 
+        # 2b. Respect short TTL (10 minutes) for unpublished cache entries to avoid spamming SOS Fanta
+        if cached and not cached.get('is_published'):
+            if time.time() - cached.get('_cached_at', 0) < 600:
+                return cached
+
         # 3. If matchday is current/upcoming, check if published online right now via auto-discovery or direct probe
         discovered = self.auto_discover_latest_preview_url()
         target_preview = None
@@ -152,10 +165,11 @@ class SOSFantaAnalyzer:
         if target_preview:
             self.preview_url = target_preview
             res = self.scrape_all_slides()
-            res['is_published'] = True
-            res['matchday_number'] = matchday
-            self._matchday_cache[matchday] = res
-            return res
+            if res.get('slides'):
+                res['is_published'] = True
+                res['matchday_number'] = matchday
+                self._matchday_cache[matchday] = res
+                return res
 
         # 5. Not yet published on SOS Fanta (published usually 24-48h before kickoff)
         res = {
@@ -163,6 +177,7 @@ class SOSFantaAnalyzer:
             'matchday': f'{matchday}ª Giornata',
             'matchday_number': matchday,
             'is_published': False,
+            '_cached_at': time.time(),
             'status_notice': f'Preview {matchday}ª Giornata in attesa di pubblicazione su SOS Fanta (uscita prevista giovedì/venerdì prima del kickoff).',
             'combined_text': '',
             'slides': []
@@ -178,15 +193,23 @@ class SOSFantaAnalyzer:
         target_md = self.get_matchday_number(target_url)
         md_file = os.path.join(DATA_DIR, f'sosfanta_preview_giornata_{target_md}.json')
         
-        needs_scrape = force or (target_url != self.preview_url) or (not os.path.exists(md_file)) or (not self.scraped_data.get('slides'))
+        needs_scrape = (
+            force
+            or (target_url != self.preview_url)
+            or (not os.path.exists(md_file))
+            or (not self.scraped_data.get('slides'))
+            or (not self._matchday_cache.get(target_md, {}).get('is_published'))
+        )
         if needs_scrape and target_url:
             self.preview_url = target_url
+            self._matchday_cache.pop(target_md, None)
             self.scrape_all_slides()
             updated = True
         return {
             "updated": updated,
             "preview_url": self.preview_url,
             "matchday": self.get_matchday_label(),
+            "matchday_num": target_md,
             "slides_count": len(self.scraped_data.get('slides', []))
         }
 
@@ -234,29 +257,34 @@ class SOSFantaAnalyzer:
         combined_text = "\n\n".join(all_text)
         md_label = self.get_matchday_label()
         md_num = self.get_matchday_number()
+        has_content = len(slides_content) > 0 and len(combined_text) > 100
         result = {
             'preview_url': self.preview_url,
             'matchday': md_label,
             'matchday_number': md_num,
-            'is_published': True,
+            'is_published': has_content,
             'combined_text': combined_text,
             'slides': slides_content
         }
 
-        os.makedirs(DATA_DIR, exist_ok=True)
-        with open(CACHE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(result, f, ensure_ascii=False, indent=2)
+        if has_content:
+            os.makedirs(DATA_DIR, exist_ok=True)
+            with open(CACHE_FILE, 'w', encoding='utf-8') as f:
+                json.dump(result, f, ensure_ascii=False, indent=2)
 
-        # Save matchday specific archive
-        md_cache_file = os.path.join(DATA_DIR, f'sosfanta_preview_giornata_{md_num}.json')
-        try:
-            with open(md_cache_file, 'w', encoding='utf-8') as af:
-                json.dump(result, af, ensure_ascii=False, indent=2)
-        except Exception:
-            pass
+            # Save matchday specific archive
+            md_cache_file = os.path.join(DATA_DIR, f'sosfanta_preview_giornata_{md_num}.json')
+            try:
+                with open(md_cache_file, 'w', encoding='utf-8') as af:
+                    json.dump(result, af, ensure_ascii=False, indent=2)
+            except Exception:
+                pass
 
-        self.scraped_data = result
-        print(f"[SOSFanta] Download completato per {md_label}! Testo totale: {len(combined_text)} caratteri.")
+            self.scraped_data = result
+            self._matchday_cache[md_num] = result
+            print(f"[SOSFanta] Download completato per {md_label}! Testo totale: {len(combined_text)} caratteri.")
+        else:
+            print(f"[SOSFanta] Nessun contenuto valido scaricato per {md_label} da {self.preview_url}.")
         return result
 
     def get_full_text(self) -> str:

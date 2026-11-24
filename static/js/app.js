@@ -2597,13 +2597,18 @@ async function loadSOSFantaAnalysis() {
         btnFullArticle.innerText = `⏳ Estratto Completo ${currentSOSFantaMatchday}ª Giornata (In Arrivo)`;
       }
       if (container) {
+        const prevMd = currentSOSFantaMatchday > 1 ? currentSOSFantaMatchday - 1 : null;
+        const prevBtn = prevMd
+          ? `<button class="btn btn-primary btn-sm" style="margin-top:4px;" onclick="switchSOSFantaMatchday(${prevMd})">📖 Vedi Consigli ${prevMd}ª Giornata (Ultimo Pubblicato)</button>`
+          : '';
         container.innerHTML = `
           <div style="background:rgba(255,255,255,0.03); border-radius:12px; padding:20px; text-align:center;">
             <div style="font-size:2rem; margin-bottom:8px;">⏳</div>
             <div style="font-weight:800; font-size:1rem; color:#ffffff; margin-bottom:6px;">Preview ${currentSOSFantaMatchday}ª Giornata in Arrivo</div>
             <div style="font-size:0.84rem; color:var(--text-secondary); max-width:480px; margin:0 auto 16px; line-height:1.6;">
-              I consigli per questo turno non sono ancora stati pubblicati online da SOS Fanta. Puoi consultare l'archivio dei turni precedenti selezionando la giornata in alto.
+              I consigli per questo turno non sono ancora stati pubblicati online da SOS Fanta (escono di solito giovedì/venerdì). Puoi consultare i consigli dell'ultimo turno pubblicato qui sotto o selezionando la giornata in alto.
             </div>
+            ${prevBtn}
           </div>
         `;
       }
@@ -2739,6 +2744,7 @@ async function autoDiscoverSOSFanta() {
     if (data.success) {
       const input = document.getElementById('sosfantaUrlInput');
       if (input && data.preview_url) input.value = data.preview_url;
+      if (data.matchday_num) currentSOSFantaMatchday = data.matchday_num;
       showToast(`✅ Rilevata e aggiornata: ${data.matchday || 'Nuova Giornata'}!`);
       loadSOSFantaAnalysis();
       loadLineupRecommendation();
