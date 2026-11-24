@@ -111,26 +111,36 @@ def scrape_players_database():
     return []
 
 def scrape_injuries():
-    """Scrapes injured and suspended players from Fantacalcio.it."""
+    """Scrapes injured, suspended and cautioned players from Fantacalcio.it."""
     url = 'https://www.fantacalcio.it/indisponibili-serie-a'
-    injuries_map = {} # player_name_clean -> {type, reason, return_date, team}
+    injuries_map = {}  # player_name_clean -> {name, team, type, reason, is_out}
     try:
-        html = fetch_html(url)
+        try:
+            import requests
+            resp = requests.get(url, headers=HEADERS, timeout=12)
+            resp.raise_for_status()
+            html = resp.text
+        except Exception:
+            html = fetch_html(url)
+
         soup = BeautifulSoup(html, 'html.parser')
-        
-        # Each row.row-responsive contains a team's infirmary
+
+        # Each row.row-responsive contains a team's infirmary; its parent starts with the team name
         rows = soup.select('.row.row-responsive')
         for r in rows:
-            text = r.get_text(separator=' | ', strip=True)
-            # Find team name nearby or in text
             parent_team = ""
-            for full_team, code in TEAM_MAPPING.items():
-                if full_team in text:
-                    parent_team = full_team
-                    break
-                    
-            # Parse sections: Infortunati, Squalificati, Diffidati
-            # Let's inspect paragraphs or text chunks
+            if r.parent:
+                parent_first = r.parent.get_text(separator=' | ', strip=True).split(' | ')[0].strip()
+                if parent_first in TEAM_MAPPING:
+                    parent_team = parent_first
+            if not parent_team:
+                prev_hdr = r.find_previous(['h2', 'h3', 'h4'])
+                if prev_hdr:
+                    hdr_txt = prev_hdr.get_text(strip=True)
+                    if hdr_txt in TEAM_MAPPING:
+                        parent_team = hdr_txt
+
+            text = r.get_text(separator=' | ', strip=True)
             chunks = text.split(' | ')
             current_mode = "Infortunati"
             i = 0
@@ -143,36 +153,31 @@ def scrape_injuries():
                 if chunk == 'Nessuno':
                     i += 1
                     continue
-                # If chunk is a player name (short, capitalize) followed by description
-                if len(chunk) < 30 and i + 1 < len(chunks) and len(chunks[i+1]) > 20:
+                # If chunk is a player name (short) followed by description
+                if len(chunk) < 35 and i + 1 < len(chunks) and len(chunks[i + 1]) > 20:
                     player_name = clean_player_name(chunk)
-                    desc = chunks[i+1].strip()
-                    injuries_map[player_name.lower()] = {
+                    desc = chunks[i + 1].strip()
+                    norm_key = re.sub(r'\s+', ' ', player_name.lower().replace('.', ' ')).strip()
+                    injuries_map[norm_key] = {
                         'name': player_name,
                         'team': parent_team,
+                        'team_code': TEAM_MAPPING.get(parent_team, ''),
                         'type': current_mode,
                         'reason': desc,
                         'is_out': current_mode in ['Infortunati', 'Squalificati']
                     }
                     i += 2
                     continue
-        if os.path.exists(INJURIES_FILE):
-            try:
-                with open(INJURIES_FILE, 'r', encoding='utf-8') as f:
-                    old_inj = json.load(f)
-                    for k, v in old_inj.items():
-                        if k not in injuries_map and v.get('is_out'):
-                            injuries_map[k] = v
-            except Exception:
-                pass
+                i += 1
 
-        with open(INJURIES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(injuries_map, f, ensure_ascii=False, indent=2)
-        print(f"[Scraper] Saved {len(injuries_map)} injury records to {INJURIES_FILE}")
-        return injuries_map
+        if injuries_map:
+            with open(INJURIES_FILE, 'w', encoding='utf-8') as f:
+                json.dump(injuries_map, f, ensure_ascii=False, indent=2)
+            print(f"[Scraper] Saved {len(injuries_map)} live injury records to {INJURIES_FILE}")
+            return injuries_map
     except Exception as e:
         print(f"[Scraper] Error scraping injuries: {e}")
-        
+
     if os.path.exists(INJURIES_FILE):
         with open(INJURIES_FILE, 'r', encoding='utf-8') as f:
             return json.load(f)

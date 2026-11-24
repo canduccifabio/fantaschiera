@@ -447,7 +447,8 @@ async def get_live_votes(use_actual: bool = True, matchday: Optional[int] = None
         bench=bench,
         actual_lineup=actual_lineup,
         matchday=target_md,
-        evaluated_catalog=all_evaluated
+        evaluated_catalog=all_evaluated,
+        force_refresh=False
     )
     data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
     data['current_matchday'] = current_md
@@ -476,7 +477,8 @@ async def refresh_live_votes(use_actual: bool = True, matchday: Optional[int] = 
         bench=bench,
         actual_lineup=actual_lineup,
         matchday=target_md,
-        evaluated_catalog=all_evaluated
+        evaluated_catalog=all_evaluated,
+        force_refresh=True
     )
     data['has_actual_lineup'] = bool(lineup_extractor.get_actual_lineup())
     data['current_matchday'] = current_md

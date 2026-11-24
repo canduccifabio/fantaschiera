@@ -1,478 +1,554 @@
 {
-  "dybala": {
-    "name": "Dybala",
-    "team": "Roma",
+  "hien": {
+    "name": "Hien",
+    "team": "Atalanta",
+    "team_code": "ATA",
     "type": "Infortunati",
-    "reason": "L'attaccante argentino alle prese con un risentimento muscolare ai flessori: non convocato per la trasferta contro il Napoli.",
+    "reason": "il difensore operato a fine giugno per una lesione del tendine prossimale del muscolo semimembranoso della coscia sinistra, in recupero e pronto a tornare in campo dalla fine di novembre.",
     "is_out": true
   },
-  "kossounou": {
-    "name": "Kossounou",
-    "team": "Juventus",
+  "carnesecchi": {
+    "name": "Carnesecchi",
+    "team": "Atalanta",
+    "team_code": "ATA",
     "type": "Infortunati",
-    "reason": "Il difensore frenato da una lesione muscolare di medio-alto grado del bicipite femorale della coscia sinistra alla vigilia della sfida di campionato contro la Juventus (del 20 settembre). Lungo stop, rientro dalla seconda metà di novembre.",
+    "reason": "il portiere KO per un lesione del menisco mediale del ginocchio sinistro dalla sfida del 22 novembre contro l'Inter. Recuperabile da gennaio.",
     "is_out": true
   },
   "pompei": {
     "name": "Pompei",
-    "team": "Juventus",
+    "team": "Atalanta",
+    "team_code": "ATA",
     "type": "Infortunati",
-    "reason": "Il portiere fermo da inizio ottobre per la frattura della falange della mano destra, out nel prossimo turno di campionato. Tempi di recupero da valutare.",
+    "reason": "Il portiere fermo da inizio ottobre per la frattura della falange della mano destra, out nel prossimo turno di campionato. Recuperabile da metà dicembre.",
     "is_out": true
   },
-  "sulemana k.": {
-    "name": "Sulemana K.",
-    "team": "Juventus",
+  "kossounou": {
+    "name": "Kossounou",
+    "team": "Atalanta",
+    "team_code": "ATA",
     "type": "Infortunati",
-    "reason": "L'attaccante KO in amichevole l'8 agosto vittima di una lesione del collaterale mediale di secondo grado del ginocchio sinistro. Recuperabile da inizio ottobre, ma da valutare nei prossimi allenamenti le possibilità di convocazione già nel prossimo turno contro il Venezia.",
+    "reason": "Il difensore frenato da una lesione muscolare di medio-alto grado del bicipite femorale della coscia sinistra alla vigilia della sfida di campionato contro la Juventus (del 20 settembre). Lungo stop, rientro dalla fine di novembre.",
     "is_out": true
   },
-  "hien": {
-    "name": "Hien",
-    "team": "Juventus",
+  "happonen": {
+    "name": "Happonen",
+    "team": "Bologna",
+    "team_code": "BOL",
     "type": "Infortunati",
-    "reason": "il difensore operato a fine giugno per una lesione del tendine prossimale del muscolo semimembranoso della coscia sinistra, in recupero e pronto a tornare in campo dalla metà di novembre.",
-    "is_out": true
-  },
-  "raspadori": {
-    "name": "Raspadori",
-    "team": "Juventus",
-    "type": "Infortunati",
-    "reason": "L'attaccante frenato a fine settembre in Nazionale azzurra da una distrazione di basso grado al bicipite femorale, rientro tra i convocati con la Dea in campionato dalla seconda metà di ottobre.",
-    "is_out": true
-  },
-  "odgaard": {
-    "name": "Odgaard",
-    "team": "",
-    "type": "Infortunati",
-    "reason": "Il calciatore frenato dopo il match col Toro da una lesione ai flessori della coscia destra, recuperabile dalla seconda metà di ottobre.",
+    "reason": "Il portiere ai box per un trauma distorsivo del quinto dito della mano sinistra, recuperabile dalla prima metà di dicembre.",
     "is_out": true
   },
   "holm": {
     "name": "Holm",
-    "team": "",
+    "team": "Bologna",
+    "team_code": "BOL",
     "type": "Infortunati",
     "reason": "Lo svedese KO in Nazionale il 26 settembre vittima di un problema al tendine della coscia destra. Ha deciso di operarsi e affronterà un lungo stop. Ipotesi di rientro in campo da fine febbraio.",
     "is_out": true
   },
-  "idrissi r.": {
-    "name": "Idrissi R.",
-    "team": "Lecce",
+  "miranda j": {
+    "name": "Miranda J.",
+    "team": "Bologna",
+    "team_code": "BOL",
     "type": "Infortunati",
-    "reason": "il calciatore in ripresa dalla rottura del legamento crociato, può tornare arruolabile dalla fine di ottobre.",
+    "reason": "il terzino KO a Parma il 7 novembre per una lesione di primo grado al bicipite femorale della coscia sinistra, tentativo rientro in campo dalla fine di novembre.",
     "is_out": true
   },
-  "deiola": {
-    "name": "Deiola",
-    "team": "Lecce",
+  "el azzouzi o": {
+    "name": "El Azzouzi O.",
+    "team": "Bologna",
+    "team_code": "BOL",
     "type": "Infortunati",
-    "reason": "Il centrocampista operato a fine settembre vittima di una lesione del menisco laterale del ginocchio sinistro. Ipotesi di rientro in campo dalla fine di ottobre.",
+    "reason": "il centrocampista ai box per una lesione all'adduttore della coscia sinistra, recuperabile da inizio dicembre.",
+    "is_out": true
+  },
+  "enem": {
+    "name": "Enem",
+    "team": "Bologna",
+    "team_code": "BOL",
+    "type": "Infortunati",
+    "reason": "Lavoro a parte negli ultimi giorni per l'attaccante a causa di un problema al tendine d'Achille. Out contro Udinese, Parma, Milan e Monza, forfait anche per venerdì a Venezia. Da valutare rientro tra i convocati in vista della sfida di campionato nella 14a giornata.",
+    "is_out": true
+  },
+  "mendy p": {
+    "name": "Mendy P.",
+    "team": "Cagliari",
+    "team_code": "CAG",
+    "type": "Infortunati",
+    "reason": "L'attaccante è da valutare con appositi esami medici dopo un problema muscolare alla gamba accusato nel turno precedente di campionato.",
     "is_out": true
   },
   "felici": {
     "name": "Felici",
-    "team": "Lecce",
+    "team": "Cagliari",
+    "team_code": "CAG",
     "type": "Infortunati",
     "reason": "il centrocampista KO il 7 settembre contro il Lecce in casa vittima della rottura del legamento crociato anteriore. Verrà operato e costretto a un lungo stop (ipotizziamo un rientro da marzo).",
     "is_out": true
   },
-  "trepy": {
-    "name": "Trepy",
-    "team": "Lecce",
+  "liteta": {
+    "name": "Liteta",
+    "team": "Cagliari",
+    "team_code": "CAG",
     "type": "Infortunati",
-    "reason": "Il calciatore ricoverato il 16 agosto dopo che avrebbe rischiato di annegare in piscina. Dimesso poi il 28 agosto, ora condizioni monitorate da parte dello staff medico rossoblù. Da metà settembre ha avuto l'ok per riprendere l'attività agonistica, potrebbe ora tornare convocabile dalla metà di ottobre.",
+    "reason": "il centrocampista out a Como sabato scorso per noie fisiche, da valutare in vista di lunedì nella 13a di campionato contro il Milan.",
     "is_out": true
   },
-  "kevin carlos": {
-    "name": "Kevin Carlos",
-    "team": "Lecce",
+  "winks": {
+    "name": "Winks",
+    "team": "Cagliari",
+    "team_code": "CAG",
     "type": "Infortunati",
-    "reason": "L'attaccante non al meglio per un problema muscolare alla coscia sinistra, va verso il forfait nel prossimo turno di campionato contro la Juve. Da valutare.",
+    "reason": "Il regista dei sardi out contro Como e Frosinone per il perdurare di una fastidiosa lombalgia. Da valutare in vista di lunedì sera nella 13a di campionato contro il Milan.",
+    "is_out": true
+  },
+  "addai": {
+    "name": "Addai",
+    "team": "Como",
+    "team_code": "COM",
+    "type": "Infortunati",
+    "reason": "l'esterno offensivo in recupero da un problema muscolare alla gamba, assente nel prossimo turno contro il Cagliari. Proverà a tornare arruolabile dalla 13a di campionato domenica contro la Juventus.",
+    "is_out": true
+  },
+  "rodriguez je": {
+    "name": "Rodriguez Je.",
+    "team": "Como",
+    "team_code": "COM",
+    "type": "Infortunati",
+    "reason": "Il calciatore si è infortunato in allenamento il 20 ottobre vittima di un problema muscolare al quadricipite alto. Rimane da valutare per stabilire i tempi di recupero, si ipotizza un ritorno in campo da metà dicembre.",
+    "is_out": true
+  },
+  "kean": {
+    "name": "Kean",
+    "team": "Como",
+    "team_code": "COM",
+    "type": "Infortunati",
+    "reason": "l'attaccante si sottoporrà a nuove cure per un problema osseo alla gamba destra. Ipotizziamo un recupero da fine gennaio, ma la situazione rimane da monitorare.",
+    "is_out": true
+  },
+  "pongracic": {
+    "name": "Pongracic",
+    "team": "Fiorentina",
+    "team_code": "FIO",
+    "type": "Infortunati",
+    "reason": "il difensore il 15 ottobre contro l'Inter ha rimediato una lesione mio-fasciale a carico del capo lungo del bicipite femorale della coscia destra, rientro dalla fine di novembre.",
+    "is_out": true
+  },
+  "viery": {
+    "name": "Viery",
+    "team": "Fiorentina",
+    "team_code": "FIO",
+    "type": "Infortunati",
+    "reason": "il difensore costretto al cambio il 23 novembre a Monza per noie muscolari che restano da valutare. Out per domenica a Udine.",
     "is_out": true
   },
   "parisi": {
     "name": "Parisi",
-    "team": "",
+    "team": "Fiorentina",
+    "team_code": "FIO",
     "type": "Infortunati",
-    "reason": "il cursore di fascia della Viola sta svolgendo l'iter di recupero dall'infortunio al legamento crociato al ginocchio, punta a tornare convocabile da dicembre.",
-    "is_out": true
-  },
-  "grillitsch": {
-    "name": "Grillitsch",
-    "team": "Napoli",
-    "type": "Infortunati",
-    "reason": "il centrocampista non convocato dalla gara di Genova (12 settembre) a causa di una sindrome retto-adduttoria, ha poi deciso di operarsi. Stop di circa sei settimane, può tornare convocabile da inizio novembre.",
-    "is_out": true
-  },
-  "birligea": {
-    "name": "Birligea",
-    "team": "Napoli",
-    "type": "Infortunati",
-    "reason": "L'attaccante sta recuperando da una lesione muscolare al quadricipite sinistro, tentativo di rientro dalla fine di ottobre.",
-    "is_out": true
-  },
-  "terzic": {
-    "name": "Terzic",
-    "team": "Napoli",
-    "type": "Infortunati",
-    "reason": "Il terzino dei ciociari ai box per una lesione di basso grado del bicipite femorale della coscia sinistra, da valutare nei prossimi allenamenti le possibilità di convocazione già nel prossimo turno contro il Napoli.",
+    "reason": "il cursore di fascia della Viola sta svolgendo l'iter di recupero dall'infortunio al legamento crociato al ginocchio, punta a tornare convocabile da fine dicembre.",
     "is_out": true
   },
   "raimondo": {
     "name": "Raimondo",
-    "team": "Napoli",
+    "team": "Frosinone",
+    "team_code": "FRO",
     "type": "Infortunati",
-    "reason": "L'attaccante condizionato da una tendinopatia al tendine d'Achille destro, verso il forfait sabato contro il Napoli alla ripresa del campionato.",
+    "reason": "l'attaccante KO l'1 novembre contro il Toro vittima di una lesione multilegamentosa contusivo-distorsiva della caviglia sinistra. Iniziate le cure del caso, proverà a tornare già da metà dicembre in campo.",
     "is_out": true
   },
-  "venturino": {
-    "name": "Venturino",
-    "team": "Fiorentina",
+  "grillitsch": {
+    "name": "Grillitsch",
+    "team": "Frosinone",
+    "team_code": "FRO",
     "type": "Infortunati",
-    "reason": "il calciatore operato al tendine rotuleo e ora in fase di recupero. Di certo assente nel prossimo turno di campionato, ipotesi di rientro da fine ottobre.",
+    "reason": "il centrocampista non convocato dalla gara di Genova (12 settembre) a causa di una sindrome retto-adduttoria, ha poi deciso di operarsi. Può tornare convocabile dalla fine di novembre.",
     "is_out": true
   },
-  "sow": {
-    "name": "Sow",
-    "team": "Fiorentina",
+  "birligea": {
+    "name": "Birligea",
+    "team": "Frosinone",
+    "team_code": "FRO",
     "type": "Infortunati",
-    "reason": "Il centrocampista svizzero il 6 ottobre in Nazionale vittima di una distrazione muscolare al bicipite femorale della coscia sinistra, rientro in campo da inizio novembre.",
+    "reason": "l'attaccante alle prese con un guaio muscolare al bicipite femorale destro, non ci sarà sabato contro il Parma. Tempi di recupero da valutare.",
     "is_out": true
   },
   "colombo": {
     "name": "Colombo",
-    "team": "Fiorentina",
+    "team": "Genoa",
+    "team_code": "GEN",
     "type": "Infortunati",
-    "reason": "L'attaccante non al meglio per un problema alla caviglia rimediato venerdì scorso in amichevole e darà forfait nel prossimo turno di campionato contro la Fiorentina. Ipotesi di rientro da fine ottobre.",
+    "reason": "L'attaccante KO il 22 novembre sul campo del Sassuolo vittima di una lesione del legamento crociato anteriore del ginocchio destro, campionato chiuso anzitempo.",
     "is_out": true
   },
-  "meichtry": {
-    "name": "Meichtry",
-    "team": "Fiorentina",
+  "bonny": {
+    "name": "Bonny",
+    "team": "Inter",
+    "team_code": "INT",
     "type": "Infortunati",
-    "reason": "Il calciatore ai box per una distrazione della muscolatura di un'anca, il cui grado rimane da valutare con ulteriori accertamenti medici. Di certo out nel prossimo turno di campionato contro la Fiorentina.",
+    "reason": "L'attaccante ai box per un risentimento muscolare ai flessori della coscia destra, rientro possibile dall'inizio di dicembre.",
     "is_out": true
   },
-  "havel": {
-    "name": "Havel",
-    "team": "Fiorentina",
+  "calhanoglu": {
+    "name": "Calhanoglu",
+    "team": "Inter",
+    "team_code": "INT",
     "type": "Infortunati",
-    "reason": "L'attaccante ha deciso di operarsi alla caviglia e dovrebbe tornare arruolabile dalla metà di ottobre.",
-    "is_out": true
-  },
-  "jones c.": {
-    "name": "Jones C.",
-    "team": "Parma",
-    "type": "Infortunati",
-    "reason": "Il centrocampista fermato da un risentimento miofasciale agli adduttori della coscia destra, tentativo rientro tra i convocati dalla fine di ottobre.",
-    "is_out": true
-  },
-  "stones": {
-    "name": "Stones",
-    "team": "Parma",
-    "type": "Infortunati",
-    "reason": "il difensore alle prese con un risentimento ai flessori della coscia sinistra, recuperabile dalla prima metà di ottobre. Tuttavia, da valutare la sua convocazione contro il Parma nella 6a di A.",
-    "is_out": true
-  },
-  "thuram k.": {
-    "name": "Thuram K.",
-    "team": "Frosinone",
-    "type": "Infortunati",
-    "reason": "il centrocampista condizionato da una sindrome femoro-rotulea e, dopo un consulto medico a fine agosto, è stato sottoposto il 3 settembre a operazione chirurgica. Lungo stop, ipotizziamo un rientro da gennaio.",
-    "is_out": true
-  },
-  "grabara": {
-    "name": "Grabara",
-    "team": "Frosinone",
-    "type": "Infortunati",
-    "reason": "Il portiere out dal 20 settembre per una lesione al crociato anteriore del ginocchio destro. Operazione chirurgica e lungo stop, rientro da aprile.",
-    "is_out": true
-  },
-  "yildiz": {
-    "name": "Yildiz",
-    "team": "Frosinone",
-    "type": "Infortunati",
-    "reason": "l'attaccante turco, dopo la gara di Frosinone (23 agosto), ha lamentato un problema al piede. Operato il 31 agosto di osteosintesi della frattura della base del V metatarso del piede sinistro, stop di circa tre mesi. Rientro in campo da inizio dicembre.",
-    "is_out": true
-  },
-  "boga": {
-    "name": "Boga",
-    "team": "Frosinone",
-    "type": "Infortunati",
-    "reason": "l'ala offensiva dei bianconeri fermo dopo il match contro il Milan (6 settembre) per una lesione di medio grado del bicipite femorale, ipotizziamo un possibile rientro dalla metà di novembre.",
+    "reason": "il turco il 22 novembre a Bergamo ha ravvisato un risentimento muscolare ai flessori della coscia destra, rientro in campo dalla seconda metà di dicembre.",
     "is_out": true
   },
   "locatelli": {
     "name": "Locatelli",
-    "team": "Frosinone",
+    "team": "Juventus",
+    "team_code": "JUV",
     "type": "Infortunati",
     "reason": "il metronomo del centrocampo bianconero ha rimediato la rottura del menisco esterno del ginocchio. Verrà operato a Lione a stretto giro. Lungo stop e possibilità di rivederlo in campo da febbraio.",
     "is_out": true
   },
-  "ekhator": {
-    "name": "Ekhator",
-    "team": "Frosinone",
+  "thuram k": {
+    "name": "Thuram K.",
+    "team": "Juventus",
+    "team_code": "JUV",
     "type": "Infortunati",
-    "reason": "l'attaccante vittima di una lesione di medio grado del muscolo semitendinoso, rientro dalla metà di novembre.",
+    "reason": "il centrocampista condizionato da una sindrome femoro-rotulea e, dopo un consulto medico a fine agosto, è stato sottoposto il 3 settembre a operazione chirurgica. Lungo stop, ipotizziamo un rientro da gennaio.",
     "is_out": true
   },
-  "cataldi": {
-    "name": "Cataldi",
-    "team": "Genoa",
+  "yildiz": {
+    "name": "Yildiz",
+    "team": "Juventus",
+    "team_code": "JUV",
     "type": "Infortunati",
-    "reason": "Nuovo stop muscolare per il regista dei biancocelesti, vittima di un problema al quadricipite. Out nel prossimo turno di campionato contro il Monza, tentativo di rientro dalla seconda metà di ottobre.",
+    "reason": "l'attaccante turco, dopo la gara di Frosinone (23 agosto), ha lamentato un problema al piede. Operato il 31 agosto di osteosintesi della frattura della base del V metatarso del piede sinistro. Rientro in campo dalla fine di dicembre.",
     "is_out": true
   },
-  "gudmundsson a.": {
-    "name": "Gudmundsson A.",
-    "team": "Genoa",
+  "grabara": {
+    "name": "Grabara",
+    "team": "Juventus",
+    "team_code": "JUV",
     "type": "Infortunati",
-    "reason": "L'islandese in Nazionale il 26 settembre vittima di un problema alla spalla destra dopo una caduta fortuita in partita. Condizioni da monitorare, si confida di riaverlo a disposizione dalla fine metà di ottobre/inizio di novembre.",
+    "reason": "Il portiere out dal 20 settembre per una lesione al crociato anteriore del ginocchio destro. Operazione chirurgica e lungo stop, rientro da aprile.",
     "is_out": true
   },
-  "rovella": {
-    "name": "Rovella",
-    "team": "Genoa",
+  "kalulu": {
+    "name": "Kalulu",
+    "team": "Juventus",
+    "team_code": "JUV",
     "type": "Infortunati",
-    "reason": "il regista dei biancocelesti KO il 30 agosto contro il Genoa vittima di una lesione muscolare al polpaccio, ai box fino alla metà di ottobre. Venerdì, tuttavia, provino a Formello per valutare le possibilità di convocazione già in questo turno contro il Monza.",
+    "reason": "Il terzino bianconero ai box per una lesione ai muscoli ischiocrurali della gamba sinistra, recuperabile dalla fine di novembre.",
     "is_out": true
   },
-  "berisha m.": {
-    "name": "Berisha M.",
-    "team": "Bologna",
+  "sutalo j": {
+    "name": "Sutalo J.",
+    "team": "Lazio",
+    "team_code": "LAZ",
     "type": "Infortunati",
-    "reason": "Il centrocampista ha lamentato un sovraccarico muscolare alla gamba e non ha preso parte alle sfide contro Monza e Milan. Recuperabile da metà ottobre, ma da valutare nei prossimi allenamenti le possibilità di convocazione già nel prossimo turno contro il Bologna.",
+    "reason": "il difensore KO l'8 novembre a Napoli vittima di una lesione muscolare di secondo grado al flessore della gamba. Recuperabile dalla fine di dicembre.",
     "is_out": true
   },
-  "estupinan": {
-    "name": "Estupinan",
+  "marusic": {
+    "name": "Marusic",
+    "team": "Lazio",
+    "team_code": "LAZ",
+    "type": "Infortunati",
+    "reason": "Il montenegrino frenato ancora da un fastidio muscolare alla gamba, condizioni che restano valutare ma non ci sarà nel prossimo turno di campionato.",
+    "is_out": true
+  },
+  "tavares n": {
+    "name": "Tavares N.",
+    "team": "Lazio",
+    "team_code": "LAZ",
+    "type": "Infortunati",
+    "reason": "il terzino dei biancocelesti costretto al cambio l'8 novembre a Napoli a causa di un guaio muscolare al flessore della gamba. Recuperabile dalla metà di dicembre, proverà a esserci nel derby.",
+    "is_out": true
+  },
+  "pierotti": {
+    "name": "Pierotti",
+    "team": "Lecce",
+    "team_code": "LEC",
+    "type": "Infortunati",
+    "reason": "l'ala offensiva dei salentini ferma ai box per la frattura composta del malleolo mediale della caviglia destra rimediata nella seconda metà di ottobre, poi operato a inizio novembre. Lungo stop, ipotizziamo un rientro in campo da gennaio.",
+    "is_out": true
+  },
+  "ilic": {
+    "name": "Ilic",
+    "team": "Lecce",
+    "team_code": "LEC",
+    "type": "Infortunati",
+    "reason": "il regista dei salentini KO l'11 ottobre in casa contro il Bologna vittima di una lesione miotendinea del retto femorale sinistro con lesione parziale del tendine, rientro da aprile.",
+    "is_out": true
+  },
+  "terracciano": {
+    "name": "Terracciano",
     "team": "Milan",
+    "team_code": "MIL",
     "type": "Infortunati",
-    "reason": "Il difensore condizionato da una distorsione al ginocchio e rimane da valutare a Milanello in vista del prossimo impegno di campionato contro il Sassuolo.",
+    "reason": "il portiere non al meglio per noie fisiche, a rischio forfait anche nel prossimo turno di campionato contro il Cagliari. Condizioni da valutare nei prossimi allenamenti.",
+    "is_out": true
+  },
+  "gabbia": {
+    "name": "Gabbia",
+    "team": "Milan",
+    "team_code": "MIL",
+    "type": "Infortunati",
+    "reason": "il difensore KO l'11 ottobre contro il Sassuolo vittima di una lesione del flessore della coscia sinistra con parziale interessamento tendineo. Lo stop sarà lungo, anche con la terapia conservativa. Ipotesi rientro in campo da fine febbraio.",
     "is_out": true
   },
   "saelemaekers": {
     "name": "Saelemaekers",
     "team": "Milan",
+    "team_code": "MIL",
     "type": "Infortunati",
-    "reason": "Il belga fermo da inizio ottobre per un problema alla caviglia, concreta ora la possibilità di operarsi. Saranno poi da stabilire i tempi di recupero, ma lo stop sarà lungo e lo rivedremo in campo nel 2027 inoltrato.",
+    "reason": "Il belga fermo da inizio ottobre per un problema alla caviglia destra e operata il 13 ottobre. Stop lungo e lo rivedremo in campo nel 2027 inoltrato (ipotesi da febbraio).",
     "is_out": true
   },
-  "ciurria": {
-    "name": "Ciurria",
-    "team": "Lazio",
+  "loftus-cheek": {
+    "name": "Loftus-Cheek",
+    "team": "Milan",
+    "team_code": "MIL",
     "type": "Infortunati",
-    "reason": "il centrocampista non al meglio per noie fisiche, forfait anche nel prossimo turno contro la Lazio. Da valutare.",
+    "reason": "il centrocampista non al meglio per una lesione muscolare al flessore ravvisato sul finire del match di Udine (25 ottobre). Recuperabile dalla fine di novembre.",
     "is_out": true
   },
-  "pessina": {
-    "name": "Pessina",
-    "team": "Lazio",
+  "chukwueze": {
+    "name": "Chukwueze",
+    "team": "Milan",
+    "team_code": "MIL",
     "type": "Infortunati",
-    "reason": "Il centrocampista costretto a saltare l'inizio di campionato per una lussazione della rotula del ginocchio destro rimediata nella prima metà di agosto in allenamento. Tempi di recupero da monitorare, ma proverà a tornare arruolabile dall'inizio di novembre.",
+    "reason": "Il nigeriano dal 21 ottobre fermato dalla rottura del tendine del muscolo tensore della fascia lata dell'anca sinistra. Operato il 4 novembre, lungo stop. Ipotesi di rientro in campo da aprile.",
     "is_out": true
   },
-  "ziolkowski": {
-    "name": "Ziolkowski",
-    "team": "Lazio",
+  "maye": {
+    "name": "Maye",
+    "team": "Monza",
+    "team_code": "MON",
     "type": "Infortunati",
-    "reason": "Il difensore condizionato da una fastidiosa fascite plantare, di certo assente nel prossimo turno di campionato. Tempi di recupero da valutare.",
+    "reason": "Il difensore ai box per noie fisiche, assente nelle ultime sfide di campionato e ora da valutare in vista della 14a giornata di campionato.",
     "is_out": true
   },
-  "zambo anguissa": {
-    "name": "Zambo Anguissa",
-    "team": "Frosinone",
+  "ngonge": {
+    "name": "Ngonge",
+    "team": "Monza",
+    "team_code": "MON",
     "type": "Infortunati",
-    "reason": "il centrocampista subentrato a gara in corso il 20 settembre a Firenze, ma ha lamentato una lesione miofasciale di basso grado dell'adduttore lungo e rimane da valutare nei prossimi allenamenti in vista della gara contro il Frosinone alla ripresa del campionato.",
+    "reason": "L'attaccante out lunedì scorso contro la Fiorentina per noie fisiche. Da valutare in vista del prossimo turno di campionato.",
+    "is_out": true
+  },
+  "folorunsho": {
+    "name": "Folorunsho",
+    "team": "Monza",
+    "team_code": "MON",
+    "type": "Infortunati",
+    "reason": "Il centrocampista alle prese con noie muscolari al polpaccio, da valutare in vista della 14a giornata di campionato.",
     "is_out": true
   },
   "vergara": {
     "name": "Vergara",
-    "team": "Frosinone",
+    "team": "Napoli",
+    "team_code": "NAP",
     "type": "Infortunati",
-    "reason": "Il centrocampista sostituito il 5 ottobre con la Nazionale italiana a causa di una lesione distrattiva al polpaccio destro. Recuperabile da inizio novembre.",
+    "reason": "il centrocampista azzurro fermo dal 21 novembre per una lesione di alto grado del bicipite femorale della coscia sinistra. Lungo stop e ipotizziamo un rientro da febbraio.",
+    "is_out": true
+  },
+  "badiashile": {
+    "name": "Badiashile",
+    "team": "Napoli",
+    "team_code": "NAP",
+    "type": "Infortunati",
+    "reason": "il difensore KO il 24 ottobre contro la Roma per una lesione distrattiva di medio grado del retto femorale destro, recuperabile dalla fine di novembre.",
+    "is_out": true
+  },
+  "santos a": {
+    "name": "Santos A.",
+    "team": "Napoli",
+    "team_code": "NAP",
+    "type": "Infortunati",
+    "reason": "l'ala offensiva azzurra KO il 18 ottobre a Venezia, vittima di una lesione distrattiva di medio grado del bicipite femorale sinistro. Recuperabile dall'inizio di dicembre.",
+    "is_out": true
+  },
+  "di lorenzo": {
+    "name": "Di Lorenzo",
+    "team": "Napoli",
+    "team_code": "NAP",
+    "type": "Infortunati",
+    "reason": "il capitano azzurro costretto al cambio l'1 novembre contro la Juve per una lesione distrattiva del muscolo adduttore lungo della coscia sinistra, tentativo di recupero dalla fine di novembre.",
+    "is_out": true
+  },
+  "lobotka": {
+    "name": "Lobotka",
+    "team": "Napoli",
+    "team_code": "NAP",
+    "type": "Infortunati",
+    "reason": "lo slovacco il 28 ottobre vittima a Monza di una lesione della sindesmosi tibio-peroneale senza instabilità, associata a lesione di basso grado del LPAA della caviglia sinistra. Recuperabile dalla metà di dicembre.",
+    "is_out": true
+  },
+  "meret": {
+    "name": "Meret",
+    "team": "Napoli",
+    "team_code": "NAP",
+    "type": "Infortunati",
+    "reason": "Il portiere KO il 19 novembre in allenamento vittima della frattura della quinta vertebra lombare e ipotizziamo un rientro in campo da gennaio.",
     "is_out": true
   },
   "buongiorno": {
     "name": "Buongiorno",
-    "team": "Frosinone",
+    "team": "Napoli",
+    "team_code": "NAP",
     "type": "Infortunati",
     "reason": "il difensore operato nella seconda metà di luglio al menisco del ginocchio destro. Sta recuperando lentamente, ipotizziamo possa tornare arruolabile da fine dicembre.",
     "is_out": true
   },
-  "olivera": {
-    "name": "Olivera",
-    "team": "Frosinone",
+  "romero d": {
+    "name": "Romero D.",
+    "team": "Parma",
+    "team_code": "PAR",
     "type": "Infortunati",
-    "reason": "L'uruguaiano a inizio ottobre in Nazionale ha rimediato un problema muscolare alla gamba destra e salterà l'impegno di campionato contro il Frosinone. Ipotesi rientro da fine ottobre.",
+    "reason": "l'attaccante KO il 7 novembre contro il Bologna vittima in campo di una lussazione acromion-claveare della spalla destra. Recuperabile dalla metà di dicembre.",
     "is_out": true
   },
-  "santos a.": {
-    "name": "Santos A.",
-    "team": "Frosinone",
+  "drobnic": {
+    "name": "Drobnic",
+    "team": "Parma",
+    "team_code": "PAR",
     "type": "Infortunati",
-    "reason": "Il brasiliano costretto al cambio il 9 settembre in Champions League vittima di una lesione muscolare di medio grado al bicipite femorale sinistro. Proverà a tornare arruolabile dalla seconda metà di ottobre.",
+    "reason": "Il difensore in recupero da un problema al piede e rimane da valutare in vista di sabato a Frosinone nella 13a giornata di campionato.",
     "is_out": true
   },
-  "favasuli": {
-    "name": "Favasuli",
-    "team": "Frosinone",
+  "rensch": {
+    "name": "Rensch",
+    "team": "Roma",
+    "team_code": "ROM",
     "type": "Infortunati",
-    "reason": "Il cursore di fascia degli azzurri ai box da inizio ottobre per una lesione muscolare di secondo grado del retto femorale della coscia destra. Recuperabile dalla metà di novembre.",
+    "reason": "Il difensore KO a Manchester in Champions League il 3 novembre per una lesione di primo grado dell'adduttore lungo di destra, poi il 24 novembre nuovo stop muscolare (lesione di secondo grado all'addutore sinistro). Rientro in campo dalla seconda metà di dicembre.",
     "is_out": true
   },
-  "ndiaye": {
-    "name": "Ndiaye",
-    "team": "Inter",
+  "pellegrini lo": {
+    "name": "Pellegrini Lo.",
+    "team": "Roma",
+    "team_code": "ROM",
     "type": "Infortunati",
-    "reason": "Il difensore colpito duro in allenamento nei giorni scorsi, a rischio forfait per sabato contro l'Inter. Condizioni da valutare nella rifinitura prematch.",
-    "is_out": true
-  },
-  "nicolussi caviglia": {
-    "name": "Nicolussi Caviglia",
-    "team": "Inter",
-    "type": "Infortunati",
-    "reason": "il centrocampista alle prese dalla seconda metà di luglio con una lesione di medio grado alla coscia destra, ma a fine agosto ha deciso, assieme allo staff medico ducale, di operarsi. Lungo stop e ipotesi di ritorno in campo da dicembre.",
-    "is_out": true
-  },
-  "almqvist": {
-    "name": "Almqvist",
-    "team": "Inter",
-    "type": "Infortunati",
-    "reason": "L'ala offensiva dei ducali KO dal 6 ottobre per una lesione muscolare al polpaccio sinistro, recuperabile dalla fine di ottobre.",
-    "is_out": true
-  },
-  "cristante": {
-    "name": "Cristante",
-    "team": "Como",
-    "type": "Infortunati",
-    "reason": "Il mediano giallorosso condizionato da un'infiammazione al ginocchio e va verso il forfait contro il Como nel prossimo turno di campionato. Da valutare.",
-    "is_out": true
-  },
-  "volpato": {
-    "name": "Volpato",
-    "team": "Bologna",
-    "type": "Infortunati",
-    "reason": "l'esterno offensivo dei neroverdi KO il 6 settembre a Bologna vittima di una lesione di grado moderato al flessore della gamba destra. Recuperabile dalla seconda metà di ottobre, ma da valutare nei prossimi allenamenti le possibilità di convocazione già nel prossimo turno contro il Milan.",
-    "is_out": true
-  },
-  "idzes": {
-    "name": "Idzes",
-    "team": "Bologna",
-    "type": "Infortunati",
-    "reason": "Il difensore ai box per una lesione di grado moderato al quadricipite della gamba sinistra, proverà a tornerà arruolabile dalla seconda metà di ottobre.",
-    "is_out": true
-  },
-  "walukiewicz": {
-    "name": "Walukiewicz",
-    "team": "Bologna",
-    "type": "Infortunati",
-    "reason": "Il difensore alle prese con un forte trauma contusivo alla gamba destra, da valutare il rientro dalla seconda metà di ottobre.",
-    "is_out": true
-  },
-  "candè": {
-    "name": "Candè",
-    "team": "Bologna",
-    "type": "Infortunati",
-    "reason": "il difensore a gennaio vittima della rottura legamento crociato anteriore ginocchio destro, punta a tornare convocabile dalla fine di ottobre.",
-    "is_out": true
-  },
-  "pieragnolo": {
-    "name": "Pieragnolo",
-    "team": "Bologna",
-    "type": "Infortunati",
-    "reason": "il difensore sta proseguendo la fase di recupero dalla lesione legamento crociato anteriore gamba destra e ipotizziamo possa tornare convocabile da fine ottobre.",
+    "reason": "Il centrocampista dei giallorossi il 20 ottobre in Champions League ha rimediato una lesione di alto grado in corrispondenza della giunzione muscolo - tendinea distale del muscolo semitendinoso della coscia destra. Stop lungo, ipotizziamo un rientro dalla fine di dicembre.",
     "is_out": true
   },
   "boloca": {
     "name": "Boloca",
-    "team": "Bologna",
+    "team": "Sassuolo",
+    "team_code": "SAS",
     "type": "Infortunati",
-    "reason": "il centrocampista fuori causa per un problema al ginocchio e fuori causa in questo inizio di campionato. Da valutare rientro da fine ottobre.",
+    "reason": "il centrocampista fuori causa per un problema al ginocchio e fuori causa in questo inizio di campionato. Da valutare rientro da fine novembre.",
     "is_out": true
   },
-  "konè i.": {
+  "konè i": {
     "name": "Konè I.",
-    "team": "Bologna",
+    "team": "Sassuolo",
+    "team_code": "SAS",
     "type": "Infortunati",
-    "reason": "il centrocampista canadese vittima a giugno nella gara dei Mondiali di una rottura di tibia e perone. Operato, punta a tornare in campo da dicembre.",
+    "reason": "il centrocampista canadese vittima a giugno nella gara dei Mondiali di una rottura di tibia e perone. Operato, punta a tornare in campo da fine dicembre.",
     "is_out": true
   },
-  "fortini": {
-    "name": "Fortini",
+  "adzic": {
+    "name": "Adzic",
+    "team": "Sassuolo",
+    "team_code": "SAS",
+    "type": "Infortunati",
+    "reason": "Il centrocampista fermo da metà novembre a causa di un fastidio al ginocchio e non ci sarà nel prossimo turno di campionato. Tempi di recupero da valutare, si teme un lungo stop.",
+    "is_out": true
+  },
+  "bakola": {
+    "name": "Bakola",
+    "team": "Sassuolo",
+    "team_code": "SAS",
+    "type": "Infortunati",
+    "reason": "forfait del centrocampista nel turno precedente contro il Genoa per noie fisiche che restano da valutare in vista di domenica contro il Napoli.",
+    "is_out": true
+  },
+  "volpato": {
+    "name": "Volpato",
+    "team": "Sassuolo",
+    "team_code": "SAS",
+    "type": "Infortunati",
+    "reason": "l'ala offensiva dei neroverdi out dal match del 2 novembre contro la Fiorentina per un problema muscolare alla gamba. Da valutare in vista del prossimo turno di campionato contro il Napoli.",
+    "is_out": true
+  },
+  "leysen f": {
+    "name": "Leysen F.",
+    "team": "Sassuolo",
+    "team_code": "SAS",
+    "type": "Infortunati",
+    "reason": "il difensore KO l'11 ottobre contro il Milan vittima di una lesione al crociato anteriore del ginocchio sinistro. Lungo stop, ipotesi rientro in campo da aprile.",
+    "is_out": true
+  },
+  "ismajli": {
+    "name": "Ismajli",
+    "team": "Torino",
+    "team_code": "TOR",
+    "type": "Infortunati",
+    "reason": "il difensore ai box per una distrazione di basso grado agli adduttori della coscia sinistra, tentativo di rientro dalla seconda metà di dicembre.",
+    "is_out": true
+  },
+  "bertola": {
+    "name": "Bertola",
     "team": "Udinese",
+    "team_code": "UDI",
     "type": "Infortunati",
-    "reason": "Il cursore di fascia dei granata rientrato in anticipo dagli impegni con l'U21 azzurra a causa di un affaticamento muscolare all'adduttore che mette a forte rischio la sua presenza contro l'Udinese alla ripresa del campionato. Da valutare con appositi esami medici nelle prossime ore.",
+    "reason": "Il difensore alle prese con un problema muscolare alla coscia destra dalla metà di novembre, condizioni da valutare ma sarà out nel prossimo turno di campionato.",
     "is_out": true
   },
-  "piotrowski": {
-    "name": "Piotrowski",
-    "team": "Lazio",
+  "davis k": {
+    "name": "Davis K.",
+    "team": "Udinese",
+    "team_code": "UDI",
     "type": "Infortunati",
-    "reason": "Il centrocampista ha ravvisato il 7 settembre contro la Lazio una lieve aritmia cardiaca benigna e si sottoporrà nei prossimi giorni ad un intervento di ablazione cardiaca. Osservato un periodo di riposo, potrà tornare alla regolare attività agonistica (ipotizziamo da fine ottobre).",
-    "is_out": true
-  },
-  "zaniolo": {
-    "name": "Zaniolo",
-    "team": "Lazio",
-    "type": "Infortunati",
-    "reason": "Il calciatore alle prese con una lesione muscolare al bicipite femorale destro, rientro previsto dalla seconda metà di ottobre.",
+    "reason": "l'attaccante condizionato da noie muscolari all'adduttore e, dopo aver saltato il match di Bologna, rischia di star fuori anche nel prossimo turno di campionato contro la Fiorentina. Da valutare.",
     "is_out": true
   },
   "gueye": {
     "name": "Gueye",
-    "team": "Lazio",
+    "team": "Udinese",
+    "team_code": "UDI",
     "type": "Infortunati",
     "reason": "L'attaccante vittima di un problema alla caviglia a fine settembre. Ha deciso di operarsi, lungo stop di circa tre mesi e possibile ritorno in campo da fine gennaio.",
     "is_out": true
   },
-  "schingtienne": {
-    "name": "Schingtienne",
-    "team": "Atalanta",
-    "type": "Infortunati",
-    "reason": "Il difensore non al meglio per noie fisiche e a rischio forfait nel prossimo turno di campionato contro l'Atalanta.",
-    "is_out": true
-  },
   "sverko": {
     "name": "Sverko",
-    "team": "Atalanta",
+    "team": "Venezia",
+    "team_code": "VEN",
     "type": "Infortunati",
-    "reason": "il difensore operato in estate per il perdurare di un problema all'anca e recuperabile da fine ottobre.",
+    "reason": "il difensore operato in estate per il perdurare di un problema all'anca e recuperabile dalla fine di novembre.",
+    "is_out": true
+  },
+  "basic": {
+    "name": "Basic",
+    "team": "Venezia",
+    "team_code": "VEN",
+    "type": "Infortunati",
+    "reason": "Il centrocampista non convocato domenica scorsa contro la Juventus per un affaticamento muscolare alla gamba. Da valutare in vista di venerdì sera nella 13a di campionato.",
+    "is_out": true
+  },
+  "correia t": {
+    "name": "Correia T.",
+    "team": "Venezia",
+    "team_code": "VEN",
+    "type": "Infortunati",
+    "reason": "Il difensore assente domenica scorsa contro la Juventus per noie fisiche. Da valutare in vista della prossima giornata di campionato.",
     "is_out": true
   },
   "franjic": {
     "name": "Franjic",
-    "team": "Atalanta",
+    "team": "Venezia",
+    "team_code": "VEN",
     "type": "Infortunati",
     "reason": "il difensore costretto al cambio a Milano contro i rossoneri a fine agosto per un guaio alla spalla che ha richiesto l'intervento chirurgico. Lungo stop e rientro dalla metà di dicembre.",
     "is_out": true
   },
-  "haps": {
-    "name": "Haps",
-    "team": "Atalanta",
+  "mazzocchi": {
+    "name": "Mazzocchi",
+    "team": "Venezia",
+    "team_code": "VEN",
     "type": "Infortunati",
-    "reason": "il difensore non al meglio per noie fisiche, a rischio per lunedì a Bergamo. Da valutare nella rifinitura.",
-    "is_out": true
-  },
-  "busio": {
-    "name": "Busio",
-    "team": "Atalanta",
-    "type": "Infortunati",
-    "reason": "il regista dei veneti KO l'11 settembre contro la Fiorentina vittima di una distrazione intratendinea del bicipite femorale destro. Rientro dalla seconda metà di ottobre.",
-    "is_out": true
-  },
-  "dagasso": {
-    "name": "Dagasso",
-    "team": "Atalanta",
-    "type": "Infortunati",
-    "reason": "Il centrocampista non convocato dalla gara dell'11 settembre contro la Fiorentina per un problema fisico. Recuperabile dalla prima metà di ottobre, ma da valutare nei prossimi allenamenti le possibilità di convocazione già nel prossimo turno a Bergamo.",
-    "is_out": true
-  },
-  "adorante": {
-    "name": "Adorante",
-    "team": "Atalanta",
-    "type": "Infortunati",
-    "reason": "l'attaccante a fine luglio ha deciso di operarsi per un problema alla schiena, che lo costringerà a stare ai box per buona parte del girone d'andata del campionato. Tentativo di rientro da metà ottobre.",
+    "reason": "Il cursore di fascia dei lagunari non convocato domenica scorsa contro la Juventus per un risentimento muscolare alla gamba. Da valutare nei prossimi allenamenti verso la sfida di venerdì contro il Bologna.",
     "is_out": true
   }
 }

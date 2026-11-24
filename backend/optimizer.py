@@ -37,6 +37,7 @@ class LineupOptimizer:
         self.players_db = self._load_json(PLAYERS_FILE, [])
         self.fixtures_data = self._load_json(FIXTURES_FILE, {'fixtures': []})
         self.injuries_db = self._load_json(INJURIES_FILE, {})
+        self._injuries_mtime = os.path.getmtime(INJURIES_FILE) if os.path.exists(INJURIES_FILE) else 0.0
         
         self.players_lookup = {}
         for p in self.players_db:
@@ -126,10 +127,27 @@ class LineupOptimizer:
         fvm = player.get('fvm', 50)
         is_penalty = player.get('is_penalty_taker', False) or player.get('is_penalty', False)
         
-        # 1. Injuries & Suspensions check
+        # 1. Injuries & Suspensions check (auto-reload if cache file updated on disk)
+        if os.path.exists(INJURIES_FILE):
+            try:
+                cur_mtime = os.path.getmtime(INJURIES_FILE)
+                if cur_mtime > getattr(self, '_injuries_mtime', 0.0):
+                    self.injuries_db = self._load_json(INJURIES_FILE, {})
+                    self._injuries_mtime = cur_mtime
+            except Exception:
+                pass
+
         injury_info = None
+        player_team_upper = (team or '').upper().strip()
         for in_name, in_data in self.injuries_db.items():
-            if in_name in norm_name or norm_name in in_name:
+            in_norm = self._normalize_name(in_name)
+            if not in_norm:
+                continue
+            # Check team compatibility if injury entry specifies a team
+            in_team_code = (in_data.get('team_code') or '').upper().strip()
+            if in_team_code and player_team_upper and in_team_code != player_team_upper:
+                continue
+            if in_norm == norm_name or re.search(rf'\b{re.escape(in_norm)}\b', norm_name) or re.search(rf'\b{re.escape(norm_name)}\b', in_norm):
                 injury_info = in_data
                 break
                 

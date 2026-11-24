@@ -143,13 +143,14 @@ class AlertManager:
             print(f"[Scheduler] Error checking SOS Fanta update: {e}")
 
     def check_fixtures_update(self):
-        """Periodically syncs fixtures, matchday lineups and percentages from Fantacalcio.it."""
+        """Periodically syncs fixtures, matchday lineups, percentages and injuries from Fantacalcio.it."""
         try:
-            from backend.scraper import scrape_fixtures_and_lineups
+            from backend.scraper import scrape_fixtures_and_lineups, scrape_injuries
             scrape_fixtures_and_lineups()
-            print("[Scheduler] Fixtures and lineups refreshed automatically.")
+            scrape_injuries()
+            print("[Scheduler] Fixtures, lineups and injuries refreshed automatically.")
         except Exception as e:
-            print(f"[Scheduler] Error syncing fixtures: {e}")
+            print(f"[Scheduler] Error syncing fixtures/injuries: {e}")
 
     def check_ai_auto_learning(self):
         """Autonomous AI auto-learning check."""

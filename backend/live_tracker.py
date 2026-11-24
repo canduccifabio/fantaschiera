@@ -1,6 +1,7 @@
 import os
 import json
 import re
+import time
 import urllib.request
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
@@ -226,6 +227,9 @@ class LiveMatchTracker:
     def __init__(self):
         self.fixtures = self._load_fixtures()
         self.player_reference_profiles = {}
+        self._live_matches_cache: Dict[str, Dict[str, Any]] = {}
+        self._live_matches_ts: float = 0.0
+        self._votes_mem_cache: Dict[int, tuple] = {}  # matchday -> (ts, votes_map)
 
     def _load_fixtures(self) -> List[Dict]:
         if os.path.exists(FIXTURES_FILE):
@@ -262,12 +266,19 @@ class LiveMatchTracker:
                 return f
         return None
 
-    def fetch_live_serie_a_matches(self) -> Dict[str, Dict[str, Any]]:
+    def fetch_live_serie_a_matches(self, force_refresh: bool = False) -> Dict[str, Dict[str, Any]]:
         """
         Scrapes real live scores, match status and links directly from
         https://www.fantacalcio.it/live-serie-a
         Returns a dict keyed by match signature (e.g. 'GEN_FIO') with real scores and status.
         """
+        now_ts = time.time()
+        if not force_refresh and self._live_matches_cache:
+            any_live = any(m.get('status_code') in (1, 2, 3) for m in self._live_matches_cache.values())
+            ttl = 45 if any_live else 300
+            if now_ts - self._live_matches_ts < ttl:
+                return self._live_matches_cache
+
         url = 'https://www.fantacalcio.it/live-serie-a'
         live_map = {}
         try:
@@ -323,9 +334,12 @@ class LiveMatchTracker:
                     'events': []
                 }
             print(f"[LiveTracker] Fetched {len(live_map)} Serie A matches from live page")
+            if live_map:
+                self._live_matches_cache = live_map
+                self._live_matches_ts = time.time()
         except Exception as e:
             print(f"[LiveTracker] Note: Live Serie A check: {e}")
-        return live_map
+        return live_map or self._live_matches_cache
 
     def _map_espn_team(self, team_name: str) -> str:
         if not team_name:
@@ -818,14 +832,37 @@ class LiveMatchTracker:
                 'short_time': short_time
             }
 
-    def fetch_official_votes_table(self, matchday: Optional[int] = None) -> Dict[str, Dict]:
+    def fetch_official_votes_table(self, matchday: Optional[int] = None, force_refresh: bool = False, is_finished_round: bool = False, is_future_round: bool = False) -> Dict[str, Dict]:
         """
         Scrapes real official votes directly from Fantacalcio.it.
-        If matchday is specified, queries the matchday-specific page:
-        https://www.fantacalcio.it/voti-fantacalcio-serie-a/2026-27/{matchday}
-        Falls back to https://www.fantacalcio.it/voti-fantacalcio-serie-a (current live matchday)
-        and https://www.fantacalcio.it/live-serie-a.
+        Uses fast in-memory and disk caches for completed or future rounds so matchday switching is instant.
         """
+        if is_future_round and not force_refresh:
+            return {}
+
+        cache_key = int(matchday) if matchday else 0
+        cache_file = os.path.join(DATA_DIR, f"live_votes_cache_giornata_{matchday}.json") if matchday else LIVE_CACHE_FILE
+        now_ts = time.time()
+
+        if not force_refresh:
+            mem_entry = self._votes_mem_cache.get(cache_key)
+            if mem_entry:
+                ts, cached_map = mem_entry
+                ttl = 86400 if (is_finished_round and len(cached_map) > 100) else 60
+                if now_ts - ts < ttl:
+                    return cached_map
+
+            # For finished rounds, load disk cache directly without hitting Fantacalcio.it
+            if is_finished_round and os.path.exists(cache_file):
+                try:
+                    with open(cache_file, 'r', encoding='utf-8') as f:
+                        disk_map = json.load(f)
+                    if isinstance(disk_map, dict) and len(disk_map) > 100:
+                        self._votes_mem_cache[cache_key] = (now_ts, disk_map)
+                        return disk_map
+                except Exception:
+                    pass
+
         votes_map = {}
         urls_to_try = []
         if matchday:
@@ -833,12 +870,11 @@ class LiveMatchTracker:
                 f'https://www.fantacalcio.it/voti-fantacalcio-serie-a/2026-27/{matchday}',
                 f'https://www.fantacalcio.it/voti-fantacalcio-serie-a/{matchday}'
             ])
-        urls_to_try.extend([
-            'https://www.fantacalcio.it/voti-fantacalcio-serie-a',
-            'https://www.fantacalcio.it/live-serie-a'
-        ])
-
-        cache_file = os.path.join(DATA_DIR, f"live_votes_cache_giornata_{matchday}.json") if matchday else LIVE_CACHE_FILE
+        if not matchday or not is_finished_round:
+            urls_to_try.extend([
+                'https://www.fantacalcio.it/voti-fantacalcio-serie-a',
+                'https://www.fantacalcio.it/live-serie-a'
+            ])
 
         for url in urls_to_try:
             try:
@@ -952,7 +988,8 @@ class LiveMatchTracker:
                 print(f"[LiveTracker] Votes fetch error from {url}: {e}")
 
         if not votes_map:
-            for c_path in [cache_file, LIVE_CACHE_FILE]:
+            fallback_paths = [cache_file] if matchday else [cache_file, LIVE_CACHE_FILE]
+            for c_path in fallback_paths:
                 if os.path.exists(c_path):
                     try:
                         with open(c_path, 'r', encoding='utf-8') as f:
@@ -963,6 +1000,7 @@ class LiveMatchTracker:
                     except Exception:
                         pass
 
+        self._votes_mem_cache[cache_key] = (time.time(), votes_map)
         return votes_map
 
     def find_player_vote(self, p_name: str, votes_map: Dict) -> Optional[Dict]:
@@ -1311,7 +1349,7 @@ class LiveMatchTracker:
 
         return subs_applied
 
-    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None, matchday: Optional[int] = None, evaluated_catalog: Optional[List[Dict]] = None, bench: Optional[List[Dict]] = None) -> Dict[str, Any]:
+    def get_live_data(self, user_players: List[Dict], starters: List[Dict], actual_lineup: Optional[Dict] = None, matchday: Optional[int] = None, evaluated_catalog: Optional[List[Dict]] = None, bench: Optional[List[Dict]] = None, force_refresh: bool = False) -> Dict[str, Any]:
         """
         Builds the live match center comparing real/live performance vs predicted metrics.
         Follows strictly the real Serie A timetable and scrapes live scores from Fantacalcio.it.
@@ -1319,12 +1357,16 @@ class LiveMatchTracker:
         it uses those starters instead of theoretical recommendations.
         Supports matchday selection (e.g. 6 = past matchday with official votes, 7 = upcoming round).
         """
-        if matchday is None:
+        current_cache_md = 13
+        if os.path.exists(FIXTURES_FILE):
             try:
-                fixtures_data = self._load_fixtures()
-                matchday = int(fixtures_data.get('matchday', 7))
+                with open(FIXTURES_FILE, 'r', encoding='utf-8') as f:
+                    current_cache_md = int(json.load(f).get('matchday', 13))
             except Exception:
-                matchday = 7
+                pass
+
+        if matchday is None:
+            matchday = current_cache_md
         else:
             matchday = int(matchday)
 
@@ -1336,10 +1378,32 @@ class LiveMatchTracker:
         except Exception:
             now = datetime.now()
 
-        live_scores = self.fetch_live_serie_a_matches()
+        # Determine if this round is finished or future
+        is_finished_round = matchday < current_cache_md
+        is_future_round = matchday > current_cache_md
+        if not is_finished_round and not is_future_round and current_fixtures:
+            kickoffs = []
+            for fx in current_fixtures:
+                if fx.get('datetime_iso'):
+                    try:
+                        kickoffs.append(datetime.fromisoformat(fx['datetime_iso']))
+                    except Exception:
+                        pass
+            if kickoffs:
+                if now < min(kickoffs):
+                    is_future_round = True
+                elif now > max(kickoffs) + timedelta(hours=4):
+                    is_finished_round = True
+
+        live_scores = {} if (is_finished_round or is_future_round) and not force_refresh else self.fetch_live_serie_a_matches(force_refresh=force_refresh)
 
         # Official votes: fetch real validated grades for the requested matchday from Fantacalcio.it
-        official_votes = self.fetch_official_votes_table(matchday=matchday)
+        official_votes = self.fetch_official_votes_table(
+            matchday=matchday,
+            force_refresh=force_refresh,
+            is_finished_round=is_finished_round,
+            is_future_round=is_future_round
+        )
 
         effective_starters = starters or []
         effective_bench = bench or []
