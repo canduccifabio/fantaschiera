@@ -642,28 +642,109 @@ class LiveMatchTracker:
             print(f"[LiveTracker] Note: timeline scrape error for {match_url}: {e}")
         return events
 
-    def _get_fallback_score(self, h_code: str, a_code: str) -> tuple:
-        m_key = f"{h_code}_{a_code}"
-        if m_key in KNOWN_MATCH_SCORES:
-            return KNOWN_MATCH_SCORES[m_key]
-        events = self.load_match_events().get(m_key, [])
-        h_s, a_s = 0, 0
-        for ev in events:
-            ev_type = ev.get('type')
-            ev_team = ev.get('team')
-            if ev_type == 'goal':
-                if ev_team == h_code:
-                    h_s += 1
-                elif ev_team == a_code:
-                    a_s += 1
-            elif ev_type == 'own_goal':
-                if ev_team == h_code:
-                    a_s += 1
-                elif ev_team == a_code:
-                    h_s += 1
-        return (h_s, a_s)
+    def _get_fallback_score(self, h_code: str, a_code: str, fixture: Optional[Dict] = None, matchday: Optional[int] = None) -> tuple:
+        if fixture:
+            if fixture.get('home_score') is not None and fixture.get('away_score') is not None:
+                try:
+                    return (int(fixture['home_score']), int(fixture['away_score']))
+                except Exception:
+                    pass
+            if fixture.get('score'):
+                m_sc = re.search(r'(\d+)\s*[-:]\s*(\d+)', str(fixture['score']))
+                if m_sc:
+                    return (int(m_sc.group(1)), int(m_sc.group(2)))
 
-    def get_fixture_state(self, fixture: Optional[Dict], now: datetime, live_scores: Optional[Dict] = None) -> Dict[str, Any]:
+        m_key = f"{h_code}_{a_code}"
+        if matchday in (6, 7):
+            if m_key in KNOWN_MATCH_SCORES:
+                return KNOWN_MATCH_SCORES[m_key]
+            events = self.load_match_events().get(m_key, [])
+            h_s, a_s = 0, 0
+            for ev in events:
+                ev_type = ev.get('type')
+                ev_team = ev.get('team')
+                if ev_type == 'goal':
+                    if ev_team == h_code:
+                        h_s += 1
+                    elif ev_team == a_code:
+                        a_s += 1
+                elif ev_type == 'own_goal':
+                    if ev_team == h_code:
+                        a_s += 1
+                    elif ev_team == a_code:
+                        h_s += 1
+            return (h_s, a_s)
+        return (0, 0)
+
+    def fetch_matchday_scores_from_calendar(self, matchday: int, current_fixtures: List[Dict], force_refresh: bool = False) -> Dict[str, Dict[str, Any]]:
+        """Fetches final scores for a finished matchday from Fantacalcio calendario and caches them into fixtures_giornata_{matchday}.json."""
+        scores_map: Dict[str, Dict[str, Any]] = {}
+        # 1. Check if current_fixtures already contain real scores (unless forced)
+        if not force_refresh and current_fixtures and all(f.get('score') for f in current_fixtures):
+            for f in current_fixtures:
+                h_code = f.get('home_code', '').upper()
+                a_code = f.get('away_code', '').upper()
+                m_sc = re.search(r'(\d+)\s*[-:]\s*(\d+)', str(f.get('score', '')))
+                if h_code and a_code and m_sc:
+                    sh, sa = int(m_sc.group(1)), int(m_sc.group(2))
+                    scores_map[f"{h_code}_{a_code}"] = {
+                        'home_code': h_code, 'away_code': a_code,
+                        'home_score': sh, 'away_score': sa,
+                        'score_str': f"{sh} - {sa}", 'status_code': 4, 'events': []
+                    }
+            if len(scores_map) >= 8:
+                return scores_map
+
+        # 2. Scrape from Fantacalcio calendario/{matchday}
+        from backend.scraper import TEAM_MAPPING
+        url = f'https://www.fantacalcio.it/serie-a/calendario/{matchday}'
+        try:
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                html = resp.read().decode('utf-8', errors='ignore')
+            soup = BeautifulSoup(html, 'html.parser')
+            for m in soup.select('li.match.match-item, .match-card, .match'):
+                teams = [t.get_text(strip=True) for t in m.select('.team-name, .name') if t.get_text(strip=True)]
+                if len(teams) >= 2 and (teams[0] in TEAM_MAPPING or teams[1] in TEAM_MAPPING):
+                    h_code = TEAM_MAPPING.get(teams[0], teams[0][:3].upper()).upper()
+                    a_code = TEAM_MAPPING.get(teams[1], teams[1][:3].upper()).upper()
+                    score_el = m.select_one('.match-score, .score')
+                    score_txt = score_el.get_text(' ', strip=True) if score_el else ''
+                    m_sc = re.search(r'(\d+)\s*[-:]\s*(\d+)', score_txt)
+                    if m_sc:
+                        sh, sa = int(m_sc.group(1)), int(m_sc.group(2))
+                        scores_map[f"{h_code}_{a_code}"] = {
+                            'home_code': h_code, 'away_code': a_code,
+                            'home_score': sh, 'away_score': sa,
+                            'score_str': f"{sh} - {sa}", 'status_code': 4, 'events': []
+                        }
+                if len(scores_map) >= 10:
+                    break
+
+            # Persist scores into fixtures_giornata_{matchday}.json so subsequent calls are instant
+            f_path = os.path.join(DATA_DIR, f'fixtures_giornata_{matchday}.json')
+            if scores_map and os.path.exists(f_path):
+                try:
+                    with open(f_path, 'r', encoding='utf-8') as f:
+                        f_data = json.load(f)
+                    for fx in f_data.get('fixtures', []):
+                        key = f"{fx.get('home_code', '').upper()}_{fx.get('away_code', '').upper()}"
+                        if key in scores_map:
+                            fx['score'] = scores_map[key]['score_str']
+                            fx['home_score'] = scores_map[key]['home_score']
+                            fx['away_score'] = scores_map[key]['away_score']
+                            fx['is_finished'] = True
+                    with open(f_path, 'w', encoding='utf-8') as f:
+                        json.dump(f_data, f, ensure_ascii=False, indent=2)
+                    print(f"[LiveTracker] Persisted {len(scores_map)} final scores into fixtures_giornata_{matchday}.json")
+                except Exception:
+                    pass
+        except Exception as e:
+            print(f"[LiveTracker] Calendar scores fetch error for MD {matchday}: {e}")
+
+        return scores_map
+
+    def get_fixture_state(self, fixture: Optional[Dict], now: datetime, live_scores: Optional[Dict] = None, matchday: Optional[int] = None) -> Dict[str, Any]:
         """
         Determines the real-time match state based on real-time Fantacalcio.it live scores
         and fixture kickoff timing.
@@ -711,7 +792,7 @@ class LiveMatchTracker:
             a_score = live_info['away_score']
             # If match is finished or st_code == 4 and score is 0-0, verify with fallback
             if (st_code == 4 or (kickoff_dt and now >= kickoff_dt + timedelta(minutes=115))) and h_score == 0 and a_score == 0:
-                fb_h, fb_a = self._get_fallback_score(h_code, a_code)
+                fb_h, fb_a = self._get_fallback_score(h_code, a_code, fixture=fixture, matchday=matchday)
                 if fb_h > 0 or fb_a > 0:
                     h_score, a_score = fb_h, fb_a
             score_with_goals = f"{h_name} {h_score} - {a_score} {a_name}"
@@ -797,7 +878,7 @@ class LiveMatchTracker:
             else:
                 min_str = "90+4'"
 
-            h_score, a_score = self._get_fallback_score(h_code, a_code)
+            h_score, a_score = self._get_fallback_score(h_code, a_code, fixture=fixture, matchday=matchday)
             score_with_goals = f"{h_name} {h_score} - {a_score} {a_name}"
 
             return {
@@ -815,7 +896,7 @@ class LiveMatchTracker:
                 'short_time': short_time
             }
         else:
-            h_score, a_score = self._get_fallback_score(h_code, a_code)
+            h_score, a_score = self._get_fallback_score(h_code, a_code, fixture=fixture, matchday=matchday)
             score_with_goals = f"{h_name} {h_score} - {a_score} {a_name}"
             return {
                 'status': 'TERMINATA',
@@ -852,12 +933,18 @@ class LiveMatchTracker:
                 if now_ts - ts < ttl:
                     return cached_map
 
-            # For finished rounds, load disk cache directly without hitting Fantacalcio.it
+            # For finished rounds, load verified disk cache directly without hitting Fantacalcio.it
             if is_finished_round and os.path.exists(cache_file):
                 try:
                     with open(cache_file, 'r', encoding='utf-8') as f:
                         disk_map = json.load(f)
-                    if isinstance(disk_map, dict) and len(disk_map) > 100:
+                    meta = disk_map.get('_cache_meta', {}) if isinstance(disk_map, dict) else {}
+                    if (
+                        isinstance(disk_map, dict)
+                        and len(disk_map) > 100
+                        and meta.get('matchday') == cache_key
+                        and meta.get('is_complete') is True
+                    ):
                         self._votes_mem_cache[cache_key] = (now_ts, disk_map)
                         return disk_map
                 except Exception:
@@ -882,6 +969,14 @@ class LiveMatchTracker:
                 with urllib.request.urlopen(req, timeout=10) as resp:
                     html = resp.read().decode('utf-8', errors='ignore')
                 soup = BeautifulSoup(html, 'html.parser')
+
+                # Verify that the scraped page actually corresponds to the requested matchday
+                if matchday:
+                    title_txt = (soup.title.get_text(' ', strip=True) if soup.title else '') + ' ' + (soup.select_one('h1').get_text(' ', strip=True) if soup.select_one('h1') else '')
+                    m_title = re.search(r'(\d+)\s*[°ª]?\s*giornata', title_txt, re.I)
+                    if m_title and int(m_title.group(1)) != int(matchday):
+                        print(f"[LiveTracker] Skipping {url}: page belongs to {m_title.group(1)}ª giornata, expected {matchday}ª")
+                        continue
 
                 for tr in soup.select('table tr'):
                     p_name_el = tr.select_one('.player-name, [class*="player-name"]')
@@ -975,11 +1070,17 @@ class LiveMatchTracker:
 
                 if votes_map:
                     print(f"[LiveTracker] Successfully scraped {len(votes_map)} player votes from {url}")
+                    votes_map['_cache_meta'] = {
+                        'matchday': cache_key,
+                        'is_complete': bool(is_finished_round),
+                        'scraped_at': time.time()
+                    }
                     try:
                         with open(cache_file, 'w', encoding='utf-8') as f:
                             json.dump(votes_map, f, ensure_ascii=False)
-                        with open(LIVE_CACHE_FILE, 'w', encoding='utf-8') as f:
-                            json.dump(votes_map, f, ensure_ascii=False)
+                        if not is_finished_round:
+                            with open(LIVE_CACHE_FILE, 'w', encoding='utf-8') as f:
+                                json.dump(votes_map, f, ensure_ascii=False)
                     except Exception:
                         pass
                     break
@@ -1395,7 +1496,12 @@ class LiveMatchTracker:
                 elif now > max(kickoffs) + timedelta(hours=4):
                     is_finished_round = True
 
-        live_scores = {} if (is_finished_round or is_future_round) and not force_refresh else self.fetch_live_serie_a_matches(force_refresh=force_refresh)
+        if is_finished_round:
+            live_scores = self.fetch_matchday_scores_from_calendar(matchday, current_fixtures, force_refresh=force_refresh)
+        elif is_future_round and not force_refresh:
+            live_scores = {}
+        else:
+            live_scores = self.fetch_live_serie_a_matches(force_refresh=force_refresh)
 
         # Official votes: fetch real validated grades for the requested matchday from Fantacalcio.it
         official_votes = self.fetch_official_votes_table(
@@ -1445,9 +1551,9 @@ class LiveMatchTracker:
                 if p_norm_l:
                     exp_map[p_norm_l] = p.get('expected_fantavoto')
 
-        # Cross-reference secondary source: ESPN Live Scoreboard API
-        espn_scoreboard = self.fetch_espn_live_scoreboard()
-        match_events_db = self.load_match_events()
+        # Cross-reference secondary source: ESPN Live Scoreboard API (only for active/live rounds)
+        espn_scoreboard = {} if (is_finished_round or is_future_round) and not force_refresh else self.fetch_espn_live_scoreboard()
+        match_events_db = self.load_match_events() if matchday in (6, 7) else {}
 
         # Pre-resolve fixtures state and reconcile timeline events across Fantacalcio + ESPN
         reconciled_events_by_key = {}
@@ -1457,14 +1563,14 @@ class LiveMatchTracker:
             f_h = f.get('home_code', '').upper()
             f_a = f.get('away_code', '').upper()
             m_key = f"{f_h}_{f_a}"
-            m_state = self.get_fixture_state(f, now, live_scores=live_scores)
+            m_state = self.get_fixture_state(f, now, live_scores=live_scores, matchday=matchday)
             fixture_state_by_key[m_key] = m_state
 
             if m_state.get('is_upcoming'):
                 reconciled_events_by_key[m_key] = []
             else:
                 live_item = (live_scores or {}).get(m_key, {})
-                fc_events = live_item.get('events') or (match_events_db.get(m_key) if matchday == 6 or m_state['is_finished'] else []) or (MATCH_KNOWN_EVENTS.get(m_key, []) if matchday == 6 else [])
+                fc_events = live_item.get('events') or (match_events_db.get(m_key) if matchday in (6, 7) else []) or (MATCH_KNOWN_EVENTS.get(m_key, []) if matchday == 6 else [])
                 espn_item = (espn_scoreboard or {}).get(m_key, {})
                 espn_events = espn_item.get('events', [])
 
@@ -1872,7 +1978,7 @@ class LiveMatchTracker:
             f_h_code = f.get('home_code', '').upper()
             f_a_code = f.get('away_code', '').upper()
             match_key = f"{f_h_code}_{f_a_code}"
-            m_state = fixture_state_by_key.get(match_key) or self.get_fixture_state(f, now, live_scores=live_scores)
+            m_state = fixture_state_by_key.get(match_key) or self.get_fixture_state(f, now, live_scores=live_scores, matchday=matchday)
             match_events = reconciled_events_by_key.get(match_key, [])
 
             # Tag events involving user's players directly in the backend

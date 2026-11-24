@@ -331,7 +331,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "2 - 0",
+      "home_score": 2,
+      "away_score": 0,
+      "is_finished": true
     },
     {
       "id": 2,
@@ -642,7 +646,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "3 - 0",
+      "home_score": 3,
+      "away_score": 0,
+      "is_finished": true
     },
     {
       "id": 3,
@@ -959,7 +967,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "1 - 5",
+      "home_score": 1,
+      "away_score": 5,
+      "is_finished": true
     },
     {
       "id": 4,
@@ -1300,7 +1312,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "1 - 0",
+      "home_score": 1,
+      "away_score": 0,
+      "is_finished": true
     },
     {
       "id": 5,
@@ -1653,7 +1669,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "0 - 2",
+      "home_score": 0,
+      "away_score": 2,
+      "is_finished": true
     },
     {
       "id": 6,
@@ -1952,7 +1972,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "5 - 1",
+      "home_score": 5,
+      "away_score": 1,
+      "is_finished": true
     },
     {
       "id": 7,
@@ -2287,7 +2311,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "1 - 1",
+      "home_score": 1,
+      "away_score": 1,
+      "is_finished": true
     },
     {
       "id": 8,
@@ -2592,7 +2620,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "4 - 4",
+      "home_score": 4,
+      "away_score": 4,
+      "is_finished": true
     },
     {
       "id": 9,
@@ -2915,7 +2947,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "3 - 0",
+      "home_score": 3,
+      "away_score": 0,
+      "is_finished": true
     },
     {
       "id": 10,
@@ -3250,7 +3286,11 @@
           "is_starter": false
         }
       },
-      "ballottaggi": []
+      "ballottaggi": [],
+      "score": "4 - 0",
+      "home_score": 4,
+      "away_score": 0,
+      "is_finished": true
     }
   ],
   "last_updated": "2026-11-10T19:16:21.910781",
